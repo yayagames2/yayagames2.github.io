@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Busy Bistro</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#ffd9c2;--accent:#ff5a3a;--deep:#8a2a1a;--btn:linear-gradient(180deg,#ff7a4a,#e8442a);--btnsh:#9a2412;--scr:linear-gradient(180deg,rgba(255,217,194,.55),rgba(255,180,140,.94))}
+.sub{color:#6a2a1a}.tabs{background:rgba(255,255,255,.55)}.tabs button{color:#6a2a1a}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:6px 8px max(8px,env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;flex-wrap:wrap;background:linear-gradient(180deg,rgba(90,40,20,0),rgba(90,40,20,.55) 30%)}
+.ing{width:56px;height:60px;border-radius:18px;background:#fff;box-shadow:0 5px 0 #d8b8a0,0 8px 16px rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px;line-height:1;position:relative}
+.ing small{font-size:10.5px;font-weight:800;color:#6a3a2a;margin-top:3px;white-space:nowrap}
+.ing:active{transform:translateY(4px);box-shadow:0 1px 0 #d8b8a0}
+.ing.trash{background:#ffe0e0}
+.ing.busy{opacity:.5}
+.ord{position:fixed;z-index:4;transform:translate(-50%,-100%);background:#fff;border-radius:16px;padding:6px 8px 8px;box-shadow:0 8px 18px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;cursor:pointer;border:3px solid transparent}
+.ord::after{content:"";position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border:9px solid transparent;border-top-color:#fff;border-bottom:0}
+.ord .its{display:flex;gap:6px;align-items:flex-end;direction:ltr}.ord .stk{display:flex;flex-direction:column;align-items:center;background:#fff7ec;border-radius:10px;padding:2px 6px}.ord .ly{font-size:19px;line-height:20px;height:20px;display:flex;align-items:center}.ord .sd{font-size:24px}
+.ord .pt{width:100%;height:6px;border-radius:3px;background:#eee;overflow:hidden}.ord .pt i{display:block;height:100%;background:#2fd36a;border-radius:3px}
+.ord.match{border-color:#2fd36a;animation:pulse .5s ease-in-out infinite}
+.ord.pre{border-color:#ffd23a}
+.ord .ly{border-radius:7px;padding:0 3px;transition:background .15s}.ord .ly.ok{background:#bff3cc;box-shadow:inset 0 0 0 2px #2fd36a}.ord .sd{border-radius:8px;padding:0 2px}.ord .sd.ok{background:#bff3cc}
+.ing.ready{box-shadow:0 0 0 4px #2fd36a,0 5px 0 #d8b8a0;animation:pulse3 .7s ease-in-out infinite}@keyframes pulse3{50%{transform:scale(1.1)}}
+.slot{background:conic-gradient(rgba(255,210,58,.55) var(--p,0deg),transparent 0)}.slot.warn{border-color:#ffb31a;animation:pulse2 .3s ease-in-out infinite}
+@keyframes pulse{50%{transform:translate(-50%,-100%) scale(1.06)}}
+.slot{position:fixed;z-index:4;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:3px dashed rgba(255,255,255,.7)}
+.slot.ready{border:3px solid #2fd36a;box-shadow:0 0 16px #2fd36a;animation:pulse2 .8s ease-in-out infinite}
+.slot.burnt{border:3px solid #ff3b3b}
+@keyframes pulse2{50%{transform:translate(-50%,-50%) scale(1.12)}}
+.coinpop{position:fixed;z-index:6;font-weight:900;font-size:22px;color:#ffb81f;text-shadow:0 2px 0 #7a4a0a;pointer-events:none;animation:up 1s ease-out forwards;transform:translateX(-50%)}
+@keyframes up{to{transform:translate(-50%,-60px);opacity:0}}
+.goal{position:fixed;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:12px;right:12px;height:12px;border-radius:6px;background:rgba(0,0,0,.15);z-index:5;overflow:hidden}
+.goal i{display:block;height:100%;background:linear-gradient(90deg,#ffd23a,#ff8a1f);transition:width .3s}
+.goal b{position:absolute;inset-inline-end:6px;top:-1px;font-size:10px}
+.rest{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;width:min(380px,100%)}
+.rb2{border-radius:20px;background:#fff;padding:12px;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.18);border:3px solid transparent;font-size:16px;color:#5a2a1a}
+.rb2 i{display:block;font-style:normal;font-size:38px}
+.rb2[aria-pressed=true]{border-color:#ff5a3a}
+.rb2.lock{opacity:.55}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="over"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="mapBtn"></button>
+  <div class="pill"><b id="lvName"></b><small id="lvInfo"></small></div>
+  <div class="sp"></div>
+  <div class="pill"><b id="coinTxt">🪙 0</b><small id="timeTxt"></small></div>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div class="goal" id="goal" hidden><i id="goalI"></i></div>
+<div class="bar" id="bar" hidden></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo"><span class="a">BUSY</span><span class="b">BISTRO</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="rest" id="rest"></div>
+  <div class="lgrid" id="lgrid" style="grid-template-columns:repeat(5,1fr)"></div>
+  <div class="chips"><button class="chip" id="qBtn"></button></div>
+</section>
+<div class="sheet" id="winSheet" hidden><div class="card"><h3 id="wT"></h3><div class="stars" id="wStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="wP"></p><div class="row"><button class="btn" id="wMap"></button><button class="btn" id="wAgain"></button><button class="btn pri" id="wNext"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="chef/game.js"></script>
+</body>
+</html>

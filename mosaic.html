@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Color Mosaic</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#f6f3ee;--accent:#ff6a8a;--deep:#7a2a5a;--btn:linear-gradient(180deg,#ff8aa8,#ff4f7a);--btnsh:#a8234a;--panel:rgba(255,255,255,.95);--scr:#f6f3ee}
+body{background:#f6f3ee;color:#2a2440}
+#cv{position:fixed;inset:0;touch-action:none;display:block}
+.logo .a{color:#ff6a8a}.logo .b{color:#fff;-webkit-text-stroke:3px #7a2a5a;text-shadow:0 6px 0 #7a2a5a,0 14px 24px rgba(122,42,90,.3)}
+.sub{color:#6a5a7a}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;width:min(760px,100%);margin:18px auto 30px}
+.pc{background:#fff;border-radius:22px;padding:8px;box-shadow:0 8px 22px rgba(60,40,80,.12);display:flex;flex-direction:column;gap:6px;position:relative;text-align:start}
+.pc img,.pc canvas{width:100%;aspect-ratio:1;border-radius:16px;display:block;background:#eee}
+.pc b{font-size:14px;padding:0 4px}.pc small{font-size:11.5px;color:#8a7a9a;font-weight:700;padding:0 4px}
+.pc .pb{height:6px;border-radius:3px;background:#eee;margin:0 4px 4px;overflow:hidden}.pc .pb i{display:block;height:100%;background:linear-gradient(90deg,#ff8aa8,#ffb84a)}
+.pc .ok{position:absolute;top:14px;inset-inline-end:14px;background:#2fd36a;color:#fff;border-radius:999px;font-size:12px;font-weight:900;padding:3px 9px;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.pc .lv{position:absolute;top:14px;inset-inline-start:14px;background:rgba(255,255,255,.9);border-radius:999px;font-size:11px;font-weight:900;padding:3px 8px;color:#7a2a5a}
+.pal{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(255,255,255,.96);box-shadow:0 -8px 24px rgba(60,40,80,.12);border-radius:24px 24px 0 0;padding:10px 6px max(10px,env(safe-area-inset-bottom))}
+.pal .prow{display:flex;gap:8px;overflow-x:auto;padding:4px 8px;scrollbar-width:none;justify-content:flex-start}
+.pal .prow::-webkit-scrollbar{display:none}
+.cb{flex:none;width:56px;height:56px;border-radius:50%;position:relative;display:grid;place-items:center;font-weight:900;font-size:18px;transition:transform .15s}
+.cb i{position:absolute;inset:4px;border-radius:50%;box-shadow:inset 0 -4px 8px rgba(0,0,0,.18)}
+.cb span{position:relative;z-index:1;text-shadow:0 0 3px rgba(255,255,255,.7)}
+.cb.dk span{color:#fff;text-shadow:0 0 3px rgba(0,0,0,.6)}
+.cb.sel{transform:scale(1.14)}
+.cb.done{opacity:.35}.cb.done span{font-size:22px}
+.cb.flash{animation:fl .5s ease-in-out 2}
+@keyframes fl{50%{transform:scale(1.25)}}
+.hd{display:flex;gap:8px;align-items:center}
+.pgr{min-width:90px}
+.done .card{background:#fff}
+#fin{position:fixed;inset:0;z-index:9;pointer-events:none}
+@media (orientation:landscape) and (max-height:620px){#hud{right:160px}.pal{left:auto;top:0;width:150px;border-radius:24px 0 0 24px;padding:max(66px,env(safe-area-inset-top)) 6px 10px}.pal .prow{flex-wrap:wrap;overflow-y:auto;overflow-x:hidden;height:100%;align-content:flex-start;justify-content:center}.cb{width:52px;height:52px}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<canvas id="fin"></canvas>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="galBtn"></button>
+  <div class="pill pgr"><b id="pName"></b><small id="pProg"></small></div>
+  <div class="sp"></div>
+  <button class="rb" id="hintBtn">🔍</button>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div class="pal" id="pal" hidden><div class="prow" id="palRow"></div></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:4vh"><span class="a">COLOR</span><span class="b">MOSAIC</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="gal" id="gal"></div>
+</section>
+<div class="sheet" id="doneSheet" hidden><div class="card"><h3 id="dT"></h3><p id="dP"></p><div class="row"><button class="btn" id="dGal"></button><button class="btn" id="dReplay"></button><button class="btn pri" id="dNext"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="mosaic/game.js"></script>
+</body>
+</html>

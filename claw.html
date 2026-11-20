@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Claw Zoo</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#1a0f33;--accent:#ffcf3a;--deep:#b0145f;--btn:linear-gradient(180deg,#ff5fa2,#d61f6e);--btnsh:#8a0f45;--panel:rgba(255,255,255,.94);--scr:radial-gradient(circle at 50% 25%,rgba(120,40,140,.35),rgba(20,10,45,.92))}
+.ctrl{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-end;padding:0 16px max(16px,env(safe-area-inset-bottom));pointer-events:none;direction:ltr}
+.ctrl>*{pointer-events:auto}
+.pad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:4px}
+.pad button{border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 5px 0 rgba(0,0,0,.25);font-size:24px;font-weight:900;color:#b0145f;touch-action:none}
+.pad button:active,.pad button.on{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.grab{width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7dff9a,#14b84a 60%,#0a7a2e);box-shadow:0 8px 0 #06501d,0 14px 30px rgba(0,0,0,.4),inset 0 -6px 12px rgba(0,0,0,.2);color:#fff;font-weight:900;font-size:22px;letter-spacing:1px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.grab:active{transform:translateY(5px);box-shadow:0 3px 0 #06501d}
+.grab[disabled]{filter:grayscale(.7);opacity:.6}
+.timer{position:fixed;top:max(66px,calc(env(safe-area-inset-top) + 60px));left:50%;transform:translateX(-50%);z-index:5;font-weight:900;font-size:28px;color:#fff;text-shadow:0 0 12px #ff5fa2;direction:ltr}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:10px}
+.pl{border-radius:16px;background:#f6f1ff;padding:6px 4px 8px;border:3px solid #e6dcf7;font-size:12px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.pl img{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:radial-gradient(circle,#fff,#efe6ff)}
+.pl.miss img{filter:brightness(0) opacity(.22);background:none}
+.pl .x{position:absolute;top:4px;inset-inline-end:6px;font-size:11px;background:#1c2240;color:#fff;border-radius:8px;padding:0 5px}
+.r1{border-color:#5fb0ff}.r2{border-color:#b06bff}.r3{border-color:#ffc21a;box-shadow:0 0 12px rgba(255,194,26,.6)}
+.mtabs{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.mtabs button{padding:7px 12px;border-radius:12px;background:#f1ecfa;font-weight:800;font-size:13px}
+.mtabs button[aria-pressed=true]{background:#d61f6e;color:#fff}
+.prize img{width:180px;height:180px;border-radius:24px;background:#f6f1ff}
+.rar{display:inline-block;margin-top:6px;padding:4px 12px;border-radius:999px;font-weight:900;font-size:13px;color:#fff}
+.mach{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px;width:min(360px,100%)}
+.mb{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:20px;background:#fff;color:#1c2240;text-align:start;box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.mb i{font-style:normal;font-size:34px}
+.mb b{display:block;font-size:17px}.mb small{color:#6a6f8a;font-weight:700}
+.mb.lock{opacity:.6}
+.grab.ready{animation:coinPulse 1s ease-in-out infinite}
+@keyframes coinPulse{0%,100%{transform:scale(1);filter:brightness(1);box-shadow:0 6px 0 rgba(0,0,0,.3),0 0 0 0 rgba(255,215,60,.8)}50%{transform:scale(1.1);filter:brightness(1.25);box-shadow:0 6px 0 rgba(0,0,0,.3),0 0 0 14px rgba(255,215,60,0),0 0 28px #ffd23a}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="menuBtn"></button>
+  <div class="pill"><b id="mName"></b><small id="mProg"></small></div>
+  <div class="sp"></div>
+  <div class="pill coins"><b id="coinTxt">🪙 0</b><small id="coinNext"></small></div>
+  <button class="rb" id="albumBtn">📒</button>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div class="timer" id="timer" hidden></div>
+<div class="ctrl" id="ctrl" hidden>
+  <div class="pad" id="pad"><span></span><button data-d="up">▲</button><span></span><button data-d="left">◀</button><span></span><button data-d="right">▶</button><span></span><button data-d="down">▼</button><span></span></div>
+  <button class="grab" id="grabBtn">GRAB</button>
+</div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:4vh"><span class="a">CLAW</span><span class="b">ZOO</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="mach" id="machines"></div>
+  <div class="chips"><button class="chip" id="albumBtn2"></button><button class="chip" id="qBtn"></button></div>
+</section>
+<div class="sheet" id="albumSheet" hidden><div class="card"><h3 id="aT"></h3><div class="mtabs" id="aTabs"></div><p id="aP" style="margin:8px 0 0"></p><div class="album" id="album"></div><div class="row" style="margin-top:14px"><button class="btn" id="aClose"></button></div></div></div>
+<div class="sheet" id="prizeSheet" hidden><div class="card prize"><h3 id="zT"></h3><img id="zImg" alt=""><div><b id="zName" style="font-size:22px"></b></div><span class="rar" id="zRar"></span><p id="zP"></p><div class="row"><button class="btn pri" id="zOk"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="claw/game.js"></script>
+</body>
+</html>

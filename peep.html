@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Peep Seek</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#fff4d0;--accent:#ffb21f;--deep:#5a3a0a;--btn:linear-gradient(180deg,#ffd84a,#f0a014);--btnsh:#a8640a;--panel:rgba(255,255,255,.95);--scr:linear-gradient(180deg,#fff6d8,#d8f0c0)}
+body{background:#2a3a2a;color:#5a3a0a}
+#cv,#fx{position:fixed;inset:0;display:block}#cv{touch-action:none}#fx{pointer-events:none;z-index:4}
+.rb,.pill{color:#5a3a0a;background:rgba(255,255,255,.92);box-shadow:0 4px 0 rgba(0,0,0,.15),0 6px 14px rgba(0,0,0,.15)}
+.rb:disabled{opacity:.4}
+.logo .a{color:#ffb21f;text-shadow:0 4px 0 #a8640a}.logo .b{color:#fff;-webkit-text-stroke:3px #5a3a0a;text-shadow:0 6px 0 #5a3a0a,0 14px 26px rgba(90,58,10,.3)}
+.sub{color:#6a4a1a;max-width:520px}
+.thm{width:min(460px,100%);margin-top:12px}.thm h3{margin:0 4px 0;text-align:start;font-size:17px}.thm .lgrid{margin-top:6px;width:100%}
+.lb{background:#fff;color:#5a3a0a}
+#strip{position:fixed;z-index:5;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:50%;transform:translateX(-50%);display:flex;gap:2px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.85);pointer-events:none;direction:ltr}
+#strip i{font-style:normal;font-size:17px;filter:grayscale(1) opacity(.35)}#strip i.on{filter:none;animation:pp .5s ease-out}
+@keyframes pp{0%{transform:scale(2)}100%{transform:scale(1)}}
+#zoomC{position:fixed;z-index:5;right:max(12px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+#zoomC button{width:52px;height:52px;border-radius:16px;font-size:26px;font-weight:900}
+#hintBtn{position:relative;font-size:20px}#hintN{position:absolute;top:-4px;right:-4px;background:#ff5a3a;color:#fff;font-size:11px;font-weight:900;border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center}
+.card{background:#fff}
+.mascot{font-size:64px;margin-top:2px;animation:bob 1.6s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px) rotate(-6deg)}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas><canvas id="fx"></canvas>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="backBtn"></button>
+  <div class="pill"><b id="fTxt" style="direction:ltr">0/0</b><small id="lvTxt"></small></div>
+  <div class="sp"></div>
+  <div class="pill"><b id="tTxt" style="direction:ltr">0:00</b></div>
+  <button class="rb" id="hintBtn">💡<span id="hintN">3</span></button>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div id="strip" hidden></div>
+<div id="zoomC" hidden><button class="rb" id="zIn">＋</button><button class="rb" id="zOut">－</button><button class="rb" id="zFit" style="font-size:20px">⤢</button></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:3vh"><span class="a">PEEP</span><span class="b">SEEK</span></h1>
+  <div class="mascot">🐤🔍</div>
+  <p class="sub" id="tSub"></p>
+  <div id="lv" style="display:contents"></div>
+  <div style="height:24px"></div>
+</section>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="eP"></p><div class="row"><button class="btn" id="eMap"></button><button class="btn" id="eAgain"></button><button class="btn pri" id="eNext"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMap"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="peep/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Jam Escape</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#8fd0ff;--accent:#ff3b4e;--deep:#1d2a5e;--btn:linear-gradient(180deg,#ff5a6a,#e0233a);--btnsh:#a3112a;--scr:linear-gradient(180deg,rgba(40,70,140,.45),rgba(25,35,80,.9))}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="mapBtn"></button>
+  <div class="pill"><b id="lvName"></b><small id="lvMoves"></small></div>
+  <div class="sp"></div>
+  <button class="rb" id="hintBtn">💡<span class="n" id="hintN">3</span></button>
+  <button class="rb" id="undoBtn"></button>
+  <button class="rb" id="resetBtn"></button>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo"><span class="a">JAM</span><span class="b">ESCAPE</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="tabs" id="tabs"></div>
+  <div class="lgrid" id="lgrid"></div>
+  <div class="chips"><button class="chip" id="qBtn"></button></div>
+</section>
+<div class="sheet" id="winSheet" hidden><div class="card"><h3 id="wT"></h3><div class="stars" id="wStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="wP"></p><div class="row"><button class="btn" id="wMap"></button><button class="btn" id="wAgain"></button><button class="btn pri" id="wNext"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="jam/game.js"></script>
+</body>
+</html>

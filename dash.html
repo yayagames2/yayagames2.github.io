@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>City Dash</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#bfe4ff;--accent:#ff6a1a;--deep:#1a3a8a;--btn:linear-gradient(180deg,#ffb23a,#f06a14);--btnsh:#8a3a0a;--panel:rgba(255,255,255,.95);--scr:transparent}
+body{background:#bfe4ff;color:#1c2240}
+#stage{touch-action:none}
+.rb,.pill{color:#fff;background:rgba(20,30,60,.45);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(8px)}
+#hud .pill b{font-size:18px}
+#pows{position:fixed;z-index:5;top:max(64px,calc(env(safe-area-inset-top) + 62px));inset-inline-start:12px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#pows span{position:relative;width:46px;height:46px;border-radius:14px;background:rgba(20,30,60,.5);display:grid;place-items:center;font-size:24px;overflow:hidden}
+#pows i{position:absolute;left:0;bottom:0;height:5px;background:#ffd23a}
+#title{justify-content:flex-end;background:linear-gradient(180deg,rgba(10,20,50,0) 40%,rgba(10,20,50,.75))}
+#title .homeT{z-index:3}
+#title .logo{pointer-events:none;position:absolute;top:max(18px,env(safe-area-inset-top));left:0;right:0;margin:0;font-size:clamp(42px,12vw,70px)}
+.logo .a{color:#ffd23a;text-shadow:0 4px 0 #8a4a0a}.logo .b{color:#fff;-webkit-text-stroke:3px #1a3a8a;text-shadow:0 6px 0 #1a3a8a}
+.stat{display:flex;gap:10px;justify-content:center;color:#fff;font-weight:900;font-size:18px;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+.stat span{background:rgba(20,30,60,.5);border-radius:999px;padding:4px 14px}
+.go2{width:min(340px,90vw);height:66px;border-radius:999px;background:linear-gradient(180deg,#7aff5a,#22b81a);color:#fff;font-weight:900;font-size:26px;box-shadow:0 7px 0 #0f6a0a,0 14px 26px rgba(0,0,0,.35);margin-top:12px;animation:gp 1.2s ease-in-out infinite}@keyframes gp{50%{transform:scale(1.05)}}
+.trow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0 6px}
+.chip svg{width:22px;height:22px;display:block}
+.shop{max-height:80vh;overflow-y:auto;width:min(440px,94vw)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0 14px}
+.ci,.ui{border-radius:16px;background:#f2f4fb;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;border:3px solid transparent;font-weight:800;color:#1c2240}
+.ci.on{border-color:#ffb23a;background:#fff4dc}.ci .dot{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.ci small,.ui small{font-size:11px;opacity:.75}.ui span{font-size:13px;color:#e86a1a}
+.card{background:#fff;color:#1c2240}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="pill"><b id="coinTxt" style="direction:ltr">0</b><small>🪙</small></div>
+  <div class="sp"></div>
+  <div class="pill"><b id="scoreTxt" style="direction:ltr">0</b><small id="multTxt">x1</small></div>
+</div>
+<div id="pows"></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo"><span class="a">CITY</span><span class="b">DASH</span></h1>
+  <div class="stat"><span>🏆 <b id="bestL"></b> <b id="tBest">0</b></span><span>🪙 <b id="tCoins">0</b></span></div>
+  <button class="go2" id="goBtn"></button>
+  <div class="trow"><button class="chip" id="shopBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndBtn"></button></div>
+</section>
+<div class="sheet" id="shopSheet" hidden><div class="card shop"><h3><span id="shopT"></span> · 🪙 <span id="shopCoins"></span></h3><h4 id="charsT" style="margin:6px 0 0"></h4><div class="grid2" id="chars"></div><h4 id="upsT" style="margin:0"></h4><div class="grid2" id="ups"></div><div class="row"><button class="btn pri" id="shopClose"></button></div></div></div>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><p id="eP"></p><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="dash/game.js"></script>
+</body>
+</html>

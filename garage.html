@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Garage Flip</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#12141c;--accent:#ff8a1f;--deep:#6a2a00;--btn:linear-gradient(180deg,#ffb23a,#ff6a1a);--btnsh:#8a3300;--panel:rgba(22,25,36,.86);--scr:radial-gradient(circle at 50% 30%,rgba(40,44,70,.25),rgba(10,11,18,.9))}
+body{color:#fff}
+.rb,.pill{color:#fff;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.logo .a{color:#ffb23a;text-shadow:0 0 18px rgba(255,140,30,.6)}
+.logo .b{-webkit-text-stroke:3px #ff6a1a;text-shadow:0 6px 0 #6a2a00,0 0 40px rgba(255,120,20,.5)}
+.sub{color:#e9e2d6}
+.money b{color:#7dff9a;direction:ltr}
+.lvl{min-width:86px}.lvl .xb{height:4px;border-radius:2px;background:rgba(255,255,255,.18);margin-top:3px;overflow:hidden}.lvl .xb i{display:block;height:100%;background:#ffb23a}
+.est{position:fixed;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;width:min(94vw,460px)}
+.est .box{background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:6px 14px;display:flex;gap:14px;align-items:center;backdrop-filter:blur(8px)}
+.est .box div{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.est small{font-size:11px;opacity:.7;font-weight:700}.est b{font-size:18px;direction:ltr}
+.est .delta{font-size:13px;font-weight:900;direction:ltr}
+.up{color:#7dff9a}.dn{color:#ff7a7a}
+.stl{color:#ffd23a;letter-spacing:1px;font-size:15px}
+.trend{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.trend span{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:rgba(22,25,36,.8);border:1px solid rgba(255,255,255,.14)}
+.trend .hot{border-color:#ffb23a;color:#ffd08a}.trend .cold{border-color:#6a8aff;color:#a9b8ff}
+.req{background:linear-gradient(180deg,rgba(80,50,10,.92),rgba(50,30,8,.92));border:1px solid #ffb23a;border-radius:14px;padding:6px 12px;font-size:12.5px;font-weight:800;text-align:center;max-width:100%}
+.req i{font-style:normal;margin-inline-start:6px;opacity:.55}.req i.ok{opacity:1;color:#7dff9a}
+.panel{position:fixed;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(180deg,rgba(18,20,30,.9),rgba(12,13,20,.97));border-top:1px solid rgba(255,255,255,.1);padding:8px 0 max(8px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+.tabs2{display:flex;gap:4px;justify-content:center;padding:0 8px}
+.tabs2 button{flex:1;max-width:96px;padding:6px 2px;border-radius:14px;font-weight:800;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#c9cbe0}
+.tabs2 button i{font-style:normal;font-size:20px}
+.tabs2 button[aria-pressed=true]{background:rgba(255,138,31,.18);color:#fff;box-shadow:inset 0 0 0 2px #ff8a1f}
+.subs{display:flex;gap:6px;overflow-x:auto;padding:8px 10px 2px;scrollbar-width:none}
+.subs::-webkit-scrollbar,.opts::-webkit-scrollbar{display:none}
+.subs button{flex:none;height:30px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:800;font-size:13px;color:#dfe1f2}
+.subs button[aria-pressed=true]{background:#fff;color:#1c2240}
+.opts{display:flex;gap:8px;overflow-x:auto;padding:8px 10px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.op{flex:none;width:84px;height:92px;border-radius:16px;background:rgba(255,255,255,.07);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;position:relative;scroll-snap-align:start}
+.op .ic{font-size:26px;line-height:30px;height:32px;display:grid;place-items:center}
+.op .sw{width:36px;height:36px;border-radius:50%;box-shadow:inset 0 -6px 10px rgba(0,0,0,.25),0 2px 6px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.5)}
+.op b{font-size:11.5px;line-height:1.1;text-align:center}
+.op small{font-size:11px;font-weight:800;color:#ffb23a;direction:ltr}
+.op.cur{border-color:rgba(125,255,154,.75)}
+.op.cur small{color:#7dff9a}
+.op.sel{border-color:#ff8a1f;background:rgba(255,138,31,.16)}
+.op.lock{opacity:.4}
+.op .tg{position:absolute;top:3px;inset-inline-end:4px;font-size:11px}
+.inst{display:flex;gap:8px;align-items:center;justify-content:center;padding:0 10px 6px}
+.inst .txt{font-size:12.5px;font-weight:800;opacity:.9}
+.inst button{height:40px;padding:0 16px;border-radius:999px;font-weight:900;font-size:15px}
+.inst .yes{background:var(--btn);box-shadow:0 4px 0 var(--btnsh);color:#fff}
+.inst .yes.no{filter:grayscale(1);opacity:.6}
+.inst .x{background:rgba(255,255,255,.1)}
+.sell{position:fixed;z-index:6;inset-inline-end:12px;height:50px;padding:0 18px;border-radius:999px;background:linear-gradient(180deg,#5aff8a,#14b84a);box-shadow:0 5px 0 #0a6a2a,0 10px 20px rgba(0,0,0,.35);font-weight:900;font-size:16px;color:#05290f}
+.side{position:fixed;z-index:6;inset-inline-start:12px;display:flex;flex-direction:column;gap:8px}
+.side button{height:40px;padding:0 12px;border-radius:999px;background:var(--panel);border:1px solid rgba(255,255,255,.14);font-weight:800;font-size:13px}
+.lot{width:min(420px,100%);background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:12px 14px;backdrop-filter:blur(8px)}
+.lot h4{margin:0;font-size:22px;direction:ltr}.lot h4 small{font-size:13px;opacity:.7;font-weight:700;margin-inline-start:6px}
+.lot .meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-weight:800;font-size:13px}
+.cbar{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.12);margin:0 10px;overflow:hidden}.cbar i{display:block;height:100%}
+.lot .row2{display:flex;gap:8px;align-items:center;margin-top:10px}
+.lot .row2 .nav{width:48px;height:48px;border-radius:16px;background:rgba(255,255,255,.1);font-size:20px;font-weight:900}
+.lot .row2 .buy{flex:1;height:52px;border-radius:999px;background:var(--btn);box-shadow:0 5px 0 var(--btnsh);font-weight:900;font-size:18px;color:#fff}
+.lot .row2 .buy.no{filter:grayscale(1);opacity:.6}
+.lot .rf{margin-top:8px;font-size:12.5px;font-weight:800;opacity:.8;text-decoration:underline}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#ff8a1f;color:#fff;font-weight:900;vertical-align:middle}
+.auc{position:fixed;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:50%;transform:translateX(-50%);z-index:6;text-align:center;pointer-events:none;width:94vw}
+.auc .pr{font-size:clamp(40px,11vw,68px);font-weight:900;direction:ltr;color:#fff;text-shadow:0 0 24px rgba(255,190,60,.8),0 4px 0 #6a2a00}
+.auc .st{font-size:20px;font-weight:900;color:#ffd23a;min-height:28px;text-shadow:0 2px 0 #000}
+.auc .bdr{font-size:13px;font-weight:800;opacity:.85;min-height:18px}
+.hype{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:max(22px,calc(env(safe-area-inset-bottom) + 16px));display:flex;flex-direction:column;align-items:center;gap:6px}
+.hype button{height:64px;padding:0 26px;border-radius:999px;background:linear-gradient(180deg,#ff5ad0,#b01ad8);box-shadow:0 6px 0 #5a0a6a,0 0 30px rgba(255,90,208,.5);font-weight:900;font-size:19px;color:#fff;touch-action:manipulation}
+.hype button:active{transform:translateY(4px);box-shadow:0 2px 0 #5a0a6a}
+.hype .hb{width:200px;height:10px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden}.hype .hb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff5ad0,#ffd23a)}
+.res{display:grid;grid-template-columns:1fr auto;gap:6px 14px;text-align:start;margin:12px 0;font-weight:800;font-size:15px}
+.res b{direction:ltr;text-align:end}
+.res .tot{font-size:22px;border-top:2px solid #eef2fb;padding-top:8px}
+.unl{background:#fff4e0;border-radius:14px;padding:8px 10px;margin:4px 0 12px;font-weight:800;font-size:13.5px;color:#8a4a00}
+.stat{display:flex;gap:18px;justify-content:center;margin:16px 0 4px;font-weight:800}
+.stat div{display:flex;flex-direction:column;align-items:center}.stat small{opacity:.7;font-size:12px}.stat b{font-size:22px;direction:ltr}
+.help{text-align:start;font-weight:700;color:#4a5478;font-size:14px;line-height:1.5;margin:8px 0 14px;padding-inline-start:18px}
+.pop{position:fixed;z-index:7;pointer-events:none;font-weight:900;font-size:20px;direction:ltr;transform:translateX(-50%);animation:up 1.2s ease-out forwards;text-shadow:0 2px 0 #000}
+@keyframes up{to{transform:translate(-50%,-60px);opacity:0}}
+@media (max-height:520px) and (orientation:landscape){.op{height:76px;width:76px}.op .ic{font-size:22px;height:26px}.op .sw{width:28px;height:28px}.tabs2 button i{font-size:16px}.tabs2 button{flex-direction:row;gap:4px;padding:4px}.subs{padding-top:5px}.opts{padding-top:5px}.est .trend{display:none}}
+#toast{top:34vh}
+@media (max-width:430px){#helpBtn{display:none}.top .pill{padding:0 10px}.lvl{min-width:64px}}
+@media (orientation:landscape) and (max-height:620px){
+ .panel{left:0;right:auto;top:calc(max(10px,env(safe-area-inset-top)) + 54px);bottom:0;width:min(400px,46vw);border-radius:0 22px 0 0;display:flex;flex-direction:column;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+ .opts{flex-wrap:wrap;overflow-y:auto;overflow-x:hidden;align-content:flex-start;flex:1;scroll-snap-type:none}
+ .est{left:calc(min(400px,46vw) + (100vw - min(400px,46vw)) / 2);width:calc(100vw - min(400px,46vw) - 20px)}
+ .sell{right:12px;left:auto;bottom:max(12px,env(safe-area-inset-bottom))!important}
+ .side{left:calc(min(400px,46vw) + 12px);right:auto;bottom:max(12px,env(safe-area-inset-bottom))!important}
+ #lotDock{left:0;right:auto;top:0;width:min(420px,48vw);justify-content:center;padding-top:60px}
+ .auc .pr{font-size:44px}.auc{top:max(8px,env(safe-area-inset-top))}
+}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="pops"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="menuBtn"></button>
+  <div class="pill money"><small id="lMoney"></small><b id="moneyTxt">$0</b></div>
+  <div class="pill lvl"><small id="lvlTxt"></small><div class="xb"><i id="xpI"></i></div></div>
+  <div class="sp"></div>
+  <button class="rb" id="helpBtn">?</button>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div class="est" id="estWrap" hidden>
+  <div class="box" id="estBox"><div><small id="lEst"></small><b id="estTxt">$0</b></div><div><small id="lStyle"></small><span class="stl" id="stlTxt"></span></div><div><small id="lProfit"></small><span class="delta" id="profTxt"></span></div></div>
+  <div class="trend" id="trend"></div>
+  <div class="req" id="req" hidden></div>
+</div>
+<div class="side" id="side" hidden><button id="fixBtn"></button></div>
+<button class="sell" id="sellBtn" hidden></button>
+<div class="panel" id="panel" hidden>
+  <div class="inst" id="inst" hidden><span class="txt" id="instTxt"></span><button class="x" id="instNo">✕</button><button class="yes" id="instYes"></button></div>
+  <div class="tabs2" id="tabs"></div>
+  <div class="subs" id="subs"></div>
+  <div class="opts" id="opts"></div>
+</div>
+<div class="dock" id="lotDock" hidden><div class="lot">
+  <div style="display:flex;justify-content:space-between;align-items:center"><h4 id="lotName"></h4><span class="badge" id="lotCls"></span></div>
+  <div class="meta"><span id="lCond"></span><div class="cbar"><i id="condI"></i></div><span id="condTxt" style="direction:ltr"></span></div>
+  <div class="meta"><span id="lotHint" style="opacity:.75"></span><span id="lotIdx" style="opacity:.6;direction:ltr"></span></div>
+  <div class="row2"><button class="nav" id="lotPrev">▶</button><button class="buy" id="buyBtn"></button><button class="nav" id="lotNext">◀</button></div>
+  <button class="rf" id="refreshBtn"></button>
+</div></div>
+<div class="auc" id="aucUI" hidden><div class="st" id="aucSt"></div><div class="pr" id="aucPr">$0</div><div class="bdr" id="aucBdr"></div></div>
+<div class="hype" id="hypeUI" hidden><div class="hb"><i id="hypeI"></i></div><button id="hypeBtn"></button></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:6vh"><span class="a">GARAGE</span><span class="b">FLIP</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="stat"><div><small id="tl1"></small><b id="tMoney">$0</b></div><div><small id="tl2"></small><b id="tLvl">1</b></div><div><small id="tl3"></small><b id="tSales">0</b></div></div>
+  <button class="big" id="playBtn"></button>
+  <div class="chips"><button class="chip" id="howBtn"></button><button class="chip" id="qBtn"></button></div>
+</section>
+<div class="sheet" id="resSheet" hidden><div class="card"><h3 id="rT"></h3><div class="res" id="rRes"></div><div id="rUnl"></div><div class="row"><button class="btn pri" id="rGo"></button></div></div></div>
+<div class="sheet" id="helpSheet" hidden><div class="card"><h3 id="hT"></h3><ol class="help" id="hList"></ol><div class="row"><button class="btn pri" id="hClose"></button></div></div></div>
+<div class="sheet" id="confSheet" hidden><div class="card"><h3 id="cT"></h3><p id="cP"></p><div class="row"><button class="btn" id="cNo"></button><button class="btn pri" id="cYes"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="garage/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Tiara Glow</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#ffe6f4;--accent:#ff5aa8;--deep:#c8407a;--btn:linear-gradient(180deg,#ff8ac8,#e8408a);--btnsh:#a82a6a;--panel:rgba(255,255,255,.97);--scr:linear-gradient(180deg,#ffe6f4,#efd8ff)}
+body{background:#ffe6f4;color:#5a2a4a}
+#cv,#fx{position:fixed;inset:0;display:block}#cv{touch-action:none}#fx{pointer-events:none;z-index:4}
+.logo .a{color:#ff5aa8;text-shadow:0 0 18px rgba(255,120,200,.45)}.logo .b{color:#fff;-webkit-text-stroke:3px #c8407a;text-shadow:0 6px 0 #c8407a,0 14px 26px rgba(200,64,122,.35)}
+.logo{font-size:clamp(40px,11vw,74px)}
+.sub{color:#8a4a72;max-width:520px}
+.rb{color:#c8407a;background:rgba(255,255,255,.92);box-shadow:0 4px 0 #f2c2dc,0 6px 16px rgba(200,64,122,.15)}
+.rb:disabled{opacity:.45}
+.done{width:auto!important;padding:0 16px;border-radius:999px;background:linear-gradient(180deg,#ff8ac8,#e8408a)!important;color:#fff!important;font-weight:900;font-size:16px;box-shadow:0 4px 0 #a82a6a!important}
+#panel{position:fixed;z-index:6;left:0;right:0;bottom:0;background:var(--panel);border-radius:26px 26px 0 0;box-shadow:0 -8px 30px rgba(200,64,122,.18);padding:8px 0 max(8px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px}
+#tabs{display:flex;gap:4px;padding:0 10px;justify-content:center}
+.tab{flex:1;max-width:120px;height:38px;border-radius:14px;font-weight:900;font-size:13px;color:#a85a8a;background:#fff0f8;display:flex;align-items:center;justify-content:center;gap:4px}
+.tab span{font-size:18px}.tab.on{background:linear-gradient(180deg,#ff8ac8,#e8408a);color:#fff;box-shadow:0 3px 0 #a82a6a}
+.row2{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:4px 12px;scrollbar-width:none;align-items:center}.row2::-webkit-scrollbar{display:none}
+.tl{flex:none;width:62px;height:66px;border-radius:18px;background:#fff6fb;border:2.5px solid #ffe0f0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:2px}
+.tl img{width:42px;height:42px}.tl.th{width:76px;height:76px;padding:0;overflow:hidden}.tl.th img{width:100%;height:100%;object-fit:cover}
+.tl small{font-size:10px;font-weight:800;color:#a85a8a;white-space:nowrap;line-height:1.1}
+.tl .em{font-size:28px;line-height:1}
+.tl.on{border-color:#ff5aa8;background:#ffe6f4;transform:translateY(-2px);box-shadow:0 4px 12px rgba(255,90,168,.3)}
+.tl i{position:absolute;top:4px;inset-inline-end:4px;width:9px;height:9px;border-radius:50%;background:#5ad88a;box-shadow:0 0 0 2px #fff}
+.sw{flex:none;width:36px;height:36px;border-radius:50%;box-shadow:inset 0 -3px 6px rgba(0,0,0,.18),0 2px 5px rgba(0,0,0,.15);border:3px solid #fff}
+.sw.on{box-shadow:0 0 0 3px #ff5aa8,inset 0 -3px 6px rgba(0,0,0,.18);transform:scale(1.1)}
+.ch{flex:none;height:36px;padding:0 13px;border-radius:999px;background:#fff0f8;color:#a8407a;font-weight:900;font-size:13px;white-space:nowrap;border:2px solid #ffd8ec}
+.ch.on{background:#ff5aa8;color:#fff;border-color:#ff5aa8}.ch.magic{background:linear-gradient(90deg,#ffe08a,#ff9ad8);color:#7a2a5a;border-color:transparent}
+.it{flex:none;width:54px;height:54px;border-radius:16px;background:#fff6fb;border:2.5px solid #ffe0f0;overflow:hidden;display:grid;place-items:center}.it img{width:100%;height:100%;object-fit:contain}.it .em{font-size:22px;color:#c8a0b8}.it.on{border-color:#ff5aa8;background:#ffe6f4}
+.dv{flex:none;width:2px;height:30px;background:#ffd8ec;border-radius:2px}.lb{flex:none;font-size:20px}
+.szs{flex:none;display:flex;gap:2px;background:#fff0f8;border-radius:999px;padding:0 6px;height:36px;align-items:center}
+.sz{width:26px;height:32px;display:grid;place-items:center}.sz b{display:block;border-radius:50%;background:#d8a0c0}.sz.on b{background:#ff5aa8;box-shadow:0 0 0 3px #ffd2ea}
+.land #panel{left:auto;top:0;width:min(360px,42vw);border-radius:26px 0 0 26px;padding:max(10px,env(safe-area-inset-top)) 0 10px;overflow-y:auto}
+.land .row2{flex-wrap:wrap;overflow:visible;justify-content:center}
+.land #hud{right:min(368px,calc(42vw + 8px))}
+.prs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(640px,100%);margin:14px auto 6px}
+.pc{background:#fff;border-radius:22px;padding:6px;box-shadow:0 8px 22px rgba(200,64,122,.16);display:flex;flex-direction:column;gap:4px;border:3px solid #fff}
+.pc img{width:100%;aspect-ratio:4/5;border-radius:16px;display:block;background:#ffe6f4;object-fit:cover}.pc b{font-size:16px;color:#c8407a}
+.pc:active{transform:scale(.97)}
+.albw{width:min(640px,100%);margin:10px auto 30px}.albw h3{font-size:16px;color:#c8407a;margin:6px 4px}
+.alb{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px}.ab{flex:none;width:96px;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(200,64,122,.2);border:3px solid #fff}.ab img{width:100%;display:block}
+#showBar{position:fixed;z-index:7;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+#showBar>*{pointer-events:auto}
+.shT{position:fixed;z-index:7;top:max(16px,env(safe-area-inset-top));left:0;right:0;text-align:center;pointer-events:none}
+.shT b{display:block;font-size:clamp(28px,8vw,48px);font-weight:900;color:#fff;-webkit-text-stroke:2px #c8407a;text-shadow:0 4px 0 #c8407a,0 0 30px rgba(255,200,240,.8)}
+.shT span{font-size:26px;letter-spacing:4px;color:#ffd23a;text-shadow:0 2px 0 #7a3a0a}
+#showBar .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#pvSheet .card img{width:100%;border-radius:16px;max-height:62vh;object-fit:contain;background:#2a0f4a}
+.card{background:#fff}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas><canvas id="fx"></canvas>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="galBtn"></button>
+  <button class="rb" id="undoBtn" disabled></button>
+  <button class="rb" id="magicBtn" style="font-size:22px"></button>
+  <div class="sp"></div>
+  <button class="rb" id="sndBtn"></button>
+  <button class="rb done" id="doneBtn"></button>
+</div>
+<div id="panel" hidden><div id="tabs"></div><div class="row2" id="tools"></div><div class="row2" id="opts"></div></div>
+<div id="showBar" hidden><div class="shT"><b id="showT"></b><span id="showS"></span></div><div class="row"><button class="btn" id="shHome"></button><button class="btn" id="shEdit"></button><button class="btn pri" id="shSave"></button></div></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:3vh"><span class="a">TIARA</span><span class="b">GLOW</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="prs" id="prs"></div>
+  <div class="albw" id="albW" hidden><h3 id="albT"></h3><div class="alb" id="alb"></div></div>
+</section>
+<div class="sheet" id="pvSheet" hidden><div class="card"><img id="pvImg" alt=""><div class="row"><button class="btn" id="pvDel"></button><button class="btn pri" id="pvClose"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="tiara/game.js"></script>
+</body>
+</html>

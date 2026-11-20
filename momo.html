@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Momo Pop</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#d8f0ff;--accent:#ff6ab0;--deep:#5a1a6a;--btn:linear-gradient(180deg,#ff8ac8,#d8408a);--btnsh:#8a1a5a;--panel:rgba(255,255,255,.95);--scr:linear-gradient(180deg,#8ad8ff,#ffe8f4)}
+body{background:#8ad8ff;color:#5a1a6a}
+#cv{position:fixed;inset:0;display:block;touch-action:none}
+#hud{position:fixed;z-index:3;top:0;left:0;right:0;padding:max(10px,env(safe-area-inset-top)) 12px 0;display:flex;gap:8px;align-items:flex-start}
+.rb,.pill{color:#5a1a6a;background:rgba(255,255,255,.92);box-shadow:0 4px 0 rgba(90,26,106,.2)}
+.mid{flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;min-width:0}
+.row1{display:flex;gap:6px}.pill b{font-size:18px}
+.bar{position:relative;height:12px;border-radius:6px;background:rgba(90,26,106,.18);width:min(260px,90%);margin-top:4px}.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#ff8ac8,#ffd23a);transition:width .3s}
+.bar span{position:absolute;top:-7px;transform:translateX(50%);font-size:17px;filter:grayscale(1) opacity(.5)}.bar span.on{filter:none}
+.sc{font-weight:900;font-size:12px;direction:ltr}
+#shots{position:fixed;z-index:3;left:max(14px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));background:rgba(255,255,255,.92);border-radius:999px;padding:3px 14px;font-weight:900;box-shadow:0 4px 0 rgba(90,26,106,.2);font-size:15px;direction:ltr}
+#pw{position:fixed;z-index:3;right:max(14px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));width:64px;height:64px;border-radius:50%;background:conic-gradient(#ffd23a calc(var(--p,0)*360deg),rgba(255,255,255,.7) 0);box-shadow:0 4px 0 rgba(90,26,106,.25);display:grid;place-items:center;font-size:28px;border:3px solid #fff}
+#pw.ready{animation:pr .6s ease-in-out infinite alternate}@keyframes pr{to{transform:scale(1.12);box-shadow:0 0 0 8px rgba(255,210,58,.4),0 0 26px #ffd23a}}
+.logo .a{color:#ff6ab0;text-shadow:0 4px 0 #8a1a5a}.logo .b{color:#fff;-webkit-text-stroke:3px #5a1a6a;text-shadow:0 6px 0 #5a1a6a}
+.sub{color:#5a1a6a;max-width:480px}
+#lv{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:min(420px,100%);margin:14px auto 30px}
+.lb2{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--c) 70%);color:#fff;font-weight:900;font-size:20px;text-shadow:0 2px 0 rgba(0,0,0,.3);box-shadow:inset 0 -4px 8px rgba(0,0,0,.18),0 5px 12px rgba(90,26,106,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid #fff}
+.lb2 small{font-size:10px;color:#ffe066;text-shadow:0 1px 0 #7a3a0a;letter-spacing:-1px}.lb2.lock{background:#e0dce8;color:#9a90a8;text-shadow:none}.lb2.cur{animation:nb 1s ease-in-out infinite}@keyframes nb{50%{transform:scale(1.1)}}
+.mascot{width:160px;height:150px}
+.card{background:#fff}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="mid"><div class="row1"><div class="pill"><span id="goalTxt"></span></div></div><div class="bar"><i id="barI"></i><span id="s1">⭐</span><span id="s2">⭐</span><span id="s3">⭐</span></div><div class="sc"><span id="lvTxt"></span> · <b id="scoreTxt">0</b></div></div>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div id="shots" hidden>🫧 <b id="shotTxt">0</b></div>
+<button id="pw" hidden>⚡</button>
+<div id="toast"></div>
+<section class="scr" id="map" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:3vh"><span class="a">MOMO</span><span class="b">POP</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div id="lv"></div>
+</section>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="eP"></p><div class="row"><button class="btn" id="eMap"></button><button class="btn" id="eAgain"></button><button class="btn pri" id="eNext"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMap"></button><button class="btn" id="pRe"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="momo/game.js"></script>
+</body>
+</html>

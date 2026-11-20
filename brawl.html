@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Rumble Alley</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#1a1030;--accent:#ff5a3a;--deep:#3a0a5a;--btn:linear-gradient(180deg,#ff7a3a,#e8302a);--btnsh:#8a1a12;--panel:rgba(20,12,40,.82);--scr:radial-gradient(circle at 50% 30%,rgba(80,20,90,.35),rgba(10,6,24,.92))}
+body{color:#fff;background:radial-gradient(circle at 50% 100%,#3a1a5a,#120a22 70%)}
+.rb,.pill{color:#fff;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px)}
+.logo .a{color:#ffd23a;text-shadow:0 0 18px rgba(255,200,40,.5)}.logo .b{-webkit-text-stroke:3px #ff3a5a;text-shadow:0 6px 0 #5a0a2a,0 0 30px rgba(255,60,90,.5)}
+.sub{color:#e8dcff}
+.hp{display:flex;flex-direction:column;gap:3px;min-width:120px}
+.hp .bar2{height:10px;border-radius:5px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.25)}.hp .bar2 i{display:block;height:100%;background:linear-gradient(90deg,#ff3a3a,#ffd23a);transition:width .2s}
+.boss{position:fixed;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:50%;transform:translateX(-50%);width:min(360px,80vw);z-index:5;text-align:center;font-weight:900;font-size:12px}
+.boss .bar2{height:12px;border-radius:6px;background:rgba(0,0,0,.5);overflow:hidden;border:1px solid rgba(255,255,255,.3);margin-top:3px}.boss .bar2 i{display:block;height:100%;background:linear-gradient(90deg,#a03aff,#ff3a8a)}
+.go{position:fixed;top:40%;inset-inline-end:16px;z-index:5;font-size:34px;font-weight:900;color:#ffd23a;text-shadow:0 3px 0 #000;animation:blink .7s steps(2) infinite;pointer-events:none;direction:ltr}
+@keyframes blink{50%{opacity:0}}
+.stick{position:fixed;z-index:6;left:max(18px,env(safe-area-inset-left));bottom:max(30px,calc(env(safe-area-inset-bottom) + 20px));width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);touch-action:none}
+.stick i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b8a8e8);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.btns{position:fixed;z-index:6;right:max(14px,env(safe-area-inset-right));bottom:max(22px,calc(env(safe-area-inset-bottom) + 10px));width:200px;height:170px;direction:ltr}
+.btns button{position:absolute;border-radius:50%;font-weight:900;color:#fff;touch-action:none;box-shadow:0 5px 0 rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.4)}
+.btns button:active,.btns button.on{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+#bAtk{right:0;bottom:16px;width:88px;height:88px;background:radial-gradient(circle at 35% 30%,#ff8a5a,#e8302a);font-size:34px}
+#bJmp{left:6px;bottom:0;width:62px;height:62px;background:radial-gradient(circle at 35% 30%,#7ad8ff,#2a7aff);font-size:24px}
+#bKick{right:84px;bottom:74px;width:70px;height:70px;background:radial-gradient(circle at 35% 30%,#ffd86a,#e89a1a);font-size:28px}
+#bSp{right:6px;bottom:112px;width:54px;height:54px;background:radial-gradient(circle at 35% 30%,#b08aff,#5a2ad8);font-size:22px;opacity:.45;filter:grayscale(.6)}
+#bSp.ready{opacity:1;filter:none;animation:spg .8s ease-in-out infinite}
+@keyframes spg{50%{box-shadow:0 0 0 6px rgba(180,140,255,.45),0 0 26px #b08aff}}
+.hp .bar2.sp2{height:6px}.hp .bar2.sp2 i{background:linear-gradient(90deg,#7a5aff,#5af0ff);width:0}
+.pop.big{font-size:34px;-webkit-text-stroke:2px #000;text-shadow:0 4px 0 #000;animation:bang .7s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes bang{0%{transform:translate(-50%,0) scale(.3) rotate(-12deg)}40%{transform:translate(-50%,-20px) scale(1.15) rotate(6deg)}100%{transform:translate(-50%,-34px) scale(1) rotate(0);opacity:0}}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(420px,100%);margin-top:16px}
+.pk{border-radius:22px;padding:12px 10px;background:rgba(255,255,255,.08);border:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.pk[aria-pressed=true]{border-color:#ffd23a;background:rgba(255,210,58,.12)}
+.pk img{width:100%;aspect-ratio:1;border-radius:16px;background:rgba(0,0,0,.25);object-fit:cover}
+.pk b{font-size:18px}.pk small{font-size:12px;opacity:.8;font-weight:700}
+.st{display:flex;gap:4px;font-size:11px;font-weight:800;opacity:.85}.st span{background:rgba(255,255,255,.12);border-radius:999px;padding:1px 7px}
+.pop{position:fixed;z-index:7;pointer-events:none;font-weight:900;font-size:22px;direction:ltr;transform:translateX(-50%);animation:up .9s ease-out forwards;text-shadow:0 2px 0 #000;color:#ffd23a}
+@keyframes up{to{transform:translate(-50%,-50px);opacity:0}}
+.combo{position:fixed;z-index:6;top:38%;inset-inline-start:16px;font-weight:900;font-size:26px;color:#fff;text-shadow:0 3px 0 #e8302a,0 0 14px #ff5a3a;pointer-events:none;direction:ltr}
+.card{background:#fff}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="pill hp"><b id="pName"></b><div class="bar2"><i id="hpI"></i></div><div class="bar2 sp2"><i id="spI"></i></div></div>
+  <div class="sp"></div>
+  <div class="pill"><b id="scoreTxt" style="direction:ltr">0</b><small id="livesTxt"></small></div>
+  <button class="rb" id="sndBtn"></button>
+</div>
+<div class="boss" id="bossUI" hidden><span id="bossName"></span><div class="bar2"><i id="bossI"></i></div></div>
+<div class="go" id="goUI" hidden>GO ▶</div>
+<div class="combo" id="comboUI"></div>
+<div class="stick" id="stick" hidden><i id="knob"></i></div>
+<div class="btns" id="btns" hidden><button id="bJmp">⤴</button><button id="bKick">🦶</button><button id="bAtk">👊</button><button id="bSp">⚡</button></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:4vh"><span class="a">RUMBLE</span><span class="b">ALLEY</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="pick" id="pick"></div>
+  <div class="lgrid" id="lgrid" style="grid-template-columns:repeat(4,1fr)"></div>
+  <div class="chips"><button class="chip" id="qBtn"></button></div>
+</section>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="eP"></p><div class="row"><button class="btn" id="eMap"></button><button class="btn" id="eAgain"></button><button class="btn pri" id="eNext"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMap"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="brawl/game.js"></script>
+</body>
+</html>

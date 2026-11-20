@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Crayon Pals</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#fff6e8;--accent:#ff7a3a;--deep:#3a5ad8;--btn:linear-gradient(180deg,#5ad0ff,#2a8aff);--btnsh:#1a5abf;--panel:rgba(255,255,255,.96);--scr:linear-gradient(180deg,#fff6e8,#ffe9f3)}
+body{background:#fff6e8;color:#2a2440}
+#cv{position:fixed;inset:0;touch-action:none;display:block}
+#fin{position:fixed;inset:0;z-index:9;pointer-events:none}
+.logo .a{color:#ff7a3a}.logo .b{color:#fff;-webkit-text-stroke:3px #3a5ad8;text-shadow:0 6px 0 #3a5ad8,0 14px 24px rgba(58,90,216,.3)}
+.sub{color:#6a5a7a}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;width:min(760px,100%);margin:18px auto 30px}
+.pc{background:#fff;border-radius:24px;padding:8px;box-shadow:0 8px 22px rgba(60,40,80,.12);display:flex;flex-direction:column;gap:6px;position:relative;border:3px solid transparent}
+.pc img{width:100%;aspect-ratio:1;border-radius:18px;display:block;background:#fff;object-fit:cover}
+.pc b{font-size:15px}
+.pc .ok{position:absolute;top:12px;inset-inline-end:12px;font-size:22px}
+.tools{position:fixed;z-index:6;display:flex;gap:6px;align-items:center;justify-content:center;padding:6px 8px}
+.tb{width:44px;height:46px;border-radius:16px;background:#fff;box-shadow:0 4px 0 #e0d6ea,0 6px 14px rgba(60,40,80,.12);display:grid;place-items:center;font-size:22px;flex:none}
+.tb[aria-pressed=true]{background:#ffe08a;box-shadow:0 4px 0 #e0b02a,0 6px 14px rgba(60,40,80,.12);transform:translateY(-2px)}
+.sz{display:flex;gap:2px;align-items:center;background:#fff;border-radius:16px;padding:0 6px;height:46px;box-shadow:0 4px 0 #e0d6ea}
+.sz button{width:28px;height:40px;display:grid;place-items:center}.sz i{display:block;border-radius:50%;background:#2a2440}
+.sz button[aria-pressed=true] i{background:#ff7a3a;box-shadow:0 0 0 3px #ffd2b8}
+.box{position:fixed;z-index:6;display:flex;gap:2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:linear-gradient(180deg,#5a8aff,#3a5ad8);box-shadow:inset 0 6px 12px rgba(0,0,0,.25)}
+.box::-webkit-scrollbar{display:none}
+.cr{flex:none;width:40px;height:110px;position:relative;transform:translateY(34px);transition:transform .15s}
+.cr::before{content:"";position:absolute;inset:0;background:var(--c);clip-path:polygon(50% 0,72% 18%,72% 22%,100% 30%,100% 100%,0 100%,0 30%,28% 22%,28% 18%);box-shadow:inset 0 0 0 100px rgba(0,0,0,0)}
+.cr::after{content:"";position:absolute;left:0;right:0;top:44px;height:34px;background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(255,255,255,.1) 40%,rgba(0,0,0,.12));border-top:3px solid rgba(0,0,0,.18);border-bottom:3px solid rgba(0,0,0,.18)}
+.cr.sel{transform:translateY(4px)}
+.cr.rb2::before{background:linear-gradient(180deg,#ff3b3b,#ffb02a,#ffe14a,#4fdc5a,#3ab0ff,#8a5aff)}
+.sw2{flex:none;width:62px;height:62px;border-radius:18px;margin:16px 4px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 0 rgba(0,0,0,.2);border:3px solid transparent;font-size:30px;overflow:hidden}
+.sw2 canvas{width:100%;height:100%}
+.sw2.sel{border-color:#ffe14a;transform:translateY(-4px)}
+.land .box{flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.land .cr{width:110px;height:40px;transform:translateX(34px)}
+.land .cr::before{clip-path:polygon(0 50%,18% 28%,22% 28%,30% 0,100% 0,100% 100%,30% 100%,22% 72%,18% 72%)}
+.land .cr::after{top:0;bottom:0;left:44px;width:34px;height:auto;right:auto;border:0;border-left:3px solid rgba(0,0,0,.18);border-right:3px solid rgba(0,0,0,.18);background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.12))}
+.land .cr.sel{transform:translateX(4px)}
+.land .cr.rb2::before{background:linear-gradient(90deg,#ff3b3b,#ffb02a,#ffe14a,#4fdc5a,#3ab0ff,#8a5aff)}
+.land .sw2{margin:4px 16px}
+.land .tools{display:grid;grid-template-columns:repeat(2,44px);align-content:center;gap:8px}.land .sz{grid-column:span 2;justify-content:center}.land #hud{right:96px}
+.done{background:linear-gradient(180deg,#5aff8a,#14b84a)!important;color:#fff;font-size:26px}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<canvas id="fin"></canvas>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="galBtn"></button>
+  <div class="sp"></div>
+  <button class="rb" id="undoBtn"></button>
+  <button class="rb" id="clrBtn">🗑️</button>
+  <button class="rb" id="sndBtn"></button>
+  <button class="rb done" id="doneBtn">✓</button>
+</div>
+<div class="tools" id="tools" hidden></div>
+<div class="box" id="box" hidden></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:4vh"><span class="a">CRAYON</span><span class="b">PALS</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="gal" id="gal"></div>
+</section>
+<div class="sheet" id="cfSheet" hidden><div class="card"><h3 id="cfT"></h3><div class="row"><button class="btn" id="cfNo"></button><button class="btn pri" id="cfYes"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="crayon/game.js"></script>
+</body>
+</html>

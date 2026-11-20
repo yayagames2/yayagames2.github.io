@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Snip Snap Salon</title>
+<style>
+@font-face{font-family:"Rubik";src:url("fonts/rubik.woff") format("woff");font-weight:300 900;font-display:swap}
+:root{--ink:#2a1630;--panel:rgba(255,250,252,.94);--line:rgba(60,20,70,.12);--pink:#ff5fa2;--berry:#c2338a;--mint:#3fd6b0;--gold:#ffc94a;--sky:#5fc8ff;--txt:#3a1d44;--mute:#8a6f93}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:#ffe3d6;color:var(--txt);font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+#stage{position:fixed;inset:0;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%}
+
+/* top bar */
+.top{position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:8px;align-items:center;z-index:5;pointer-events:none}
+.top>*{pointer-events:auto}
+.top .sp{flex:1}
+.rb{width:46px;height:46px;border-radius:16px;background:var(--panel);box-shadow:0 6px 16px rgba(80,20,60,.18);display:grid;place-items:center;font-size:20px}
+.rb svg{width:24px;height:24px}
+.rb.txt{width:auto;padding:0 14px;font-weight:800;font-size:14px;gap:6px;display:flex;align-items:center}
+.cust{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px 0 6px;border-radius:999px;background:var(--panel);box-shadow:0 6px 16px rgba(80,20,60,.18);font-weight:800}
+.cust img{width:36px;height:36px;border-radius:50%;background:#fde;object-fit:cover}
+[dir=rtl] .cust{padding:0 6px 0 14px}
+
+/* rotate */
+.rot{position:fixed;top:44%;z-index:4;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 6px 16px rgba(80,20,60,.18);display:grid;place-items:center;backdrop-filter:blur(6px)}
+.rot svg{width:26px;height:26px}
+#rotL{left:10px} #rotR{right:10px}
+
+/* tool bar */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:0 0 max(10px,env(safe-area-inset-bottom))}
+.tray{margin:0 auto 8px;width:max-content;max-width:calc(100% - 20px);display:flex;gap:8px;padding:8px 10px;border-radius:999px;background:var(--panel);box-shadow:0 8px 22px rgba(80,20,60,.2);overflow-x:auto;scrollbar-width:none}
+.tray::-webkit-scrollbar{display:none}
+.sw{flex:none;width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.08)}
+.sw[aria-pressed=true]{box-shadow:0 0 0 3px var(--txt);transform:scale(1.1)}
+.acc{flex:none;height:40px;padding:0 12px;border-radius:999px;background:#f6eef8;font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.acc[aria-pressed=true]{background:var(--pink);color:#fff}
+.tools{display:flex;gap:8px;overflow-x:auto;padding:6px 12px 2px;scrollbar-width:none;scroll-snap-type:x proximity}
+.tools::-webkit-scrollbar{display:none}
+.tl{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:4px;scroll-snap-align:center}
+.tl .ic{width:60px;height:60px;border-radius:20px;background:var(--panel);box-shadow:0 6px 14px rgba(80,20,60,.18);display:grid;place-items:center;transition:transform .15s,background .15s}
+.tl .ic svg{width:38px;height:38px}
+.tl span{font-size:11.5px;font-weight:700;color:#5b3466;text-shadow:0 1px 0 rgba(255,255,255,.8);white-space:nowrap}
+.tl[aria-pressed=true] .ic{background:linear-gradient(160deg,#ff7ab8,#c2338a);transform:translateY(-6px) scale(1.06);box-shadow:0 10px 22px rgba(194,51,138,.45)}
+.tl[aria-pressed=true] span{color:var(--berry)}
+@media (min-width:760px){.tools{justify-content:center}}
+
+/* cursor */
+#cur{position:fixed;left:0;top:0;width:74px;height:74px;margin:-62px 0 0 -18px;z-index:6;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3));transition:opacity .15s;opacity:0}
+#cur.on{opacity:1}
+#cur svg{width:100%;height:100%}
+#ring{position:fixed;left:0;top:0;border-radius:50%;border:2px dashed rgba(255,255,255,.85);z-index:5;pointer-events:none;opacity:0;transition:opacity .15s}
+#ring.on{opacity:.8}
+
+/* screens */
+.scr{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));text-align:center;background:radial-gradient(circle at 50% 30%,rgba(255,240,246,.55),rgba(255,214,232,.88))}
+.logo{margin:0;line-height:.9;font-weight:900;direction:ltr;letter-spacing:-.5px}
+.logo .a{display:block;font-size:clamp(46px,13vw,86px);color:#fff;-webkit-text-stroke:3px var(--berry);paint-order:stroke fill;text-shadow:0 6px 0 var(--berry),0 14px 24px rgba(194,51,138,.35)}
+.logo .b{display:block;font-size:clamp(34px,9vw,58px);color:var(--pink);margin-top:6px}
+.sub{margin:10px 0 0;font-weight:700;color:#7a4a86}
+.pick{display:flex;gap:10px;justify-content:center;flex-wrap:nowrap;margin-top:22px}
+.pc{width:min(calc((100vw - 56px)/3),150px);border-radius:24px;background:#fff;padding:10px 8px 12px;box-shadow:0 10px 24px rgba(120,30,90,.18);transition:transform .15s;border:3px solid transparent}
+.pc:active{transform:scale(.96)}
+.pc[aria-pressed=true]{border-color:var(--pink)}
+.pc img{width:100%;aspect-ratio:1;border-radius:18px;background:#fde3ee;object-fit:cover;display:block}
+.pc b{display:block;margin-top:8px;font-size:17px}
+.pc small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.big{margin-top:22px;min-width:220px;height:60px;border-radius:999px;background:linear-gradient(180deg,#ff7ab8,#e0348f);color:#fff;font-weight:900;font-size:22px;box-shadow:0 8px 0 #a01f68,0 16px 26px rgba(160,31,104,.35)}
+.big:active{transform:translateY(4px);box-shadow:0 4px 0 #a01f68}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.chip{height:42px;padding:0 16px;border-radius:999px;background:#fff;font-weight:700;box-shadow:0 4px 12px rgba(120,30,90,.14)}
+#homeT{position:absolute;top:max(12px,env(safe-area-inset-top));inset-inline-start:12px}
+
+/* panel */
+.sheet{position:fixed;inset:0;z-index:12;background:rgba(60,15,60,.35);display:grid;place-items:center;padding:16px}
+.card{width:min(440px,100%);background:#fff;border-radius:28px;padding:20px 16px;box-shadow:0 24px 60px rgba(60,10,50,.35);text-align:center;animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.card h3{margin:0 0 6px;font-size:22px}
+.photo{background:#fff;padding:12px 12px 46px;border-radius:6px;box-shadow:0 20px 50px rgba(0,0,0,.35);transform:rotate(-2deg);position:relative;max-width:min(360px,86vw)}
+.photo img{display:block;width:100%;border-radius:2px}
+.photo i{position:absolute;bottom:12px;left:0;right:0;font-style:normal;font-weight:800;color:#7a4a86;font-size:17px}
+#flash{position:fixed;inset:0;background:#fff;z-index:20;pointer-events:none;opacity:0}
+#toast{position:fixed;top:max(70px,calc(env(safe-area-inset-top) + 64px));left:50%;transform:translateX(-50%);z-index:8;background:rgba(58,29,68,.85);color:#fff;padding:9px 16px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+#loading{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:#ffe3d6;font-weight:800;color:var(--berry);font-size:18px}
+#loading .sc{width:64px;height:64px;margin:0 auto 12px;animation:snip 1s ease-in-out infinite}
+@keyframes snip{50%{transform:rotate(-18deg) scale(1.08)}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="cur"></div><div id="ring"></div>
+
+<div class="top" id="hud" hidden>
+  <button class="rb" id="homeP" hidden aria-label="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#c2338a"/></svg></button>
+  <button class="cust" id="custBtn"><img id="custImg" alt=""><span id="custName"></span></button>
+  <div class="sp"></div>
+  <button class="rb" id="undoBtn" aria-label="reset"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round"/><path d="M4 3.5v5h5" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button class="rb" id="sndBtn" aria-label="sound"></button>
+  <button class="rb" id="photoBtn" aria-label="photo"><svg viewBox="0 0 24 24"><path d="M4 7h3l1.6-2h6.8L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="#c2338a"/><circle cx="12" cy="13" r="3.6" fill="#fff"/><circle cx="12" cy="13" r="2" fill="#c2338a"/></svg></button>
+</div>
+<button class="rot" id="rotL" hidden aria-label="rotate"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round"/><path d="M18 2.5V7h-4.5" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<button class="rot" id="rotR" hidden aria-label="rotate"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M20 12a8 8 0 1 1-2.4-5.7" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round"/><path d="M18 2.5V7h-4.5" fill="none" stroke="#c2338a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+<div class="dock" id="dock" hidden>
+  <div class="tray" id="tray" hidden></div>
+  <div class="tools" id="tools"></div>
+</div>
+<div id="toast"></div>
+<div id="flash"></div>
+
+<section class="scr" id="title" hidden>
+  <button class="rb" id="homeT" hidden aria-label="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="#c2338a"/></svg></button>
+  <h1 class="logo"><span class="a">Snip Snap</span><span class="b">SALON</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="pick" id="pick"></div>
+  <button class="big" id="playBtn"></button>
+  <div class="row"><button class="chip" id="qBtn"></button></div>
+</section>
+
+<div class="sheet" id="custSheet" hidden><div class="card"><h3 id="csT"></h3><div class="pick" id="pick2" style="margin-top:12px"></div><div class="row"><button class="chip" id="csClose"></button></div></div></div>
+<div class="sheet" id="photoSheet" hidden><div style="display:flex;flex-direction:column;align-items:center;gap:22px"><div class="photo"><img id="photoImg" alt=""><i id="photoCap"></i></div><div class="row" style="margin:0"><a class="chip" id="photoSave" download="salon.png" style="display:flex;align-items:center;text-decoration:none;color:inherit"></a><button class="chip" id="photoClose"></button></div></div></div>
+<div id="loading"><div><svg class="sc" viewBox="0 0 64 64"><circle cx="18" cy="46" r="9" fill="none" stroke="#c2338a" stroke-width="5"/><circle cx="46" cy="46" r="9" fill="none" stroke="#c2338a" stroke-width="5"/><path d="M24 39 46 8M40 39 18 8" stroke="#c2338a" stroke-width="5" stroke-linecap="round"/></svg><div id="loadTxt">…</div></div></div>
+
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="salon/game.js"></script>
+</body>
+</html>
