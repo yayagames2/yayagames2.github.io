@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Zori – Jungle Swing</title>
 <style>
-:root{--ink:#06140f;--panel:rgba(8,22,16,.86);--line:rgba(255,255,255,.16);--text:#f2fff6;--mute:#a8c9b6;--gold:#ffd25e;--leaf:#5be08a;--red:#ff5f5f}
+:root{--ink:#06140f;--panel:rgba(8,22,16,.86);--line:rgba(255,255,255,.16);--text:#f2fff6;--mute:#d4ecdd;--gold:#ffd25e;--leaf:#5be08a;--red:#ff5f5f}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;-webkit-user-select:none;user-select:none}
@@ -21,12 +21,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .cta{width:100%;padding:16px;border-radius:20px;background:linear-gradient(180deg,#ffe07a,#f2a91c);color:#3a2200;font-size:22px;font-weight:900;box-shadow:0 6px 0 #9a5a06,0 14px 30px rgba(0,0,0,.45)}
 .cta:active{transform:translateY(3px);box-shadow:0 3px 0 #9a5a06}
 .seg{display:flex;gap:4px;background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:16px;padding:4px}
-.seg button{flex:1;padding:10px 6px;border-radius:12px;font-weight:800;color:var(--mute);font-size:14px}
+.seg button{flex:1;padding:10px 6px;border-radius:12px;font-weight:900;color:#fff;font-size:15px;text-shadow:0 1px 2px #000}
 .seg button[aria-pressed=true]{background:var(--leaf);color:#03240f}
 .row{display:flex;gap:8px}
 .btn{flex:1;padding:12px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid var(--line);font-weight:800;font-size:15px}
 .btn.pri{background:var(--gold);color:#3a2200;border-color:transparent}
-.lbl{font-size:12px;color:var(--mute);font-weight:700;text-align:start;margin:4px 4px -4px}
+.lbl{font-size:14px;color:#fff;font-weight:900;text-shadow:0 1px 3px #000;text-align:start;margin:4px 4px -4px}
 /* map */
 #map{background:radial-gradient(circle at 50% 0,#1d5a3a,#071a10 70%);justify-content:flex-start;overflow-y:auto}
 #map h2{margin:6px 0 4px;font-size:26px}
@@ -43,14 +43,14 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 /* hud */
 #hud{position:fixed;inset:0;z-index:5;pointer-events:none}
 .hl{position:absolute;top:max(10px,env(safe-area-inset-top));inset-inline-start:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-.pill{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:14px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.15);font-weight:800;font-size:15px;backdrop-filter:blur(6px)}
+.pill{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:14px;background:rgba(6,20,12,.72);border:1.5px solid rgba(255,255,255,.28);font-weight:900;font-size:16px;color:#fff;text-shadow:0 1px 2px #000;backdrop-filter:blur(6px)}
 .hearts{letter-spacing:1px;font-size:16px}
 .letters{display:flex;gap:5px;direction:ltr}
-.letters i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:14px;background:rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.2);color:rgba(255,255,255,.35)}
+.letters i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:16px;background:rgba(6,20,12,.75);border:2px solid rgba(255,255,255,.45);color:rgba(255,255,255,.8);text-shadow:0 1px 2px #000}
 .letters i.on{background:radial-gradient(circle at 35% 30%,#fff2a8,#ffc21f 60%,#c07a00);color:#5a3300;border-color:#ffe48a;box-shadow:0 0 12px #ffd25e}
 #pBtn{position:absolute;top:max(10px,env(safe-area-inset-top));inset-inline-end:12px;pointer-events:auto;width:46px;height:46px;border-radius:15px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.2);font-size:20px}
-#lvName{position:absolute;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-weight:800;font-size:13px;color:#e4ffe9;text-shadow:0 2px 6px #000;white-space:nowrap}
-#toast{position:absolute;left:50%;top:24%;transform:translateX(-50%);max-width:86vw;text-align:center;font-weight:900;font-size:22px;text-shadow:0 3px 12px rgba(0,0,0,.8);opacity:0;transition:opacity .3s}
+#lvName{position:absolute;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-weight:900;font-size:15px;color:#fff;background:rgba(6,20,12,.72);border:1.5px solid rgba(255,255,255,.28);padding:5px 12px;border-radius:12px;text-shadow:0 1px 2px #000;white-space:nowrap}
+#toast{position:absolute;left:50%;top:24%;transform:translateX(-50%);max-width:86vw;text-align:center;font-weight:900;font-size:21px;color:#fff;background:rgba(6,20,12,.78);border:1.5px solid rgba(255,255,255,.3);padding:10px 16px;border-radius:16px;text-shadow:0 2px 3px #000;opacity:0;transition:opacity .3s}
 #banner{position:absolute;left:0;right:0;top:36%;text-align:center;opacity:0;transition:opacity .5s}
 #banner b{display:block;font-size:clamp(30px,8vw,54px);font-weight:900;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.8)}
 #banner span{font-weight:800;color:var(--gold);letter-spacing:.2em;font-size:14px;text-shadow:0 2px 8px #000}
@@ -61,8 +61,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 #joy{position:absolute;left:max(22px,env(safe-area-inset-left));bottom:max(26px,env(safe-area-inset-bottom));width:136px;height:136px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2)}
 #thumb{position:absolute;left:38px;top:38px;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.35);pointer-events:none}
 .act{position:absolute;right:max(22px,env(safe-area-inset-right));border-radius:50%;font-weight:900;color:#fff;border:2px solid rgba(255,255,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.5)}
-#bJump{width:100px;height:100px;bottom:max(30px,env(safe-area-inset-bottom));background:radial-gradient(circle at 35% 30%,rgba(120,255,160,.75),rgba(30,150,70,.6));font-size:17px}
-#bThrow{width:70px;height:70px;bottom:calc(max(30px,env(safe-area-inset-bottom)) + 112px);right:calc(max(22px,env(safe-area-inset-right)) + 16px);background:radial-gradient(circle at 35% 30%,rgba(255,200,120,.7),rgba(190,100,30,.6));font-size:14px}
+#bJump{width:100px;height:100px;bottom:max(30px,env(safe-area-inset-bottom));background:radial-gradient(circle at 35% 30%,rgba(120,255,160,.95),rgba(20,130,60,.92));font-size:19px;text-shadow:0 2px 3px rgba(0,0,0,.7)}
+#bThrow{width:74px;height:74px;bottom:calc(max(30px,env(safe-area-inset-bottom)) + 112px);right:calc(max(22px,env(safe-area-inset-right)) + 14px);background:radial-gradient(circle at 35% 30%,rgba(255,200,120,.95),rgba(180,90,20,.92));font-size:15px;text-shadow:0 2px 3px rgba(0,0,0,.7)}
 .act.on{filter:brightness(1.35);transform:scale(.95)}
 /* overlays */
 .ov{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(2,10,6,.62);backdrop-filter:blur(5px);padding:16px}
@@ -71,7 +71,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .stars{font-size:46px;letter-spacing:6px;min-height:56px}
 .stars i{font-style:normal;display:inline-block;filter:grayscale(1) brightness(.5);transform:scale(.6);transition:all .35s cubic-bezier(.3,1.6,.5,1)}
 .stars i.on{filter:none;transform:scale(1)}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:13px;color:var(--mute)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:14px;font-weight:700;color:var(--mute)}
 .stats b{display:block;color:#fff;font-size:18px}
 #loading{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:radial-gradient(circle at 50% 60%,#1d5a3a,#04100a);font-weight:800;font-size:18px}
 #loading .sp{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:sp 1s linear infinite;margin:0 auto 12px}
@@ -99,7 +99,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 
 <section class="scr" id="map" hidden>
   <h2>🗺️ Jungle Journey</h2>
-  <p class="note">8 levels · collect the letters Z·O·R·I and as much fruit as you can</p>
+  <p class="note">12 levels · collect the letters Z·O·R·I and as much fruit as you can</p>
   <div class="lvgrid" id="lvGrid"></div>
   <div class="row" style="width:min(560px,100%);margin-top:14px"><button class="btn" id="mapBack">← Back</button></div>
 </section>
@@ -136,7 +136,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
   <h2 id="doneT">Level complete!</h2>
   <div class="stars" id="doneS"><i>⭐</i><i>⭐</i><i>⭐</i></div>
   <div class="stats"><div>Fruit<b id="dF"></b></div><div>Letters<b id="dL"></b></div><div>Time<b id="dT"></b></div></div>
-  <div id="dHint" style="font-size:12.5px;color:var(--mute)"></div>
+  <div id="dHint" style="font-size:14px;font-weight:700;color:var(--mute);text-shadow:0 1px 2px #000"></div>
   <button class="btn pri" id="nextBtn">Next level ▶</button>
   <div class="row"><button class="btn" id="againBtn">↺ Again</button><button class="btn" id="mapBtn2">🗺️ Map</button></div>
 </div></div>

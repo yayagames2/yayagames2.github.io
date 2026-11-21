@@ -94,6 +94,7 @@ input[type=range]{flex:1;accent-color:var(--hg)}
 #hud .r{display:flex;justify-content:space-between;gap:16px;font-size:13px;color:var(--mute)}
 #hud .r b{color:var(--text);font-variant-numeric:tabular-nums}
 #mini{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));width:112px;height:112px;border-radius:50%}
+#bSkyHome3{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:calc(182px + env(safe-area-inset-top,0px));pointer-events:auto;min-height:36px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:rgba(10,13,30,.55);font-weight:700}
 #bMenu{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:calc(136px + env(safe-area-inset-top,0px));pointer-events:auto;
   min-height:36px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:rgba(10,13,30,.55)}
 #hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));max-width:min(560px,86vw);text-align:center;
@@ -245,7 +246,8 @@ input[type=range]{flex:1;accent-color:var(--hg)}
   <div id="mis" hidden dir="rtl"><b id="misT"></b><span id="misG"></span><div class="bar"><i id="misFill"></i></div><span id="misTime"></span></div>
   <div id="tut" hidden dir="rtl"><b id="tutT"></b><span id="tutD"></span><br><button id="bTutSkip" type="button">דלג על ההדרכה</button></div>
   <canvas id="mini" width="224" height="224"></canvas>
-  <button id="bMenu" type="button">תפריט</button>
+  <button id="bMenu" type="button">☰ תפריט</button>
+  <button id="bSkyHome3" type="button" hidden>🏠 יציאה</button>
   <div id="hint" dir="rtl"></div>
   <div id="bossBar" hidden dir="rtl"><span id="bossName"></span><div class="bar big"><i id="bossFill"></i></div></div>
   <div id="danger"></div>
@@ -3174,7 +3176,7 @@ stage.addEventListener('pointerup',endCd); stage.addEventListener('pointercancel
 
 applyQuality();
 if(window.parent!==window){ const goHome=()=>{ try{ document.exitPointerLock(); }catch(e){} try{ if(audio) audio.ctx.suspend(); }catch(e){} window.parent.postMessage('skyplay-home','*'); };
-  ['bSkyHome','bSkyHome2'].forEach(id=>{ const b=$(id); b.hidden=false; b.addEventListener('click',goHome); }); }
+  ['bSkyHome','bSkyHome2','bSkyHome3'].forEach(id=>{ const b=$(id); b.hidden=false; b.addEventListener('click',goHome); }); }
 window.__tcOK=true;
 requestAnimationFrame(frame);
 setTimeout(()=>{ const l=$('loading'); l.style.opacity=0; $('creator').hidden=false; setTimeout(()=>{ l.hidden=true; },650); },250);

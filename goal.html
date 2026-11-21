@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Goal Duel</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#0a1a10;--accent:#ffd23a;--deep:#0a3a1a;--btn:linear-gradient(180deg,#5ae08a,#1fa050);--btnsh:#0a5a28;--scr:radial-gradient(circle at 50% 20%,rgba(30,90,50,.55),rgba(4,14,8,.94))}
+body{background:#0a1a10;overflow:hidden;color:#fff;-webkit-user-select:none;user-select:none}
+#hud{position:fixed;z-index:4;top:max(8px,env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+.sb{display:flex;align-items:stretch;border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.45);font-weight:900;direction:ltr}
+.sb span{padding:6px 12px;font-size:20px;display:grid;place-items:center}
+.sb .t0{background:#d8202a}.sb .t1{background:#1f5ad8}.sb .sc{background:#fff;color:#111;min-width:74px}.sb .tm{background:#111;font-size:15px;min-width:58px}
+#menuBtn{position:fixed;z-index:5;top:max(8px,env(safe-area-inset-top));inset-inline-start:10px;width:42px;height:42px}
+.ctl{position:fixed;z-index:5;left:0;right:0;height:42%;pointer-events:none}
+.ctl.c0{bottom:0}.ctl.c1{top:0;transform:rotate(180deg)}
+.joy{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(22px,env(safe-area-inset-bottom));width:128px;height:128px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.28);pointer-events:auto;touch-action:none}
+.joy i{position:absolute;left:36px;top:36px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.btns{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));width:180px;height:150px;pointer-events:none}
+.btns button{position:absolute;border-radius:50%;font-weight:900;color:#fff;pointer-events:auto;touch-action:none;border:2px solid rgba(255,255,255,.5);box-shadow:0 5px 0 rgba(0,0,0,.35),0 10px 20px rgba(0,0,0,.35);text-shadow:0 2px 3px rgba(0,0,0,.5)}
+.bs{right:0;bottom:0;width:96px;height:96px;font-size:15px;background:radial-gradient(circle at 35% 30%,#ffe27a,#f0a020)}
+.bt{right:104px;bottom:6px;width:70px;height:70px;font-size:13px;background:radial-gradient(circle at 35% 30%,#8ad8ff,#2a7ad8)}
+.btns button.on{transform:translateY(3px);filter:brightness(1.2)}
+.pw{position:absolute;right:0;bottom:104px;width:96px;height:10px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden;opacity:0;transition:opacity .15s}
+.pw.on{opacity:1}.pw i{display:block;height:100%;width:0;background:linear-gradient(90deg,#5ae08a,#ffe24a,#ff4a3a)}
+.c1 .joy{background:rgba(80,140,255,.12)}.c0 .joy{background:rgba(255,80,80,.1)}
+#big{position:fixed;z-index:6;left:0;right:0;top:34%;text-align:center;pointer-events:none;font-weight:900;font-size:clamp(46px,15vw,110px);color:#fff;-webkit-text-stroke:3px #0a3a1a;paint-order:stroke fill;text-shadow:0 8px 0 #0a3a1a,0 0 40px rgba(255,220,80,.8);opacity:0;transform:scale(.3);transition:transform .35s cubic-bezier(.2,1.6,.4,1),opacity .2s}
+#big.on{opacity:1;transform:scale(1)}#big small{display:block;font-size:20px;-webkit-text-stroke:0;text-shadow:0 2px 6px #000}
+#title .box{width:min(400px,100%);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:12px;margin-top:12px;text-align:start}
+#title .box h4{margin:0 0 8px;font-size:14px;color:#cfffe0}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 4px;border-radius:14px;background:rgba(255,255,255,.12);font-weight:800;font-size:14px;color:#fff}
+.seg button[aria-pressed=true]{background:linear-gradient(180deg,#ffe27a,#f0a020);color:#3a2200}
+.seg button small{display:block;font-size:11px;opacity:.85}
+#playBtn{margin-top:16px;height:62px;font-size:22px;padding:0 44px}
+#endS .card{text-align:center}
+body.two #hud{top:calc(50% - 22px);opacity:.9}body.two .sb span{padding:3px 8px;font-size:15px}body.two #menuBtn{top:calc(50% - 21px);inset-inline-start:auto;inset-inline-end:8px;width:40px;height:40px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="hud" hidden><div class="sb"><span class="t0" id="n0"></span><span class="sc" id="sc">0 : 0</span><span class="t1" id="n1"></span><span class="tm" id="tm">3:00</span></div></div>
+<button class="rb" id="menuBtn" hidden>✕</button>
+<div class="ctl c0" id="c0" hidden><div class="joy"><i></i></div><div class="btns"><div class="pw"><i></i></div><button class="bs" data-b="shoot"></button><button class="bt" data-b="tackle"></button></div></div>
+<div class="ctl c1" id="c1" hidden><div class="joy"><i></i></div><div class="btns"><div class="pw"><i></i></div><button class="bs" data-b="shoot"></button><button class="bt" data-b="tackle"></button></div></div>
+<div id="big"></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:6vh"><span class="a">GOAL</span><span class="b">DUEL</span></h1>
+  <p class="sub" id="tSub" style="max-width:380px"></p>
+  <div class="box"><h4 id="mT"></h4><div class="seg" id="modeSeg"><button data-m="cpu"></button><button data-m="2p"></button></div></div>
+  <div class="box" id="diffBox"><h4 id="dT"></h4><div class="seg" id="diffSeg"><button data-d="easy"></button><button data-d="normal"></button><button data-d="hard"></button></div></div>
+  <div class="box"><h4 id="lT"></h4><div class="seg" id="lenSeg"><button data-l="3"></button><button data-l="5"></button><button data-l="t"></button></div></div>
+  <button class="btn pri" id="playBtn"></button>
+  <div class="chips"><button class="chip" id="qBtn"></button><button class="chip" id="sndChip"></button></div>
+</section>
+<div class="sheet" id="endS" hidden><div class="card"><h3 id="eT"></h3><p id="eP" dir="ltr" style="font-size:28px;font-weight:900;margin:6px 0"></p><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="goal/game.js"></script>
+</body>
+</html>

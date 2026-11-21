@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Pet Pals</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#ffe8f0;--accent:#ff6aa8;--deep:#8a2a5a;--btn:linear-gradient(180deg,#ff8ac0,#e83a8a);--btnsh:#8a1a4a;--panel:rgba(255,255,255,.9);--scr:linear-gradient(180deg,rgba(255,216,234,.95) 0%,rgba(255,216,234,.85) 30%,rgba(255,216,234,0) 46%,rgba(255,216,234,0) 70%,rgba(200,232,255,.85) 82%)}
+body{background:#ffe8f0;color:#3a1a3a}
+#top{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:8px;align-items:center;pointer-events:none}
+#top>*{pointer-events:auto}
+.nm{flex:1;min-width:0;height:46px;border-radius:16px;background:rgba(255,255,255,.9);box-shadow:0 6px 16px rgba(80,20,60,.15);display:flex;flex-direction:column;justify-content:center;padding:0 12px;line-height:1.1}
+.nm b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nm .xp{height:6px;border-radius:4px;background:#f2e0ea;margin-top:4px;overflow:hidden}.nm .xp i{display:block;height:100%;background:linear-gradient(90deg,#ffd23a,#ff6aa8);width:0;transition:width .4s}
+.coin{height:46px;padding:0 12px;border-radius:16px;background:rgba(255,255,255,.9);box-shadow:0 6px 16px rgba(80,20,60,.15);display:flex;align-items:center;gap:5px;font-weight:900;font-size:17px;direction:ltr}
+#needs{position:fixed;z-index:5;top:max(64px,calc(env(safe-area-inset-top) + 62px));left:0;right:0;display:flex;justify-content:center;gap:8px;pointer-events:none}
+.nd{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:21px;position:relative;background:conic-gradient(var(--c) calc(var(--v)*1%),rgba(255,255,255,.55) 0);box-shadow:0 4px 10px rgba(80,20,60,.18)}
+.nd::before{content:'';position:absolute;inset:5px;border-radius:50%;background:#fff}
+.nd span{position:relative}
+.nd.low{animation:low .8s ease-in-out infinite alternate}@keyframes low{to{transform:scale(1.12)}}
+#dock{position:fixed;z-index:6;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;padding:0 8px}
+#dock button{width:62px;height:66px;border-radius:20px;background:#fff;box-shadow:0 5px 0 #e8c8d8,0 8px 18px rgba(80,20,60,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:27px;line-height:1;gap:3px;position:relative}
+#dock button small{font-size:11px;font-weight:800;color:#8a4a6a}
+#dock button.on{background:linear-gradient(180deg,#ffe0f0,#ffc0dc);box-shadow:0 5px 0 #e898c0}
+#dock button.blink::after{content:'';position:absolute;inset:-4px;border-radius:24px;border:3px solid #ff6aa8;animation:bl .7s ease-in-out infinite alternate}
+@keyframes bl{from{opacity:.2;transform:scale(.96)}to{opacity:1;transform:scale(1.04)}}
+#tray{position:fixed;z-index:6;left:0;right:0;bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));display:flex;justify-content:center;gap:5px;flex-wrap:nowrap;padding:0 6px;pointer-events:none}
+#tray>*{pointer-events:auto}
+.it{width:54px;height:54px;flex:none;border-radius:16px;background:rgba(255,255,255,.92);box-shadow:0 4px 12px rgba(80,20,60,.18);font-size:32px;display:grid;place-items:center;touch-action:none;position:relative}
+.it.on{outline:3px solid #ff6aa8}
+.it small{position:absolute;bottom:-2px;inset-inline-end:-2px;font-size:11px;font-weight:900;background:#ffd23a;border-radius:8px;padding:0 4px;direction:ltr}
+.it.lk{opacity:.55}
+.it.blink{animation:bl2 .6s ease-in-out infinite alternate}@keyframes bl2{to{box-shadow:0 0 0 5px rgba(255,106,168,.6),0 4px 12px rgba(80,20,60,.18);transform:scale(1.08)}}
+#ghost{position:fixed;z-index:9;font-size:56px;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))}
+#bub{position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,-100%);background:#fff;border-radius:20px;padding:6px 12px;font-size:28px;box-shadow:0 6px 16px rgba(80,20,60,.2);transition:opacity .3s;opacity:0}
+#bub::after{content:'';position:absolute;bottom:-10px;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+#bub.on{opacity:1}
+#hint{position:fixed;z-index:6;left:0;right:0;padding:0 12px;bottom:max(150px,calc(env(safe-area-inset-bottom) + 146px));text-align:center;pointer-events:none;font-weight:900;font-size:16px;color:#8a2a5a;text-shadow:0 2px 0 #fff,0 0 10px #fff}
+#pops{position:fixed;inset:0;z-index:7;pointer-events:none}
+#pops div{position:absolute;transform:translate(-50%,-50%);font-weight:900;font-size:22px;color:#ff4a9a;text-shadow:0 2px 0 #fff,0 0 8px #fff;animation:up 1.2s ease-out forwards;white-space:nowrap}
+@keyframes up{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-60%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-180%)}}
+#lvl{position:fixed;inset:0;z-index:12;display:grid;place-items:center;pointer-events:none}
+#lvl div{background:#fff;border-radius:28px;padding:18px 26px;text-align:center;box-shadow:0 20px 50px rgba(80,20,60,.3);animation:pop .4s ease-out}
+#lvl b{display:block;font-size:30px;color:#ff4a9a}#lvl p{margin:6px 0 0;font-weight:800;color:#6a3a5a}
+#title .logo .a{color:#ff6aa8;letter-spacing:4px;text-shadow:0 3px 0 #fff}#title .logo .b{-webkit-text-stroke:3px #8a2a5a;text-shadow:0 6px 0 #8a2a5a,0 14px 24px rgba(138,42,90,.3)}
+#title{justify-content:flex-start}
+.pets{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(460px,100%);margin-top:10px}
+.pc{border-radius:18px;background:#fff;box-shadow:0 8px 18px rgba(80,20,60,.15);padding:6px 2px 6px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;color:#3a1a3a;border:3px solid transparent}
+.pc i{font-style:normal;font-size:34px;line-height:1.1}.pc small{font-size:11px;color:#a06a8a;font-weight:800}
+.pc.on{border-color:#ff6aa8}
+.pc.alien{background:linear-gradient(180deg,#e0fff0,#d8e8ff)}
+#nameIn{margin-top:12px;height:46px;border-radius:14px;border:2px solid #ffc0dc;padding:0 14px;font:inherit;font-weight:800;font-size:17px;text-align:center;width:min(300px,90%);color:#3a1a3a;background:#fff}
+#wd{position:fixed;z-index:6;left:0;right:0;bottom:max(88px,calc(env(safe-area-inset-bottom) + 84px));display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+#wd>*{pointer-events:auto}
+.wt{display:flex;gap:6px}.wt button{height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.75);font-weight:900;font-size:14px;color:#6a2a4a}.wt button.on{background:#ff6aa8;color:#fff}
+.wl{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:94vw}
+@media (orientation:landscape) and (max-height:560px){#needs{top:auto;bottom:max(84px,calc(env(safe-area-inset-bottom) + 80px));left:auto;right:max(10px,env(safe-area-inset-right));flex-direction:column;bottom:auto;top:70px}.pets{grid-template-columns:repeat(5,1fr);width:min(640px,100%)}#hint{bottom:auto;top:70px}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="top" hidden><button class="rb" id="backBtn">‹</button><div class="nm"><b id="pName"></b><div class="xp"><i id="xpBar"></i></div></div><div class="coin">🪙 <span id="coinN">0</span></div><button class="rb" id="sndBtn"></button></div>
+<div id="needs" hidden></div>
+<div id="bub"></div>
+<div id="hint"></div>
+<div id="tray" hidden></div>
+<div id="wd" hidden><div class="wt" id="wTabs"></div><div class="wl" id="wList"></div></div>
+<div id="dock" hidden></div>
+<div id="ghost" hidden></div>
+<div id="pops"></div>
+<div id="lvl" hidden></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:1vh"><span class="a">PET</span><span class="b">PALS</span></h1>
+  <p class="sub" id="tSub" style="color:#6a3a5a"></p>
+  <div class="pets" id="pets"></div>
+  <div style="flex:1;min-height:30vh"></div>
+  <input id="nameIn" maxlength="14">
+  <button class="big" id="goBtn"></button>
+  <div class="chips"><button class="chip" id="qBtn"></button></div>
+</section>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="pet/game.js"></script>
+</body>
+</html>

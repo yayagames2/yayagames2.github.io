@@ -47,16 +47,20 @@ const THEMES = {
 const LEVELS = [
   { th: 'sunrise', seed: 11, sway: .02, segs: ['start', 'ground:10', 'branches:3', 'ground:8', 'vines:2', 'ground:8', 'check', 'branches:4', 'vines:3', 'bounce:1', 'ground:6', 'end'],
     tips: [[6, isTouch ? 'Move the joystick to run' : 'Arrows / WASD – run'], [20, isTouch ? 'Press “Jump” to hop between branches' : 'Space – jump'], [50, 'Jump at the vine to grab it!'], [56, 'Jump again to let go – while swinging forward'], [100, 'Bounce mushroom – launch yourself high!']] },
-  { th: 'river', seed: 22, sway: .025, segs: ['start', 'ground:8', 'logs:3', 'ground:6', 'vines:3', 'snake:10', 'check', 'logs:4', 'branches:3', 'vines:3', 'ground:6', 'end'],
-    tips: [[16, 'The rafts move – time your jump'], [62, 'Snake! Stomp it or throw a stone']] },
-  { th: 'falls', seed: 33, sway: .018, segs: ['start', 'ground:8', 'branches:4', 'vines:4', 'check', 'ground:6', 'zip:34', 'crumble:3', 'vines:3', 'ground:6', 'end'],
-    tips: [[78, 'Zipline! Jump onto the cable to slide'], [112, 'The rocks crumble – keep moving!']] },
-  { th: 'bamboo', seed: 44, sway: .03, segs: ['start', 'ground:8', 'branches:3', 'wasp', 'vines:4', 'check', 'bounce:2', 'zip:28', 'snake:10', 'vines:4', 'ground:6', 'end'],
+  { th: 'river', seed: 22, sway: .025, segs: ['start', 'ground:8', 'logs:3', 'ground:6', 'vines:3', 'snake:10', 'check', 'logs:4', 'zigzag:4', 'vines:3', 'ground:6', 'end'],
+    tips: [[16, 'The rafts move – time your jump'], [62, 'Snake! Stomp it or throw a stone'], [100, 'Zigzag branches – jump left and right']] },
+  { th: 'falls', seed: 33, sway: .018, segs: ['start', 'ground:8', 'pillars:5', 'vines:4', 'check', 'ground:6', 'zip:34', 'crumble:4', 'vinesX:3', 'ground:6', 'end'],
+    tips: [[22, 'Posts at different heights – jump up and down!'], [90, 'Zipline! Jump onto the cable to slide'], [124, 'The rocks crumble – keep moving!']] },
+  { th: 'bamboo', seed: 44, sway: .03, segs: ['start', 'ground:8', 'zigzag:5', 'wasp', 'vines:4', 'check', 'bounce:3', 'zip:28', 'snakes:16', 'vinesX:4', 'ground:6', 'end'],
     tips: [[26, 'Wasps! Throw stones at them']] },
-  { th: 'night', seed: 55, sway: .02, segs: ['start', 'ground:8', 'bounce:3', 'vines:3', 'check', 'branches:4', 'wasp', 'bounce:2', 'vines:4', 'snake:8', 'ground:6', 'end'], tips: [] },
-  { th: 'temple', seed: 66, sway: .016, segs: ['start', 'ground:8', 'crumble:4', 'vines:3', 'snake:10', 'check', 'zip:30', 'crumble:4', 'wasp', 'vines:4', 'ground:6', 'end'], tips: [] },
-  { th: 'volcano', seed: 77, sway: .022, segs: ['start', 'ground:8', 'crumble:3', 'vines:4', 'check', 'bounce:2', 'logs:3', 'wasp', 'vines:5', 'crumble:3', 'ground:6', 'end'], tips: [[10, 'Lava! Don’t fall…']] },
-  { th: 'storm', seed: 88, sway: .028, segs: ['start', 'ground:8', 'vines:5', 'check', 'zip:36', 'crumble:3', 'wasp', 'vines:6', 'check', 'bounce:2', 'snake:8', 'zip:30', 'vines:4', 'ground:6', 'end'], tips: [[8, 'The final level – good luck, Zori!']] }
+  { th: 'night', seed: 55, sway: .02, segs: ['start', 'ground:8', 'bounce:3', 'vinesX:4', 'check', 'pillars:6', 'wasp', 'bounce:2', 'vines:4', 'snakes:14', 'ground:6', 'end'], tips: [[12, 'In the dark – follow the fireflies ✨']] },
+  { th: 'temple', seed: 66, sway: .016, segs: ['start', 'ground:8', 'crumble:5', 'vines:3', 'snakes:14', 'check', 'zip:30', 'gauntlet:5', 'pillars:5', 'vinesX:4', 'ground:6', 'end'], tips: [] },
+  { th: 'volcano', seed: 77, sway: .022, segs: ['start', 'ground:8', 'crumble:4', 'vinesX:4', 'check', 'bounce:2', 'logs:4', 'wasp', 'pillars:6', 'check', 'gauntlet:5', 'vinesX:5', 'ground:6', 'end'], tips: [[10, 'Lava! Don’t fall…']] },
+  { th: 'storm', seed: 88, sway: .028, segs: ['start', 'ground:8', 'vinesX:5', 'check', 'zip:36', 'crumble:4', 'wasp', 'vinesX:6', 'check', 'bounce:2', 'snakes:12', 'zip:30', 'zigzag:5', 'vines:4', 'ground:6', 'end'], tips: [[8, 'Storm! The vines swing hard']] },
+  { th: 'river', nm: 'Snake Pass', ne: 'SNAKE PASS', seed: 99, sway: .03, segs: ['start', 'ground:8', 'snakes:18', 'logs:4', 'check', 'zigzag:6', 'snakes:16', 'vinesX:4', 'check', 'logs:5', 'snakes:14', 'ground:6', 'end'], tips: [[10, 'Snakes everywhere! Throw stones or stomp them']] },
+  { th: 'falls', nm: 'Leap of Faith', ne: 'LEAP OF FAITH', seed: 111, sway: .02, segs: ['start', 'ground:8', 'pillars:7', 'check', 'vinesX:6', 'zip:40', 'check', 'pillars:6', 'crumble:5', 'vinesX:5', 'ground:6', 'end'], tips: [[10, 'High and low jumps – be precise!']] },
+  { th: 'night', nm: 'Wasp Hollow', ne: 'WASP HOLLOW', seed: 122, sway: .024, segs: ['start', 'ground:8', 'gauntlet:6', 'wasp', 'check', 'bounce:3', 'vinesX:5', 'wasp', 'check', 'gauntlet:6', 'zigzag:6', 'ground:6', 'end'], tips: [[10, 'A wasp swarm! Keep stones handy']] },
+  { th: 'volcano', nm: 'Heart of the Volcano', ne: 'HEART OF THE VOLCANO', seed: 133, sway: .03, segs: ['start', 'ground:8', 'crumble:5', 'pillars:6', 'check', 'vinesX:6', 'zip:34', 'gauntlet:6', 'check', 'logs:5', 'snakes:14', 'vinesX:6', 'zigzag:6', 'ground:6', 'end'], tips: [[8, 'The final challenge! Only champions reach the end 🏆']] }
 ];
 
 /* ================= renderer ================= */
@@ -261,6 +265,33 @@ function buildLevel(idx) {
       const cnt = 1 + (d.extra > 1 ? 1 : 0);
       for (let i = 0; i < cnt; i++) W.enemies.push({ type: 'snake', x: xAt(z + len * (.4 + i * .3)), y, z: z + len * (.4 + i * .3), cx: xAt(z + len / 2), range: 2.6, ph: R() * 6, hp: 2, alive: true });
       fruitRow(z + 1, z + len - 1, y + 1.2, 3); z += len;
+    }
+    else if (k === 'pillars') {
+      for (let i = 0; i < n; i++) { const gap = 2.2 + R() * .7 + gapX * .7; z += gap; const dy = i % 2 ? -(.9 + R() * .9) : .7 + R() * .6; const ny = clamp(y + dy, y - 1.8, y + 1.3); y = ny;
+        P({ kind: T.plat === 'basalt' ? 'basalt' : 'branch', x: xAt(z + 1) + (R() - .5) * 1.2, z: z + 1, w: 2.1, d: 2, y }); W.fruits.push({ x: xAt(z + 1), y: y + 1.3, z: z + 1 }); z += 2; }
+      z += 2.4; P({ kind: 'ground', x: xAt(z + 3.5), z: z + 3.5, w: 7, d: 7, y }); z += 7;
+    }
+    else if (k === 'zigzag') {
+      for (let i = 0; i < n; i++) { const gap = 2.4 + R() * .6 + gapX * .6; z += gap; const side = i % 2 ? -1 : 1; const dep = 2.8;
+        P({ kind: 'branch', x: xAt(z + dep / 2) + side * 2.6, z: z + dep / 2, w: 2.3, d: dep, y }); W.fruits.push({ x: xAt(z + dep / 2) + side * 2.6, y: y + 1.3, z: z + dep / 2 }); z += dep; }
+      z += 2.4; P({ kind: 'ground', x: xAt(z + 3.5), z: z + 3.5, w: 7, d: 7, y }); z += 7;
+    }
+    else if (k === 'vinesX') {
+      const top = y; z += 3;
+      for (let i = 0; i < n; i++) { const sp = 7.3 + R() * .5 + gapX * .4; const vz = z, vx = xAt(vz) + (R() - .5) * 1.2; const hh = top + 10.5 + (R() - .5) * 1.6;
+        W.vines.push({ A: new THREE.Vector3(vx, hh, vz), len: 7.4 + (R() - .5) * .5, x: vx, z: vz, ph: R() * 6, cool: 0 });
+        for (let f = 0; f < 2; f++) W.fruits.push({ x: xAt(vz + 2.5 + f * 2), y: top + 3.8 + f * .6, z: vz + 2.5 + f * 2 }); fruitCands.push(new THREE.Vector3(vx, top + 4.6, vz + 3.8)); z += sp; }
+      z += -1.7; P({ kind: 'ground', x: xAt(z + 3.5), z: z + 3.5, w: 7, d: 7, y }); z += 7;
+    }
+    else if (k === 'gauntlet') {
+      for (let i = 0; i < n; i++) { z += 2.3 + gapX * .5; const p = P({ kind: 'crumble', x: xAt(z + 1.9), z: z + 1.9, w: 3, d: 3.6, y }); p.cr = { t: -1, fall: 0 }; W.fruits.push({ x: p.x, y: y + 1.2, z: p.z });
+        if (i % 2 === 1) W.enemies.push({ type: 'wasp', hx: xAt(z + 1.9), hy: y + 3.2, hz: z + 1.9, x: 0, y: 0, z: 0, ph: R() * 6, hp: 1, alive: true }); z += 3.6; }
+      z += 2.6; P({ kind: 'ground', x: xAt(z + 3.5), z: z + 3.5, w: 7, d: 7, y }); z += 7;
+    }
+    else if (k === 'snakes') {
+      const len = n; P({ kind: 'ground', x: xAt(z + len / 2), z: z + len / 2, w: 7, d: len, y }); const cnt = Math.max(2, Math.round(len / 7)) + (d.extra > 1 ? 1 : 0);
+      for (let i = 0; i < cnt; i++) { const zz = z + len * ((i + .6) / (cnt + .4)); W.enemies.push({ type: 'snake', x: xAt(zz), y, z: zz, cx: xAt(zz), range: 2.4 + R(), ph: R() * 6, hp: 2, alive: true }); }
+      fruitRow(z + 1, z + len - 1, y + 1.2, Math.max(3, len / 3 | 0)); z += len;
     }
     else if (k === 'wasp') { for (let i = 0; i < 1 + d.extra; i++) W.enemies.push({ type: 'wasp', hx: xAt(z + 4 + i * 5), hy: y + 3.2, hz: z + 4 + i * 5, x: 0, y: 0, z: 0, ph: R() * 6, hp: 1, alive: true }); }
     else if (k === 'end') { P({ kind: 'ground', x: xAt(z + 6), z: z + 6, w: 10, d: 12, y }); W.end = new THREE.Vector3(xAt(z + 8), y, z + 8); z += 12; }
@@ -578,8 +609,8 @@ function startLevel(i) {
   P.hearts = d.hearts; P.lives = d.lives; P.fruit = 0; P.letters = 0; P.time = 0; P.cp = W.spawn.clone();
   respawn(true); state = 'play';
   showScreens(); updateHud();
-  const T = W.T; $('banN').textContent = 'Level ' + (i + 1) + ' · ' + T.en; $('banT').textContent = T.ic + ' ' + T.name; flashBanner();
-  $('lvName').textContent = (i + 1) + ' · ' + T.name;
+  const T = W.T, NM = W.L.nm || T.name; $('banN').textContent = 'Level ' + (i + 1) + ' · ' + (W.L.ne || T.en); $('banT').textContent = T.ic + ' ' + NM; flashBanner();
+  $('lvName').textContent = (i + 1) + ' · ' + NM;
   music.setTheme(W.L.th); resize();
 }
 function respawn(first) {
@@ -900,7 +931,7 @@ function levelDone() {
 }
 function renderMap() {
   $('lvGrid').innerHTML = LEVELS.map((L, i) => { const T = THEMES[L.th], st = SAVE.stars[i + 1] || 0, lock = i + 1 > SAVE.unlocked;
-    return `<button class="lv${lock ? ' lock' : ''}" data-i="${i}" style="background:${T.grad}"><span class="n">${i + 1}</span><span class="ic">${T.ic}</span><b>${T.name}</b><span class="st">${'⭐'.repeat(st)}${'☆'.repeat(3 - st)}</span></button>`; }).join('');
+    return `<button class="lv${lock ? ' lock' : ''}" data-i="${i}" style="background:${T.grad}"><span class="n">${i + 1}</span><span class="ic">${T.ic}</span><b>${L.nm || T.name}</b><span class="st">${'⭐'.repeat(st)}${'☆'.repeat(3 - st)}</span></button>`; }).join('');
 }
 $('lvGrid').onclick = e => { const b = e.target.closest('.lv'); if (!b || b.classList.contains('lock')) { if (b) toast('🔒 Finish the previous level first', 1200); return; } ac(); sfx.jump(); startLevel(+b.dataset.i); };
 $('playBtn').onclick = () => { ac(); sfx.jump(); renderMap(); state = 'map'; showScreens(); };

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Drift King</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#120a1e;--accent:#ff3a6a;--deep:#2a0a3a;--btn:linear-gradient(180deg,#ff6a8a,#d81a4a);--btnsh:#6a0a24;--panel:rgba(14,8,26,.6);--scr:transparent}
+body{color:#fff;background:#120a1e}
+.rb,.pill{color:#fff;background:rgba(14,8,26,.55);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px)}
+.pill b{font-size:16px}
+.logo .a{color:#ffd23a;text-shadow:0 3px 0 #5a0a24,0 0 18px rgba(255,80,120,.55);letter-spacing:6px}.logo .b{color:#fff;-webkit-text-stroke:3px #a80a3a;text-shadow:0 6px 0 #5a0a24,0 0 30px rgba(255,60,110,.6);font-style:italic}
+#title{justify-content:flex-end;background:linear-gradient(180deg,rgba(10,4,20,0) 0%,rgba(10,4,20,0) 24%,rgba(10,4,20,.8) 44%,rgba(10,4,20,.95) 100%)}
+#title .homeT{z-index:3}
+#title .logo{pointer-events:none;position:absolute;top:max(12px,env(safe-area-inset-top));left:0;right:0;margin:0;font-size:clamp(38px,10vw,64px)}
+#coinT{position:absolute;top:max(14px,env(safe-area-inset-top));inset-inline-end:12px;z-index:3;height:42px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.45);display:flex;align-items:center;gap:6px;font-weight:900;font-size:18px;direction:ltr}
+.tpan{width:min(560px,100%);display:flex;flex-direction:column;gap:9px;align-items:stretch}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tabs2 button{height:42px;border-radius:14px;background:rgba(255,255,255,.08);font-weight:900;font-size:15px;color:#fff;border:2px solid transparent}
+.tabs2 button.on{background:rgba(255,58,106,.22);border-color:#ff5a8a}
+.evs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.evs button{position:relative;border-radius:14px;padding:7px 3px 6px;background:rgba(255,255,255,.08);color:#fff;font-weight:900;font-size:11.5px;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.15}
+.evs button i{font-style:normal;font-size:22px}.evs button small{color:#ffd23a;font-size:11px;letter-spacing:1px}
+.evs button.on{border-color:#ff5a8a;background:rgba(255,58,106,.2)}
+.evs button.lock{opacity:.45}
+.evs button .rev{position:absolute;top:3px;inset-inline-start:4px;font-size:10px;background:#ff3a6a;border-radius:6px;padding:0 4px}
+.gar{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border-radius:18px;padding:8px}
+.gar .ar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);font-size:20px;font-weight:900;color:#fff;flex:none}
+.gmid{flex:1;text-align:center}.gmid b{font-size:19px}.gmid p{margin:1px 0 4px;font-size:12px;opacity:.85;font-weight:700}
+.bars{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;font-size:11px;font-weight:800;text-align:start;align-items:center}
+.bars i{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}.bars i b{display:block;height:100%;background:linear-gradient(90deg,#ffd23a,#ff3a6a)}
+.sw{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center}
+.sw button{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25);position:relative}
+.sw button.on{border-color:#fff;transform:scale(1.12)}
+.sw button.lk::after{content:'🔒';position:absolute;inset:0;display:grid;place-items:center;font-size:13px}
+.sw span{font-size:12px;font-weight:800;opacity:.8}
+.buy{height:46px;border-radius:999px;background:linear-gradient(180deg,#ffe27a,#f0a020);color:#3a2200;font-weight:900;font-size:17px;box-shadow:0 5px 0 #8a5a00}
+.buy:disabled{filter:grayscale(1);opacity:.6}
+.go2{height:60px;border-radius:999px;background:linear-gradient(180deg,#ff6a8a,#d81a4a);color:#fff;font-weight:900;font-size:22px;box-shadow:0 7px 0 #6a0a24,0 14px 26px rgba(0,0,0,.35);text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.trow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.chip svg{width:22px;height:22px;display:block}
+.mini{position:fixed;z-index:5;top:max(64px,calc(env(safe-area-inset-top) + 62px));inset-inline-end:12px;width:100px;height:100px;border-radius:16px;background:rgba(14,8,26,.45);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15)}
+.spd{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-weight:900;pointer-events:none;direction:ltr;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.spd b{font-size:34px;display:block;line-height:1}.spd small{font-size:11px;opacity:.85}
+#combo{position:fixed;z-index:6;left:0;right:0;top:max(66px,calc(env(safe-area-inset-top) + 60px));text-align:center;pointer-events:none;direction:ltr;transition:opacity .2s;opacity:0}
+#combo.on{opacity:1}
+#combo .pts{font-size:clamp(30px,8vw,44px);font-weight:900;color:#fff;-webkit-text-stroke:1.5px #6a0a24;text-shadow:0 4px 0 #6a0a24,0 0 18px rgba(255,60,110,.7);line-height:1}
+#combo .mul{display:inline-block;margin-top:4px;padding:2px 12px;border-radius:999px;background:linear-gradient(180deg,#ffe27a,#f0a020);color:#3a1a00;font-weight:900;font-size:18px;box-shadow:0 3px 0 #8a5a00}
+#combo .tag{display:inline-block;margin-inline-start:6px;padding:2px 10px;border-radius:999px;background:#ff3a6a;font-weight:900;font-size:14px;vertical-align:top;margin-top:6px}
+#combo .mb{width:150px;height:6px;margin:6px auto 0;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden}#combo .mb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd23a,#ff3a6a)}
+#pops{position:fixed;inset:0;z-index:6;pointer-events:none;direction:ltr}
+#pops div{position:absolute;left:0;right:0;top:36%;text-align:center;font-weight:900;font-size:30px;color:#ffe24a;-webkit-text-stroke:1.5px #5a2a00;text-shadow:0 4px 0 #5a2a00,0 0 20px rgba(255,200,60,.7);animation:pp 1.4s ease-out forwards}
+#pops div small{display:block;font-size:20px;color:#fff;-webkit-text-stroke:0;text-shadow:0 2px 6px #000}
+#pops div.bad{color:#ffb0a0;-webkit-text-stroke-color:#5a0a0a;text-shadow:0 4px 0 #5a0a0a}
+#pops div.g{top:48%;font-size:24px;color:#9affb0;-webkit-text-stroke-color:#0a4a1a;text-shadow:0 3px 0 #0a4a1a}
+@keyframes pp{0%{transform:scale(.4);opacity:0}14%{transform:scale(1.15);opacity:1}28%{transform:scale(1)}75%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+.cd{position:fixed;inset:0;z-index:7;display:grid;place-items:center;pointer-events:none}
+.cd b{font-size:120px;font-weight:900;color:#fff;-webkit-text-stroke:4px #a80a3a;text-shadow:0 8px 0 #5a0a24;animation:cdp .9s ease-out forwards;direction:ltr}
+@keyframes cdp{0%{transform:scale(2);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(.8);opacity:0}}
+.ctl{position:fixed;z-index:6;bottom:max(16px,calc(env(safe-area-inset-bottom) + 8px));display:flex;gap:12px;align-items:flex-end;direction:ltr}
+.ctl button{border-radius:50%;font-weight:900;color:#fff;touch-action:none;box-shadow:0 5px 0 rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);user-select:none;-webkit-user-select:none}
+.ctl button.on{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35);filter:brightness(1.25)}
+#cL{left:max(14px,env(safe-area-inset-left))}#cR{right:max(14px,env(safe-area-inset-right))}
+.st{width:80px;height:80px;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.4),rgba(255,255,255,.12));font-size:32px}
+#bHb{width:96px;height:96px;background:radial-gradient(circle at 35% 30%,#ff8aa8,#d81a4a);font-size:17px;letter-spacing:1px}
+#bBrk{width:62px;height:62px;background:radial-gradient(circle at 35% 30%,#8a9ab8,#3a4a68);font-size:22px}
+#bGas{width:78px;height:110px;border-radius:24px!important;background:linear-gradient(180deg,#7aff5a,#22b81a);font-size:28px}
+.res{list-style:none;padding:0;margin:8px 0;text-align:start}.res li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:12px;font-weight:800}.res li:nth-child(odd){background:#f6f0fa}
+.card{background:#fff;color:#1a0a24}
+.nr{display:inline-block;background:#ff3a6a;color:#fff;border-radius:999px;padding:2px 12px;font-weight:900;font-size:14px;margin-top:4px;animation:st .5s ease-out both}
+@media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(10,4,20,0) 30%,rgba(10,4,20,.82) 52%,rgba(10,4,20,.95))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto;font-size:44px}.tpan{width:min(440px,56vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.go2{height:50px}.gar{padding:5px}.evs button{padding:4px 2px}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="pill"><b id="scTxt" style="direction:ltr">0</b><small id="scSub"></small></div>
+  <div class="pill"><b id="lapTxt" style="direction:ltr"></b><small id="lapSub"></small></div>
+  <div class="sp"></div>
+  <div class="pill"><b id="giftTxt" style="direction:ltr">🎁 0</b><small id="timeTxt" style="direction:ltr">0:00</small></div>
+</div>
+<canvas class="mini" id="mini" width="200" height="200" hidden></canvas>
+<div id="combo"><div class="pts" id="cPts">0</div><span class="mul" id="cMul">x1</span><span class="tag" id="cTag" hidden></span><div class="mb"><i id="cBar"></i></div></div>
+<div id="pops"></div>
+<div class="spd" id="spd" hidden><b id="spdTxt">0</b><small>km/h</small></div>
+<div class="cd" id="cd"></div>
+<div class="ctl" id="cL" hidden><button class="st" id="bL">◀</button><button class="st" id="bR">▶</button></div>
+<div class="ctl" id="cR" hidden><button id="bBrk">⏪</button><button id="bHb">DRIFT</button><button id="bGas" hidden>⏩</button></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <div id="coinT">🪙 <span id="coinN">0</span></div>
+  <h1 class="logo"><span class="a">DRIFT</span><span class="b">KING</span></h1>
+  <div class="tpan">
+    <div class="tabs2"><button id="tabE"></button><button id="tabG"></button></div>
+    <div id="pE"><div class="evs" id="evs"></div><p id="evInfo" style="margin:6px 0 0;font-weight:700;font-size:13px;opacity:.9;text-align:center"></p></div>
+    <div id="pG" hidden style="display:flex;flex-direction:column;gap:8px">
+      <div class="gar"><button class="ar" id="cPrev">‹</button><div class="gmid"><b id="carN"></b><p id="carD"></p><div class="bars" id="carB"></div></div><button class="ar" id="cNext">›</button></div>
+      <div class="sw" id="paints"></div>
+      <div class="sw" id="smokes"></div>
+      <button class="buy" id="buyBtn" hidden></button>
+    </div>
+    <button class="go2" id="goBtn"></button>
+    <div class="trow"><button class="chip" id="asBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndChip"></button></div>
+  </div>
+</section>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><div id="eNR"></div><ul class="res" id="eRes"></ul><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="drift/game.js"></script>
+</body>
+</html>

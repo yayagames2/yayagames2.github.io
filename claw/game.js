@@ -23,7 +23,63 @@ const MACH = [
     ['star', T('כוכבון', 'Starry'), '#ffe14a', '#fff6b8', 'none', 'points', 0], ['astro', T('חתול חלל', 'Astro Cat'), '#ffffff', '#ffe0ec', 'cat', 'helmet', 0], ['ufo', T('צלחתון', 'UFO'), '#5fd0ff', '#d8f4ff', 'none', 'dome', 0],
     ['moon', T('ירחון', 'Moony'), '#d8d8e4', '#f4f4fa', 'none', 'craters', 1], ['comet', T('שביטון', 'Comet'), '#5f8aff', '#d0dcff', 'none', 'tail-glow', 1], ['gwhale', T('לווייתן גלקטי', 'Galaxy Whale'), '#6a3aff', '#c8b0ff', 'fins', 'stars', 2], ['galien', T('חייזר הזהב', 'Golden Alien'), '#ffcf3a', '#fff2b0', 'antenna', 'gold', 3]] },
 ];
-MACH.forEach(m => m.toys = m.toys.map(([id, n, c, b, ears, extra, rar]) => ({ id: m.id + ':' + id, n, c, b, ears, extra, rar })));
+MACH.push(
+  { id: 'candy', kind: 'candy', n: T('מכונת הממתקים', 'Candy Crane'), ic: '🍭', col: '#ff4fa8', glass: '#ffe0f0', wall: ['#fff0f6', '#ffd0e6'], toys: [
+    ['lolli', T('סוכרייה על מקל', 'Lollipop'), '#ff5fa2', '#ffffff', 'lolli', '', 0], ['wrap', T('סוכרייה עטופה', 'Wrapped Candy'), '#5ac8ff', '#ffffff', 'wrap', '', 0], ['donut', T('דונאט', 'Donut'), '#e0a060', '#ff8ac8', 'donut', '', 0],
+    ['cup', T('קאפקייק', 'Cupcake'), '#ffb0d8', '#7ad8ff', 'cup', '', 0], ['mac', T('מקרון', 'Macaron'), '#a8f0c8', '#ffffff', 'mac', '', 0], ['ice', T('גלידה', 'Ice Cream'), '#ffd0e0', '#e8b070', 'ice', '', 0],
+    ['choc', T('פרלין שוקולד', 'Choco Bonbon'), '#6a3a20', '#ffd24a', 'bonbon', '', 1], ['gummy', T('דובון גומי', 'Gummy Bear'), '#ff4a5a', '#ff4a5a', 'gummy', '', 1], ['rlolli', T('לוליפופ קשת', 'Rainbow Lolli'), '#ffffff', '#ffffff', 'lolli', 'rainbow', 2], ['gcup', T('קאפקייק הזהב', 'Golden Cupcake'), '#ffcf3a', '#fff2b0', 'cup', 'gold', 3]] },
+  { id: 'duck', kind: 'duck', n: T('ברווזי אמבטיה', 'Rubber Duckies'), ic: '🦆', col: '#ffb81a', glass: '#fff2c8', wall: ['#e8f8ff', '#c8ecff'], toys: [
+    ['yel', T('ברווזון', 'Ducky'), '#ffd23a', '', 'duck', '', 0], ['pink', T('ברווזה ורודה', 'Pinky Duck'), '#ff9ac8', '', 'duck', 'bow', 0], ['blue', T('ברווז ים', 'Sailor Duck'), '#5ab8ff', '', 'duck', 'cap', 0],
+    ['mint', T('ברווז מנטה', 'Minty Duck'), '#7ae8c0', '', 'duck', '', 0], ['chef', T('ברווז שף', 'Chef Duck'), '#fff6e0', '', 'duck', 'chef', 0], ['cool', T('ברווז מגניב', 'Cool Duck'), '#ffa040', '', 'duck', 'shades', 0],
+    ['pirate', T('ברווז פיראט', 'Pirate Duck'), '#ffd23a', '', 'duck', 'pirate', 1], ['queen', T('ברווזת מלכה', 'Queen Duck'), '#c89aff', '', 'duck', 'crown', 1], ['unic', T('ברווזקרן', 'Unicorn Duck'), '#ffffff', '', 'duck', 'horn', 2], ['gduck', T('ברווז הזהב', 'Golden Duck'), '#ffcf3a', '', 'duck', 'gold', 3]] },
+  { id: 'ball', kind: 'ball', n: T('כדורי ספורט', 'Ball Blast'), ic: '⚽', col: '#2fc36a', glass: '#d8ffe4', wall: ['#e8ffe8', '#c0f0c8'], toys: [
+    ['soc', T('כדורגל', 'Soccer Ball'), '#ffffff', '#1c1c24', 'soccer', '', 0], ['bask', T('כדורסל', 'Basketball'), '#ff7a2a', '#2a1a10', 'lines', '', 0], ['ten', T('כדור טניס', 'Tennis Ball'), '#d8f040', '#ffffff', 'tennis', '', 0],
+    ['beach', T('כדור חוף', 'Beach Ball'), '#ff4a5a', '#ffffff', 'beach', '', 0], ['volley', T('כדורעף', 'Volleyball'), '#ffffff', '#3a7bff', 'beach', 'two', 0], ['base', T('כדור בייסבול', 'Baseball'), '#f6f2ea', '#e03030', 'tennis', 'stitch', 0],
+    ['bowl', T('כדור באולינג', 'Bowling Ball'), '#3a2aa8', '#1a1a30', 'bowl', '', 1], ['disco', T('כדור דיסקו', 'Disco Ball'), '#d8e0f0', '#ffffff', 'disco', '', 1], ['planet', T('כדור כוכב לכת', 'Planet Ball'), '#6a3aff', '#ffb84a', 'planet', '', 2], ['gball', T('כדור הזהב', 'Golden Ball'), '#ffcf3a', '#1c1c24', 'soccer', 'gold', 3]] });
+MACH.forEach(m => m.toys = m.toys.map(([id, n, c, b, ears, extra, rar]) => ({ id: m.id + ':' + id, kind: m.kind || 'plush', n, c, b, ears, extra, rar })));
+
+/* ---------- non-plush prizes ---------- */
+const GOLDM = () => new THREE.MeshPhysicalMaterial({ color: '#ffcf3a', roughness: .25, metalness: .9, clearcoat: .8 });
+const shiny = c => new THREE.MeshPhysicalMaterial({ color: C(c), roughness: .25, clearcoat: 1, clearcoatRoughness: .15 });
+function stripeTex(cols, n, kind) { const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
+  if (kind === 'beach') { for (let i = 0; i < n; i++) { x.fillStyle = cols[i % cols.length]; x.fillRect(i * 256 / n, 0, 256 / n + 1, 128); } }
+  else if (kind === 'swirl') { for (let i = 0; i < 12; i++) { x.fillStyle = cols[i % cols.length]; x.beginPath(); x.moveTo(128, 64); x.arc(128, 64, 200, i / 12 * 6.283, (i + 1) / 12 * 6.283); x.fill(); } }
+  else if (kind === 'planet') { const g = x.createLinearGradient(0, 0, 0, 128); cols.forEach((cc, i) => g.addColorStop(i / (cols.length - 1), cc)); x.fillStyle = g; x.fillRect(0, 0, 256, 128); for (let i = 0; i < 9; i++) { x.fillStyle = 'rgba(255,255,255,.18)'; x.fillRect(0, 10 + i * 13, 256, 4); } }
+  else if (kind === 'disco') { for (let i = 0; i < 32; i++) for (let j = 0; j < 16; j++) { const v = 150 + Math.random() * 105; x.fillStyle = `rgb(${v},${v},${Math.min(255, v + 20)})`; x.fillRect(i * 8, j * 8, 7, 7); } }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
+function makePrize(def, r) { if (def.kind === 'plush') return plush(def, r); const g = new THREE.Group(); const gold = def.extra === 'gold';
+  const add = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x * r, y * r, z * r); m.scale.set(sx, sy, sz); m.rotation.set(rx, ry, rz); g.add(m); return m; };
+  const sph = (k, ws = 20, hs = 14) => new THREE.SphereGeometry(r * k, ws, hs); const dark = std('#1b1420', { roughness: .2 }), white = new THREE.MeshBasicMaterial({ color: '#ffffff' });
+  const face = (y, z, s = 1) => { for (const k of [-1, 1]) { add(sph(.09 * s, 10, 8), dark, k * .25 * s, y, z, 1, 1, .6); add(sph(.03 * s, 6, 4), white, k * .25 * s + .03, y + .05, z + .05); } };
+  const M = gold ? GOLDM() : shiny(def.c), B = gold ? GOLDM() : shiny(def.b || '#ffffff');
+  switch (def.ears) {
+    case 'lolli': { const tex = stripeTex(def.extra === 'rainbow' ? ['#ff4a5a', '#ffa040', '#ffe04a', '#5ae08a', '#4ab0ff', '#a86aff'] : [def.c, '#ffffff'], 0, 'swirl'); const disc = add(new THREE.CylinderGeometry(r * .95, r * .95, r * .4, 32), [shiny('#ffffff'), new THREE.MeshPhysicalMaterial({ map: tex, roughness: .2, clearcoat: 1 }), new THREE.MeshPhysicalMaterial({ map: tex, roughness: .2, clearcoat: 1 })], 0, .15, 0, 1, 1, 1, Math.PI / 2); add(new THREE.CylinderGeometry(r * .07, r * .07, r * 1.2, 8), std('#ffffff'), 0, -.85, 0); face(.2, .22); break; }
+    case 'wrap': add(sph(.62), M, 0, 0, 0, 1.25, 1, 1); for (const k of [-1, 1]) add(new THREE.ConeGeometry(r * .38, r * .55, 10), B, k * 1.0, 0, 0, 1, 1, 1, 0, 0, k * Math.PI / 2); face(.08, .58); break;
+    case 'donut': add(new THREE.TorusGeometry(r * .62, r * .32, 16, 32), shiny(def.c), 0, 0, 0, 1, 1, 1, Math.PI / 2.4); add(new THREE.TorusGeometry(r * .62, r * .3, 12, 32), shiny(def.b), 0, .08, 0, 1, 1, .7, Math.PI / 2.4); for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283; add(new THREE.CapsuleGeometry(r * .025, r * .1, 3, 6), std(['#ffffff', '#ffe04a', '#5ac8ff', '#5ae08a'][k % 4]), Math.cos(a) * .62, .3 + Math.sin(a) * .2, Math.sin(a) * .5, 1, 1, 1, a, 0, a); } face(.18, .45, .8); break;
+    case 'cup': add(new THREE.CylinderGeometry(r * .62, r * .45, r * .7, 16), gold ? GOLDM() : shiny(def.b), 0, -.45, 0); add(sph(.66), M, 0, .1, 0, 1, .8, 1); add(sph(.46), M, 0, .48, 0, 1, .85, 1); add(sph(.16), gold ? GOLDM() : shiny('#e8203a'), 0, .9, 0); face(.05, .62); break;
+    case 'mac': for (const y of [-.32, .32]) add(sph(.7, 24, 12), M, 0, y, 0, 1.1, .45, 1.1); add(new THREE.CylinderGeometry(r * .68, r * .68, r * .22, 24), std('#ffffff', { roughness: .8 }), 0, 0, 0); face(.32, .62, .9); break;
+    case 'ice': add(new THREE.ConeGeometry(r * .48, r * 1.0, 14), shiny(def.b), 0, -.55, 0, 1, 1, 1, Math.PI); add(sph(.5), M, 0, .1, 0); add(sph(.42), shiny('#8a5a3a'), 0, .62, 0); add(sph(.12), shiny('#e8203a'), 0, 1.02, 0); face(.12, .46, .9); break;
+    case 'bonbon': add(sph(.72), M, 0, 0, 0); for (const k of [-1, 1]) add(new THREE.ConeGeometry(r * .32, r * .5, 10), B, k * .95, 0, 0, 1, 1, 1, 0, 0, k * Math.PI / 2); face(.08, .68); break;
+    case 'gummy': { const gm = new THREE.MeshPhysicalMaterial({ color: C(def.c), roughness: .1, transmission: .45, thickness: .5, clearcoat: 1 }); add(sph(.55), gm, 0, -.2, 0); add(sph(.42), gm, 0, .45, 0); for (const k of [-1, 1]) { add(sph(.16), gm, k * .3, .78, 0); add(sph(.18), gm, k * .52, -.1, .1); add(sph(.2), gm, k * .3, -.72, .1); } face(.5, .38, .8); break; }
+    case 'duck': { const dm = gold ? GOLDM() : shiny(def.c); add(sph(.68), dm, 0, -.25, 0, 1.15, .85, 1); add(sph(.44), dm, 0, .45, .15); add(sph(.22), shiny('#ff8a1a'), 0, .38, .55, 1.2, .45, 1); add(sph(.22), dm, 0, -.1, -.75, .8, .6, .6, -.6); face(.55, .52, .7);
+      const ex = def.extra;
+      if (ex === 'bow') add(new THREE.TorusKnotGeometry(r * .12, r * .05, 30, 6), shiny('#ff3a8a'), 0, .85, .1);
+      if (ex === 'cap') { add(sph(.4, 16, 8), shiny('#2a4aa8'), 0, .65, .1, 1, .55, 1); add(new THREE.CylinderGeometry(r * .25, r * .25, r * .04, 16), shiny('#2a4aa8'), 0, .66, .45, 1, 1, 1); }
+      if (ex === 'chef') { add(new THREE.CylinderGeometry(r * .26, r * .3, r * .35, 16), std('#ffffff'), 0, .92, .1); add(sph(.32), std('#ffffff'), 0, 1.18, .1, 1, .7, 1); }
+      if (ex === 'shades') for (const k of [-1, 1]) add(new THREE.CylinderGeometry(r * .13, r * .13, r * .04, 16), dark, k * .18, .57, .5, 1, 1, 1, Math.PI / 2);
+      if (ex === 'pirate') { add(new THREE.ConeGeometry(r * .42, r * .38, 3), dark, 0, .9, .1, 1.3, 1, .7); add(new THREE.CylinderGeometry(r * .12, r * .12, r * .04, 16), dark, .18, .57, .52, 1, 1, 1, Math.PI / 2); }
+      if (ex === 'crown') for (let k = 0; k < 5; k++) { const a = k / 5 * 6.283; add(new THREE.ConeGeometry(r * .07, r * .2, 6), GOLDM(), Math.cos(a) * .22, .9, .15 + Math.sin(a) * .22); }
+      if (ex === 'horn') add(new THREE.ConeGeometry(r * .09, r * .45, 12), new THREE.MeshStandardMaterial({ color: '#fff2a8', emissive: C('#ffcf5a'), emissiveIntensity: .5 }), 0, .95, .25, 1, 1, 1, .4);
+      break; }
+    case 'soccer': add(sph(.95, 28, 20), gold ? GOLDM() : shiny(def.c), 0, 0, 0); { const pm = gold ? std('#8a6a10', { metalness: .8 }) : shiny(def.b); const pts = [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [.7, .7, 0], [-.7, -.7, 0], [0, .7, .7], [0, -.7, -.7], [.7, 0, -.7], [-.7, 0, .7]]; for (const [a, b2, c2] of pts) { const v = V3(a, b2, c2).normalize().multiplyScalar(.92); const m = add(new THREE.CircleGeometry(r * .2, 5), pm, v.x, v.y, v.z); m.lookAt(V3(v.x, v.y, v.z).multiplyScalar(5 * r)); } } break;
+    case 'lines': add(sph(.95, 28, 20), shiny(def.c), 0, 0, 0); for (const [rx, ry] of [[0, 0], [Math.PI / 2, 0], [0, Math.PI / 2]]) add(new THREE.TorusGeometry(r * .955, r * .025, 6, 40), dark, 0, 0, 0, 1, 1, 1, rx, ry); break;
+    case 'tennis': add(sph(.85, 28, 20), shiny(def.c), 0, 0, 0); for (const k of [-1, 1]) add(new THREE.TorusGeometry(r * .62, r * .035, 6, 40), def.extra === 'stitch' ? shiny(def.b) : std('#ffffff'), k * .42, 0, 0, 1, 1, 1, 0, Math.PI / 2); break;
+    case 'beach': add(sph(.95, 28, 20), new THREE.MeshPhysicalMaterial({ map: stripeTex(def.extra === 'two' ? [def.c, def.b, '#ffe04a'] : ['#ff4a5a', '#ffffff', '#4ab0ff', '#ffe04a', '#5ae08a', '#ffffff'], 6, 'beach'), roughness: .3, clearcoat: 1 }), 0, 0, 0); break;
+    case 'bowl': add(sph(.9, 28, 20), new THREE.MeshPhysicalMaterial({ color: C(def.c), roughness: .1, clearcoat: 1, metalness: .2 }), 0, 0, 0); for (const [x2, y2] of [[-.18, .45], [.18, .45], [0, .22]]) add(new THREE.CylinderGeometry(r * .09, r * .09, r * .1, 12), dark, x2, y2, .85, 1, 1, 1, Math.PI / 2); break;
+    case 'disco': add(sph(.92, 32, 20), new THREE.MeshStandardMaterial({ map: stripeTex([], 0, 'disco'), metalness: 1, roughness: .15, flatShading: true }), 0, 0, 0); add(new THREE.CylinderGeometry(r * .04, r * .04, r * .3, 6), std('#888'), 0, 1.05, 0); break;
+    case 'planet': add(sph(.78, 28, 20), new THREE.MeshPhysicalMaterial({ map: stripeTex([def.c, '#ff6ac8', def.b], 0, 'planet'), roughness: .4, clearcoat: .6 }), 0, 0, 0); add(new THREE.TorusGeometry(r * 1.1, r * .07, 6, 40), new THREE.MeshStandardMaterial({ color: '#ffe0a8', emissive: C('#ffb84a'), emissiveIntensity: .4 }), 0, 0, 0, 1, 1, .3, Math.PI / 2 - .35); break;
+  }
+  g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); g.userData.r = r; return g; }
 
 /* ---------- plush builder ---------- */
 function plushMat(c, gold) { return gold ? new THREE.MeshPhysicalMaterial({ color: c, roughness: .3, metalness: .85, sheen: .3, clearcoat: .6 }) : new THREE.MeshPhysicalMaterial({ color: c, roughness: .95, sheen: 1, sheenRoughness: .45, sheenColor: C(c).lerp(C('#ffffff'), .55) }); }
@@ -133,7 +189,7 @@ let clawPos = V3(CH.x0 + .36, HGT - .45, CH.z0 + .36), open = 1;
 /* ---------- toys & physics ---------- */
 let toys = [], held = null, mi = 0;
 function pickToy(M) { const w = [70, 20, 8, 2.4]; const r = Math.random() * w.reduce((a, b) => a + b); let acc = 0, rar = 0; for (let k = 0; k < 4; k++) { acc += w[k]; if (r < acc) { rar = k; break; } } const list = M.toys.filter(t => t.rar === rar); return list[Math.floor(Math.random() * list.length)]; }
-function addToy(def, p) { const r = def.rar === 3 ? .27 : rnd(.26, .32); const m = plush(def, r); m.position.copy(p); m.rotation.y = rnd(-.6, .6); cab.add(m); const t = { def, m, r, v: V3(), held: false, drop: false, yaw: m.rotation.y }; toys.push(t); return t; }
+function addToy(def, p) { const r = def.rar === 3 ? .27 : rnd(.26, .32); const m = makePrize(def, r); m.position.copy(p); m.rotation.y = rnd(-.6, .6); cab.add(m); const t = { def, m, r, v: V3(), held: false, drop: false, yaw: m.rotation.y }; toys.push(t); return t; }
 function fillMachine(mi) { toys.forEach(t => cab.remove(t.m)); toys = []; const M = MACH[mi]; const list = []; for (let k = 0; k < 19; k++) list.push(pickToy(M)); if (!list.some(t => t.rar >= 2)) list[3] = M.toys.find(t => t.rar === 2);
   list.forEach((d, k) => addToy(d, V3(rnd(CH.x1 + .3, W - .3), .4 + k * .25, rnd(-D + .3, D - .3)))); for (let s = 0; s < 360; s++) physics(1 / 60); }
 function inChute(x, z) { return x < CH.x1 && z > CH.z0; }
@@ -154,7 +210,7 @@ let phase = 'ready', timer = 0, keysD = {}, result = null, phT = 0, slipAt = -1,
 const HOME = () => V3((CH.x0 + CH.x1) / 2, HGT - .45, (CH.z0 + CH.z1) / 2);
 function regen() { const now = Date.now(); if (S.coins >= 10) { S.coinT = now; return; } const n = Math.floor((now - S.coinT) / 60000); if (n > 0) { S.coins = Math.min(10, S.coins + n); S.coinT += n * 60000; S.save(); } }
 function hud() { regen(); $('coinTxt').textContent = '🪙 ' + S.coins; $('coinNext').textContent = S.coins < 10 ? T('עוד מטבע בעוד ', 'next coin ') + Math.max(0, 60 - Math.floor((Date.now() - S.coinT) / 1000)) + T(' שנ׳', 's') : T('מלא', 'full');
-  const M = MACH[mi]; const got = M.toys.filter(t => S.got[t.id]).length; $('mName').textContent = M.ic + ' ' + M.n; $('mProg').textContent = got + '/10 ' + T('נאספו', 'collected');
+  const M = MACH[mi]; const got = M.toys.filter(t => S.got[t.id]).length; $('mName').textContent = M.ic + ' ' + M.n; $('mProg').textContent = S['beat' + mi] ? `🏆 ${got}/10` : `${got}/${GOAL} ${T('לניצחון', 'to win')}`;
   $('grabBtn').textContent = phase === 'ready' ? '🪙 PLAY' : 'GRAB'; $('grabBtn').classList.toggle('ready', phase === 'ready' && S.coins > 0); $('grabBtn').disabled = !(phase === 'ready' || phase === 'aim'); $('timer').hidden = phase !== 'aim'; $('timer').textContent = Math.ceil(timer); }
 function press() { A.ac(); if (phase === 'ready') { regen(); if (S.coins < 1) { A.tone(160, .2, 'square', .05); toast(T('אין מטבעות – מטבע חדש מגיע כל דקה ⏳', 'No coins – a new one arrives every minute ⏳')); return; }
     S.coins--; S.save(); A.tone(1200, .06, 'square', .05); A.tone(1600, .1, 'square', .05, .07); phase = 'aim'; timer = 15; sw.set(0, 0, 0); swv.set(0, 0, 0); if (!S.tutSw) { toast(T('המתקן מתנדנד! חכו שיתייצב לפני GRAB 🎯', 'The claw sways! Wait for it to settle before GRAB 🎯'), 3800); S.tutSw = 1; S.save(); } A.startMusic({ chords: [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]], bpm: 112, lead: true }); hud(); return; }
@@ -166,6 +222,9 @@ addEventListener('keydown', e => { const m = { ArrowLeft: 'left', ArrowRight: 'r
 addEventListener('keyup', e => { const m = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[e.key]; if (m) keysD[m] = false; });
 function topUnder(x, z) { let best = 0, tt = null; for (const t of toys) { if (t.held || t.drop) continue; const p = t.m.position; const d = Math.hypot(p.x - x, p.z - z); if (d < t.r * .9 + .08) { const top = p.y + t.r * .85; if (top > best) { best = top; tt = t; } } } return [best, tt]; }
 const sw = V3(), swv = V3(), lastV = V3();
+let slowT = 0, dramaK = 0, beatT = 0, dMsg = '', scared = false;
+function drama(msg, cls = '') { if (msg === dMsg) return; dMsg = msg; const el = $('drama'); if (!msg) { el.className = ''; return; } el.textContent = msg; el.className = ''; void el.offsetWidth; el.className = 'on ' + cls; }
+function heartbeat(dt, near) { beatT -= dt; if (beatT <= 0) { beatT = near ? .38 : .62; A.tone(62, .12, 'sine', .22); A.tone(55, .12, 'sine', .18, .14); try { navigator.vibrate && navigator.vibrate(near ? 25 : 15); } catch (e) {} } }
 function step(dt) {
   const sp = 1.25; const pv = clawPos.clone();
   if (phase === 'aim') { timer -= dt; const mv = V3((keysD.right ? 1 : 0) - (keysD.left ? 1 : 0), 0, (keysD.down ? 1 : 0) - (keysD.up ? 1 : 0)); if (mv.lengthSq()) { if (!A.loop('mv')) A.loopTone('mv', 'square', 70, .012); } else A.loopOff('mv');
@@ -174,12 +233,14 @@ function step(dt) {
   else if (phase === 'close') { phT += dt; open = Math.max(0, 1 - phT * 2.2); if (phT > .55) { // decide grab
       let cand = null, bd = 9; const ex = clawPos.x + sw.x, ez = clawPos.z + sw.z; for (const t of toys) { if (t.drop) continue; const p = t.m.position; const d = Math.hypot(p.x - ex, p.z - ez); const vy = clawPos.y - .35 - (p.y + t.r * .5); if (d < t.r * .95 && vy < .25 && d < bd) { bd = d; cand = t; } }
       if (cand) { const rf = [1, .75, .55, .38][cand.def.rar]; const pc = clamp(1 - bd / (cand.r * .95), 0, 1); const pr = (.25 + .75 * Math.pow(pc, 1.5)) * .85 * rf; { const ok = Math.random() < pr; grabbed = cand; cand.held = true; cand.willSlip = !ok; cand.off = cand.m.position.clone().sub(V3(ex, clawPos.y, ez)); cand.off.x *= .4; cand.off.z *= .4; slipAt = !ok ? rnd(.12, 1.1) : (Math.random() < .12 ? rnd(.3, 1.1) : -1); A.voice('huh', 1.8); } }
-      phase = 'up'; phT = 0; A.loopTone('mot', 'sawtooth', 110, .025); } }
+      phase = 'up'; phT = 0; scared = false; A.loopTone('mot', 'sawtooth', 110, .025); if (grabbed) { drama(T('😬 תפס...?', '😬 Got it...?')); A.noise(1.2, 'bandpass', 600, 2, .05, 0, 1400); } else drama(T('😅 פספוס', '😅 Missed'), 'meh'); } }
   else if (phase === 'up' || phase === 'home') { const H = HOME(); if (phase === 'up') { clawPos.y = Math.min(HGT - .45, clawPos.y + dt * 1.1); if (clawPos.y >= HGT - .45) phase = 'home'; }
     else { const d = V3(H.x - clawPos.x, 0, H.z - clawPos.z); const L = d.length(); if (L > .02) clawPos.addScaledVector(d.normalize(), Math.min(L, dt * .9)); else { phase = 'drop'; phT = 0; A.loopOff('mot'); } }
-    phT += dt; if (grabbed && slipAt > 0 && phT > slipAt * 2.2) { grabbed.held = false; grabbed.v.set(rnd(-.3, .3), 0, rnd(-.3, .3)); grabbed = null; slipAt = -1; A.voice('aww', 1.6); toast(T('אוי! הבובה החליקה 😮', 'Oh no! It slipped 😮')); } }
-  else if (phase === 'drop') { phT += dt; open = Math.min(1, phT * 2.5); if (grabbed && phT > .25) { grabbed.held = false; grabbed.drop = true; grabbed.v.set(0, -.5, 0); A.tone(500, .3, 'sine', .08, 0, 200); grabbed = null; }
-    if (phT > 1.4) { phase = 'ready'; if (!result) { A.voice('aww', 1.3); toast(T('כמעט! נסו שוב', 'So close! Try again')); } result = null; hud(); } }
+    if (grabbed) { const dch = Math.hypot(clawPos.x - H.x, clawPos.z - H.z); heartbeat(dt, phase === 'home' && dch < .7); if (phase === 'home') drama(dch < .55 ? T('😱 כמעט!!!', '😱 Almost!!!') : T('🤞 רק לא ליפול…', '🤞 Don’t drop it…'), dch < .55 ? 'hot' : '');
+      if (phase === 'home' && !scared && slipAt < 0 && dch < 1.1 && Math.random() < .5) { scared = true; swv.add(V3(rnd(-1.4, 1.4), 0, rnd(-1.4, 1.4))); A.tone(1400, .12, 'square', .05); A.voice('huh', 2.2); drama(T('😱 אוי!!', '😱 Whoa!!'), 'hot'); } }
+    phT += dt; if (grabbed && slipAt > 0 && phT > slipAt * 2.2) { slowT = .9; drama(T('😭 לא!!!', '😭 NOOO!'), 'bad'); grabbed.held = false; grabbed.v.set(rnd(-.3, .3), 0, rnd(-.3, .3)); grabbed = null; slipAt = -1; A.voice('aww', 1.6); toast(T('אוי! הבובה החליקה 😮', 'Oh no! It slipped 😮')); } }
+  else if (phase === 'drop') { phT += dt; open = Math.min(1, phT * 2.5); if (grabbed && phT > .25) { slowT = .8; drama(T('🎯 נופל…', '🎯 Dropping…'), 'hot'); grabbed.held = false; grabbed.drop = true; grabbed.v.set(0, -.5, 0); A.tone(500, .3, 'sine', .08, 0, 200); grabbed = null; }
+    if (phT > 1.4) { phase = 'ready'; if (!result) drama(''); if (!result) { A.voice('aww', 1.3); toast(T('כמעט! נסו שוב', 'So close! Try again')); } result = null; hud(); } }
   { const v = clawPos.clone().sub(pv).divideScalar(Math.max(dt, 1e-4)); v.y = 0; const acc = v.clone().sub(lastV).divideScalar(Math.max(dt, 1e-4)); lastV.copy(v);
     const k = 16, c = grabbed ? 1.1 : 1.4; swv.addScaledVector(sw, -k * dt).addScaledVector(swv, -c * dt).addScaledVector(acc, -.4 * dt); sw.addScaledVector(swv, dt); sw.y = 0; if (sw.length() > .45) sw.setLength(.45);
     if (grabbed && slipAt < 0 && swv.length() > .9 && Math.random() < dt * 1.2) slipAt = .01; }
@@ -187,7 +248,7 @@ function step(dt) {
   for (let i = toys.length - 1; i >= 0; i--) { const t = toys[i]; if (t.gone) { cab.remove(t.m); toys.splice(i, 1); win(t.def); } }
 }
 function win(def) {
-  result = def; const isNew = !S.got[def.id]; S.got[def.id] = (S.got[def.id] || 0) + 1; let bonus = 0; if (!isNew) { bonus = 2; S.coins += 2; }
+  result = def; drama(T('🎉 יש!!!', '🎉 YES!!!'), 'win'); setTimeout(() => drama(''), 1600); const isNew = !S.got[def.id]; S.got[def.id] = (S.got[def.id] || 0) + 1; let bonus = 0; if (!isNew) { bonus = 2; S.coins += 2; }
   const M = MACH[mi]; const done = M.toys.every(t => S.got[t.id]); if (done && !S['done' + mi]) { S['done' + mi] = 1; S.coins += 20; bonus += 20; } S.save();
   FX.burst(V3((CH.x0 + CH.x1) / 2, -.4, D + .4), 70, CONFETTI, 3.6, .08, 1.6, 5); A.voice('yay', 1.5); [0, 4, 7, 12].forEach((n, k) => A.tone(523 * Math.pow(2, n / 12), .25, 'triangle', .09, k * .09));
   addToy(pickToy(M), V3(rnd(0, W - .4), HGT - .6, rnd(-D + .4, D - .4)));
@@ -195,14 +256,14 @@ function win(def) {
     $('zP').textContent = (isNew ? '' : T('כבר יש לך אחד – ', 'Already have one – ')) + (bonus ? '+' + bonus + ' 🪙' : '') + (done && bonus >= 20 ? T(' · השלמת את המכונה!', ' · machine complete!') : ''); $('prizeSheet').hidden = false; hud(); }, 700);
 }
 $('zOk').onclick = () => { $('prizeSheet').hidden = true; checkUnlock(); };
-function unlocked(k) { if (k === 0) return true; return MACH[k - 1].toys.filter(t => S.got[t.id]).length >= 6; }
-function checkUnlock() { for (let k = 1; k < 3; k++) if (unlocked(k) && !S['un' + k]) { S['un' + k] = 1; S.save(); toast(T('נפתחה מכונה חדשה: ', 'New machine unlocked: ') + MACH[k].ic + ' ' + MACH[k].n, 3500); } }
+const GOAL = 6; function unlocked(k) { return true; }
+function checkUnlock() { const M = MACH[mi]; const got = M.toys.filter(t => S.got[t.id]).length; if (got >= GOAL && !S['beat' + mi]) { S['beat' + mi] = 1; S.coins += 15; S.save(); hud(); drama(T('🏆 ניצחת את המכונה!', '🏆 MACHINE BEATEN!'), 'win'); setTimeout(() => drama(''), 2600); A.voice('wow', 1.3); [0, 4, 7, 12, 16, 19, 24].forEach((n, k) => A.tone(523 * Math.pow(2, n / 12), .3, 'triangle', .09, k * .1)); for (let k = 0; k < 6; k++) setTimeout(() => FX.burst(V3(rnd(-W, W), HGT * .7, rnd(-D, D)), 60, CONFETTI, 4, .09, 1.8, 5), k * 180); toast(T('+15 🪙 · נסו עכשיו מכונה אחרת!', '+15 🪙 · Now try another machine!'), 3200); } }
 
 /* ---------- thumbnails ---------- */
 let tR = null, tS = null, tC = null; const thumbs = {};
 function thumb(def) { if (thumbs[def.id]) return thumbs[def.id];
   if (!tR) { tR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); tR.setSize(160, 160); tR.outputColorSpace = THREE.SRGBColorSpace; tR.toneMapping = THREE.ACESFilmicToneMapping; tS = new THREE.Scene(); tS.add(new THREE.HemisphereLight('#ffffff', '#b8a0d0', 1.3)); const d = new THREE.DirectionalLight('#ffffff', 2); d.position.set(1, 2, 3); tS.add(d); tC = new THREE.PerspectiveCamera(30, 1, .1, 10); tC.position.set(0, .15, 2.3); tC.lookAt(0, .02, 0); }
-  const m = plush(def, .3); tS.add(m); tR.render(tS, tC); thumbs[def.id] = tR.domElement.toDataURL(); tS.remove(m); return thumbs[def.id]; }
+  const m = makePrize(def, .3); tS.add(m); tR.render(tS, tC); thumbs[def.id] = tR.domElement.toDataURL(); tS.remove(m); return thumbs[def.id]; }
 let aTab = 0;
 function renderAlbum() { $('aTabs').innerHTML = MACH.map((M, k) => `<button data-k="${k}" aria-pressed="${k === aTab}">${M.ic} ${M.n}</button>`).join(''); const M = MACH[aTab]; const got = M.toys.filter(t => S.got[t.id]).length; $('aP').textContent = got + '/10 ' + T('נאספו', 'collected');
   $('album').innerHTML = M.toys.map(t => { const n = S.got[t.id] || 0; return `<div class="pl r${t.rar} ${n ? '' : 'miss'}"><img src="${thumb(t)}" alt="">${n ? t.n : '???'}${n > 1 ? `<span class="x">x${n}</span>` : ''}</div>`; }).join(''); }
@@ -211,12 +272,14 @@ const openAlbum = () => { A.ac(); aTab = mi; renderAlbum(); $('albumSheet').hidd
 
 /* ---------- camera ---------- */
 function fit() { const a = innerWidth / innerHeight; const port = a < 1; const target = V3(0, port ? .9 : 1.25, 0); const h = port ? 6.4 : 5.0; const fovR = THREE.MathUtils.degToRad(camera.fov / 2);
-  let d = Math.max(h / 2 / Math.tan(fovR), (W * 2 + 1.1) / 2 / (Math.tan(fovR) * a)); camera.position.set(0, target.y + d * .46, d * .9 + .2); camera.lookAt(target.x, target.y - .1, target.z); }
+  let d = Math.max(h / 2 / Math.tan(fovR), (W * 2 + 1.1) / 2 / (Math.tan(fovR) * a)); camera.position.set(0, target.y + d * .46, d * .9 + .2); camera.lookAt(target.x, target.y - .1, target.z); camBase.p = camera.position.clone(); camBase.l = V3(target.x, target.y - .1, target.z); }
+const camBase = {};
 E.onResize.push(fit);
 
 /* ---------- loop ---------- */
 let last = performance.now(), acc = 0, hudT = 0;
-function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000;
+function frame(now) { requestAnimationFrame(frame); const rdt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; const dt = rdt * (slowT > 0 ? .32 : 1); slowT -= rdt;
+  dramaK = lerp(dramaK, grabbed && (phase === 'up' || phase === 'home' || phase === 'drop') ? 1 : 0, Math.min(1, rdt * 2.2)); if (camBase.p) { const cp = camBase.p.clone().lerp(V3(clawPos.x * .6, clawPos.y + .5, clawPos.z + 3.6), dramaK * .42); camera.position.copy(cp); const lk = camBase.l.clone().lerp(V3(clawPos.x, clawPos.y - .3, clawPos.z), dramaK * .55); camera.lookAt(lk); }
   acc += dt; let n = 0; while (acc > 1 / 60 && n < 3) { physics(1 / 60); acc -= 1 / 60; n++; } if (acc > .1) acc = 0;
   if (state === 'play') step(dt);
   claw.position.copy(clawPos).add(sw); claw.rotation.set(sw.z * 1.4, 0, -sw.x * 1.4); prongs.forEach(p => p.rotation.x = lerp(-.05, -.75, open)); carriage.position.set(clawPos.x, HGT - .1, clawPos.z); bridge.position.set(clawPos.x, HGT - .08, 0);
@@ -229,7 +292,7 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (no
 /* ---------- screens ---------- */
 let state = 'title';
 function renderMachines() { $('machines').innerHTML = MACH.map((M, k) => { const un = unlocked(k); const got = M.toys.filter(t => S.got[t.id]).length;
-  return `<button class="mb ${un ? '' : 'lock'}" data-k="${k}"><i>${un ? M.ic : '🔒'}</i><span><b>${M.n}</b><small>${un ? got + '/10 ' + T('נאספו', 'collected') : T('אספו 6 במכונה הקודמת', 'Collect 6 in the previous machine')}</small></span></button>`; }).join(''); }
+  return `<button class="mb ${un ? '' : 'lock'}" data-k="${k}"><i>${un ? M.ic : '🔒'}</i><span><b>${M.n}</b><small>${S['beat' + k] ? `🏆 ${T('נוצחה!', 'Beaten!')} · ${got}/10` : `${got}/${GOAL} ${T('בובות לניצחון', 'to beat it')}`}</small></span></button>`; }).join(''); }
 $('machines').onclick = e => { const b = e.target.closest('[data-k]'); if (!b) return; A.ac(); const k = +b.dataset.k; if (!unlocked(k)) { A.tone(160, .2, 'square', .05); return; } openMachine(k); };
 function openMachine(k) { mi = k; S.mach = k; S.save(); buildCabinet(k); fillMachine(k); clawPos = HOME(); phase = 'ready'; state = 'play'; $('title').hidden = true; $('hud').hidden = $('ctrl').hidden = false; hud();
   if (!S.tut) { toast(T('לחצו PLAY, הזיזו את המתקן עם החצים ולחצו GRAB!', 'Press PLAY, move the claw with the arrows and hit GRAB!'), 4200); S.tut = 1; S.save(); } }
@@ -237,7 +300,7 @@ function showTitle() { state = 'title'; A.allOff(); A.stopMusic(); $('title').hi
 $('menuBtn').onclick = () => { if (phase !== 'ready' && phase !== 'aim') return; showTitle(); };
 $('menuBtn').innerHTML = ICO.grid('#d61f6e'); $('homeT').innerHTML = ICO.home('#d61f6e');
 soundButton('sndBtn', S, A, '#d61f6e'); qualityButton('qBtn', S); hubButtons(['homeT'], A);
-$('tSub').textContent = T('תפסו בובות פרווה, אספו את כל הדמויות הנדירות ופתחו מכונות חדשות!', 'Grab plush toys, collect every rare buddy and unlock new machines!');
+$('tSub').textContent = T('בחרו מכונה – אספו 6 פרסים שונים כדי לנצח אותה! 🏆 אפשר לעבור בין המכונות בכל רגע', 'Pick any machine – collect 6 different prizes to beat it! 🏆 Switch machines any time');
 $('albumBtn2').textContent = '📒 ' + T('האלבום שלי', 'My album'); $('aT').textContent = T('האלבום שלי', 'My album'); $('aClose').textContent = T('סגור', 'Close'); $('zOk').textContent = T('יופי!', 'Yay!');
 buildRoom();
 setTimeout(() => { buildCabinet(S.mach || 0); mi = S.mach || 0; fillMachine(mi); clawPos = HOME(); E.resize(); showTitle(); $('loading').hidden = true; requestAnimationFrame(frame); window.__clawOK = true; }, 20);

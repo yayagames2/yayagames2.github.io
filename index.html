@@ -177,6 +177,13 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .turn i{width:18px;height:18px;border-radius:50%;display:inline-block}
 /* ---------- frame ---------- */
 #jetiWrap{position:fixed;inset:0;z-index:40;background:#000}
+#gLoad{position:fixed;inset:0;z-index:46;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#2a2440,#07070d 70%);transition:opacity .35s}#gLoad.out{opacity:0}
+.gl-in{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+.gl-in img{width:min(88vw,540px);aspect-ratio:16/10;object-fit:cover;border-radius:16px;box-shadow:0 0 0 2px rgba(255,255,255,.12),0 20px 60px rgba(0,0,0,.7),0 0 80px rgba(120,90,255,.35);animation:glPop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes glPop{from{transform:scale(.85);opacity:0}}
+.gl-in b{color:#fff;font-size:18px;font-weight:800;opacity:.85;direction:ltr}
+.gl-sp{width:46px;height:46px;border-radius:50%;border:5px solid rgba(255,255,255,.18);border-top-color:#e50914;animation:glS 0.9s linear infinite}@keyframes glS{to{transform:rotate(360deg)}}
+.nf-c.post b,.post b{opacity:0}.nf-c.post .sh{background:linear-gradient(0deg,rgba(0,0,0,.35),rgba(0,0,0,0) 40%)}
 #jetiWrap iframe{width:100%;height:100%;border:0;display:block}
 #jetiBack{position:absolute;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:2;height:32px;padding:0 12px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.3);font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
 .g2048 .glow{background:#ffb13c}.gsud .glow{background:#3c8bff}.gmem .glow{background:#b05cff}.gfour .glow{background:#1fc8a0}
@@ -282,6 +289,7 @@ body{background:#0b0b12}
 .mq.op{background:#1c2040;box-shadow:none}.mq.fl{background:linear-gradient(160deg,#ffb84a,#e8702a)}
 .mq.bm{background:#ff3b4e}
 .mq[data-n="1"]{color:#4fc3ff}.mq[data-n="2"]{color:#7dff9a}.mq[data-n="3"]{color:#ff6a6a}.mq[data-n="4"]{color:#b07aff}.mq[data-n="5"]{color:#ffb84a}.mq[data-n="6"]{color:#3ae8d8}.mq[data-n="7"]{color:#fff}.mq[data-n="8"]{color:#aaa}
+.solHelp{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px}.solHelpBox{background:linear-gradient(180deg,#123a26,#0a1f16);border:2px solid #2fd36a;border-radius:22px;padding:18px 18px 16px;max-width:440px;max-height:88vh;overflow:auto;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.5)}.solHelpBox h3{margin:0 0 10px;font-size:22px;text-align:center}.solHelpBox p{margin:0 0 10px;font-size:15px;line-height:1.45}
 .gsol.nf-c{background:linear-gradient(135deg,#0c4a2a,#0a1a14)}.gmine.nf-c{background:linear-gradient(135deg,#2a3448,#10141e)}.gsol .glow{background:#2fd36a}.gmine .glow{background:#ff6a4a}
 
 /* ================= INTRO (Ya Ya Games → Offline Arcade) ================= */
@@ -373,6 +381,7 @@ body{background:#0b0b12}
 
 <div id="apSheet" hidden><div class="c"><h3 id="apT"></h3><p id="apP"></p><div class="st" id="apS"></div><button id="apGo" hidden></button><button id="apX"></button></div></div>
 <div id="jetiWrap" hidden><button id="jetiBack"></button></div>
+<div id="gLoad" hidden><div class="gl-in"><img alt=""><b></b><div class="gl-sp"></div></div></div>
 <div class="ov" id="ov" hidden><div class="box"><div class="big" id="ovIc"></div><h3 id="ovT"></h3><p id="ovP"></p><div class="row" id="ovBtns"></div></div></div>
 
 <script>
@@ -574,7 +583,7 @@ const GSALON={ id:'salon', name:'Snip Snap Salon', sub:'', art:'art/salon.jpg', 
   desc:L('חופפים, גוזרים, צובעים ומגדלים שיער ל־3 לקוחות משוגעים','Wash, cut, dye and grow hair for 3 wacky customers'), bestTxt:()=>'', frame:'salon.html', ownBack:true };
 const GZORI={ id:'zori', name:'Zori', sub:'Jungle Swing', art:'art/zori.jpg', kick:L('הרפתקה בתלת־ממד','3D adventure'),
   desc:L('מתנדנדים על ליאנות ב־8 שלבי ג׳ונגל, אוספים פירות ואת האותיות Z‑O‑R‑I','Swing on vines through 8 jungle levels, collecting fruit and the letters Z‑O‑R‑I'),
-  bestTxt:()=>{ const s=zStars(); return s?'⭐ '+s+'/24':''; }, frame:'zori.html', ownBack:true };
+  bestTxt:()=>{ const s=zStars(); return s?'⭐ '+s+'/36':''; }, frame:'zori.html', ownBack:true };
 const GJETI={ id:'jeti', name:'Jeti Jump', sub:'', art:'art/jeti.jpg', kick:L('פלטפורמה','Platformer'),
   desc:L('עולמות, בוסים, אתגר יומי וכוחות אש וקרח','Worlds, bosses, a daily challenge and fire & ice powers'), bestTxt:()=>'', frame:'jeti.html' };
 const GNYC={ id:'nyc', name:'New York City', sub:'', art:'art/nyc.jpg', kick:L('גיבור־על בתלת־ממד','3D superhero'),
@@ -599,7 +608,17 @@ const GSOL={ id:'solitaire', name:L('סוליטר','Solitaire'), ic:'🂡', cls:
     const SU=['♠','♥','♦','♣'], RK=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
     let draw=S.solDraw||1;
     el.innerHTML=`<div class="seg" id="sd"><button data-d="1">${L('קלף אחד','Draw 1')}</button><button data-d="3">${L('שלושה קלפים','Draw 3')}</button></div>
-      <div class="sol" id="sb"></div><div class="row"><button class="btn" id="su">↩️ ${L('בטל','Undo')}</button><button class="btn" id="sh">💡 ${L('רמז','Hint')}</button><button class="btn" id="sa" hidden>⚡ ${L('סיום אוטומטי','Auto finish')}</button><button class="btn pri" id="sn">${L('משחק חדש','New game')}</button></div>`;
+      <div class="sol" id="sb"></div><div class="row"><button class="btn" id="su">↩️ ${L('בטל','Undo')}</button><button class="btn" id="sh">💡 ${L('רמז','Hint')}</button><button class="btn" id="sa" hidden>⚡ ${L('סיום אוטומטי','Auto finish')}</button><button class="btn" id="shelp">❓ ${L('איך משחקים','How to play')}</button><button class="btn pri" id="sn">${L('משחק חדש','New game')}</button></div>`;
+    const showHelp=()=>{ const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox" dir="${EN?'ltr':'rtl'}"><h3>🂡 ${L('איך משחקים סוליטר','How to play Solitaire')}</h3>
+      <p><b>🎯 ${L('המטרה','Goal')}:</b> ${L('להעביר את כל הקלפים ל־4 הערימות למעלה – כל צורה בערימה משלה, מאס ועד מלך (A, 2, 3 … K).','Move all cards to the 4 piles at the top – one pile per suit, from Ace up to King (A, 2, 3 … K).')}</p>
+      <p><b>🃏 ${L('בעמודות','In the columns')}:</b> ${L('מניחים קלף על קלף גבוה ממנו באחד ובצבע הפוך – למשל 7 אדום על 8 שחור.','Put a card on one that is one higher and the opposite colour – e.g. a red 7 on a black 8.')}</p>
+      <p><b>👑 ${L('עמודה ריקה','Empty column')}:</b> ${L('רק מלך (K) יכול להיכנס לעמודה ריקה.','Only a King (K) can go into an empty column.')}</p>
+      <p><b>🔄 ${L('החפיסה','The deck')}:</b> ${L('כשנתקעים – לוחצים על החפיסה למעלה כדי לפתוח קלף חדש.','Stuck? Tap the deck at the top to turn over a new card.')}</p>
+      <p><b>👆 ${L('איך מזיזים','How to move')}:</b> ${L('גוררים קלף, או פשוט נוגעים בו והוא יקפוץ לבד למקום הטוב ביותר. אפשר להזיז כמה קלפים פתוחים ביחד.','Drag a card, or just tap it and it jumps to the best spot. You can move several open cards together.')}</p>
+      <p><b>💡 ${L('טיפ','Tip')}:</b> ${L('תמיד כדאי לפתוח קודם קלפים הפוכים בעמודות. נתקעת? לחץ "רמז".','Always try to turn over the face-down cards in the columns first. Stuck? Press "Hint".')}</p>
+      <button class="btn pri" style="width:100%">${L('הבנתי, בוא נשחק!','Got it, let’s play!')}</button></div>`; o.onclick=e=>{ if(e.target===o||e.target.tagName==='BUTTON'){ o.remove(); S.solHelp=1; save(); } }; document.body.appendChild(o); };
+    el.querySelector('#shelp').onclick=()=>{ SND.tap(); showHelp(); };
+    if(!S.solHelp) setTimeout(showHelp,350);
     const bd=el.querySelector('#sb'); let st, hist, moves, t0, timer, els={}, cw=48, chh=67, gap=4, drag=null, won=false;
     const red=c=>c.s===1||c.s===2;
     function deal(){ const deck=[]; for(let s=0;s<4;s++) for(let r=0;r<13;r++) deck.push({s,r,up:false,id:s*13+r}); for(let i=deck.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [deck[i],deck[j]]=[deck[j],deck[i]]; }
@@ -723,9 +742,16 @@ const GSUSHI=mk('sushi','Sushi Swirl','sushi',L('התאמת 3 – סושי','Mat
 const GMOMO=mk('momo','Momo Pop','momo',L('יורים בועות','Bubble shooter'),L('מומו הפנדה האדומה יורה בועות מהתותח שעל הכתף – מחברים 3 צבעים ומשחררים גורים','Momo the red panda fires bubbles from her shoulder cannon – match 3 colors and free the babies'),()=>'');
 const GDASH=mk('dash','City Dash','dash',L('ריצה אינסופית','Endless runner'),L('רצים ברחובות העיר – מחליפים מסלולים, קופצים, מתגלגלים, עולים על משאיות ואוספים מטבעות לחנות הדמויות','Dash through the city – switch lanes, jump, roll, ride truck roofs and collect coins for new characters'),()=>'');
 const GTREAS=mk('treasure','Treasure Tumble','treasure',L('פאזל הצלה עם אבני חן','Gem rescue puzzle'),L('פיפ ההרפתקן לכוד במקדש! התאימו אבני חן כדי לשפוך את החצץ ולהביא אותו לאוצר – 36 שלבים','Pip the explorer is trapped in a temple! Match gems to pour away the rubble and reach the treasure – 36 levels'),()=>'');
-const GSQUISH=mk('squishy','Squishy Lab','squishy',L('מעבדת סליים וסקווישי','Slime & squishy DIY lab'),L('שופכים סליים צבעוני לתבנית הפתעה סודית, מגרילים נדירות ומפצחים – רגיל, נדיר, אפי, אגדי או מיתי? אוספים את כל 45 הסקווישים!','Pour colorful slime into a secret surprise mold, roll the rarity and crack it open – common, rare, epic, legendary or mythic? Collect all 45 squishies!'),()=>'');
+const GSQUISH=mk('squishy','Squishy Lab','squishy',L('מעבדת סליים וסקווישי','Slime & squishy DIY lab'),L('שופכים סליים צבעוני לתבנית הפתעה סודית, מגרילים נדירות ומפצחים – רגיל, נדיר, אפי, אגדי או מיתי? אוספים את כל 70 הסקווישים!','Pour colorful slime into a secret surprise mold, roll the rarity and crack it open – common, rare, epic, legendary or mythic? Collect all 70 squishies!'),()=>'');
 const GCHASE=mk('chase','Siren Rush','chase',L('מרדפי שוטרים וגנבים בעיר','Cops & robbers city chases'),L('בוחרים צד: גנבים שאוספים כסף ובורחים, או שוטרים שרודפים ועוצרים. עיר לילית, מסוק עם זרקור, קוצים על הכביש ומחסומים!','Pick a side: robbers grabbing cash and escaping, or cops chasing and busting. A night city, a searchlight chopper, spike strips and roadblocks!'),()=>'');
-const NEW=[GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
+const GSLIME=mk('slime','Slime Lab','slime',L('מעבדת סליים עם גלגל הפתעות','Slime lab with a surprise wheel'),L('סוחטים דבק, מטפטפים מפעיל עד המרקם המושלם, לשים ומקפלים, מסובבים את גלגל הכוחות – ואז מנפחים בועת ענק עד הפיצוץ, חותכים ומותחים!','Squeeze glue, drip activator to the perfect texture, knead and fold, spin the power wheel – then blow a giant bubble till it POPS, slice and stretch!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('slime-save')||'{}'); const n=Object.keys(z.album||{}).length; return n?'📖 '+n+'/30':''; }catch(e){ return ''; } });
+const GCAKE=mk('cake','Surprise Cake','cake',L('אופים עוגה עם הפתעה בפנים','Bake a cake with a surprise inside'),L('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל וחותכים – מה מסתתר בפנים? נקודות? לב? קשת? פיניאטה של ממתקים?!','Pour colorful layers, bake, decorate, spin the wheel and slice – what’s inside? Dots? A heart? A rainbow? A candy piñata?!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('cake-save')||'{}'); const n=Object.keys(z.album||{}).length; return n?'📖 '+n+'/35':''; }catch(e){ return ''; } });
+const GNUMX=mk('numx','Find & Cross','numx',L('מצא את המספר וסמן איקסים – 1 נגד 1','Find the number & cross boxes – 1 vs 1'),L('משחק המחברת מהילדות! אחד מחפש מספר בדף מבולגן, השני ממלא איקסים הכי מהר שאפשר – וכשמוצאים, מתחלפים. מי שממלא ראשון את המחברת מנצח! שני שחקנים על אותו טלפון או נגד המחשב','The classic notebook game! One player hunts a number on a messy page while the other crosses boxes as fast as possible – find it and swap. First to fill the notebook wins! 2 players on one phone or vs the CPU'),()=>{ try{ const z=JSON.parse(localStorage.getItem('numx-save')||'{}'); const w=(z.cpuW||0)+((z.wins||[0,0])[0]||0); return w?'🏆 '+w:''; }catch(e){ return ''; } });
+const GGOAL=mk('goal','Goal Duel','goal',L('כדורגל 1 על 1 בתלת־ממד','1-on-1 3D football'),L('אצטדיון מואר, קהל שואג ושני שחקנים – כדררו, עקפו, תקלו ובעטו בעיטות חזקות לשער! נגד המחשב או שני שחקנים על אותו טלפון','A floodlit stadium, a roaring crowd and two players – dribble, dodge, tackle and fire power shots! vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('goal-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GDRIFT=mk('drift','Drift King','drift',L('דריפטים אמיתיים בתלת־ממד','Real 3D drifting'),L('מחליקים בפניות, משאירים סימני צמיגים ועשן, בונים קומבו ×5 ואוספים מתנות! 3 מסלולים – נמל בשקיעה, הרים ועיר ניאון בלילה, 8 אירועים, מוסך עם 4 מכוניות, צבעים ועשן צבעוני','Slide through corners, leave tire marks and smoke, build ×5 combos and grab gifts! 3 tracks – sunset docks, mountains and a neon night city, 8 events, a garage with 4 cars, paints and colored smoke'),()=>{ try{ const z=JSON.parse(localStorage.getItem('drift-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/24':''; }catch(e){ return ''; } });
+const GPET=mk('pet','Pet Pals','pet',L('מגדלים חיית מחמד – או חייזר!','Raise a pet – or an alien!'),L('בוחרים כלבלב, חתלתולה, ארנבון, פנדה או חייזר ידידותי – מאכילים, מקלחים עם ספוג ומקלחת, משחקים בכדור ובבועות, מלטפים, משכיבים לישון ומלבישים כובעים ומשקפיים!','Pick a puppy, kitty, bunny, panda or a friendly alien – feed, scrub and shower, play ball and bubbles, cuddle, tuck into bed and dress up with hats and glasses!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('pet-save')||'{}'); const p=(z.pets||{})[z.cur]; return p?'⭐ '+(EN?'Lv ':'רמה ')+p.lvl:''; }catch(e){ return ''; } });
+const GWAVE=mk('wave','Wave Rush','wave',L('מרוץ אופנועי ים בתלת־ממד','3D jet-ski racing'),L('דוהרים על גלים אמיתיים, אוספים כוכבים וטורבו, קופצים מרמפות ועושים סלטות! דולפינים קופצים לידכם, כרישים מסתובבים בשונית ו־4 מסלולים – עד לים הסוער','Race over real waves, grab stars and turbo, launch off ramps and pull flips! Dolphins leap beside you, sharks circle the reef, 4 courses – all the way to the storm sea'),()=>{ try{ const z=JSON.parse(localStorage.getItem('wave-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/12':''; }catch(e){ return ''; } });
+const NEW=[GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
 const BIG=[GRON,GSALON,GZORI,GJETI,GNYC], SMALL=[GSOL,GMINE,G2048,GSUD,GMEM,GC4], GAMES=[...NEW,...BIG,...SMALL]; let active=null;
 const PLAY='<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>';
 function staticText(){ try{ net(); }catch(e){}
@@ -739,29 +765,30 @@ function staticText(){ try{ net(); }catch(e){}
 }
 const gOf=id=>GAMES.find(x=>x.id===id);
 const ROWS=()=>[
-  {k:'top', t:L('🔥 הטופ 10 שלנו','🔥 Our Top 10'), ids:['chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','garage','mosaic','nyc','claw','chef','jeti','crayon','salon','sky']},
+  {k:'top', t:L('🔥 הטופ 10 שלנו','🔥 Our Top 10'), ids:['drift','pet','wave','goal','numx','slime','chase','squishy','cake','treasure','dash','sushi','momo','peep','mud','tiara','brawl','garage','mosaic','nyc','claw','chef','jeti','crayon','salon','sky']},
   {k:'new', t:L('חדש באפליקציה','New on the app'), ids:NEW.map(g=>g.id)},
   {t:L('הרפתקאות בתלת־ממד','3D adventures'), ids:BIG.map(g=>g.id)},
-  {t:L('צביעה ויצירה 🎨','Coloring & creating 🎨'), ids:['squishy','tiara','mosaic','crayon','salon','garage']},
-  {t:L('חשיבה ופאזלים 🧠','Brain & puzzles 🧠'), ids:['treasure','sushi','momo','peep','claim','jam','liar','mines','solitaire','spot','ron','sudoku','2048','memory','four']},
-  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
-  {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
+  {t:L('צביעה ויצירה 🎨','Coloring & creating 🎨'), ids:['pet','slime','cake','squishy','tiara','mosaic','crayon','salon','garage']},
+  {t:L('חשיבה ופאזלים 🧠','Brain & puzzles 🧠'), ids:['numx','treasure','sushi','momo','peep','claim','jam','liar','mines','solitaire','spot','ron','sudoku','2048','memory','four']},
+  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
+  {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['pet','numx','slime','cake','squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
   {t:L('קלאסיקות קצרות','Quick classics'), ids:SMALL.map(g=>g.id)},
 ];
 const progOf=g=>{ const m=(g.bestTxt()||'').match(/(\d+)\/(\d+)/); return m?Math.min(1,+m[1]/+m[2]):null; };
 function ago(t){ const m=Math.floor((Date.now()-t)/60000); if(m<1) return L('ממש עכשיו','just now'); if(m<60) return L('לפני '+m+' דק׳',m+'m ago'); const h=Math.floor(m/60); if(h<24) return L('לפני '+h+' שע׳',h+'h ago'); const d=Math.floor(h/24); return L('לפני '+d+' ימים',d+'d ago'); }
-function cardHTML(g,o={}){ if(!g) return ''; const bt=g.bestTxt(); const art=g.art?`background-image:url('${g.art}')`:'';
-  const cls=!g.art?` cls ${CLS[g.id]||''}`:''; const inner=!g.art?`<span class="glow"></span>${ILL[g.id]||''}`:'';
+const POSTER=id=>'art/p/'+id+'.jpg';
+function cardHTML(g,o={}){ if(!g) return ''; const bt=g.bestTxt(); const art=`background-image:url('${POSTER(g.id)}')`;
+  const cls=' post'; const inner='';
   const chips=(g.isNew&&!o.cont&&!bt?`<i class="new">${L('חדש','NEW')}</i>`:'')+(bt&&!o.top?`<i>${bt}</i>`:'')+(o.cont&&o.t?`<i>${ago(o.t)}</i>`:'');
   const p=o.cont?progOf(g):null;
-  const body=`${inner}<span class="sh"></span><span class="ch">${chips}</span>${o.cont?`<span class="pl">${PLAY}</span>`:''}<b>${g.name}</b>${o.cont?`<span class="pb"><i style="width:${p==null?18:Math.max(6,p*100)}%"></i></span>`:''}`;
+  const body=`${inner}<span class="sh"></span><span class="ch">${chips}</span>${o.cont?`<span class="pl">${PLAY}</span>`:''}<b aria-label="${g.name}">${g.name}</b>${o.cont?`<span class="pb"><i style="width:${p==null?18:Math.max(6,p*100)}%"></i></span>`:''}`;
   if(o.top) return `<button class="nf-c" data-g="${g.id}"><span class="num">${o.n}</span><span class="pst${cls}" style="${art}">${body}</span></button>`;
   return `<button class="nf-c${o.cont?' cont':''}${cls}" data-g="${g.id}" style="${art}">${body}</button>`; }
 function renderHome(){ const rec=(S.recent||[]).filter(r=>gOf(r.id)).slice(0,10); let h='';
   if(rec.length) h+=`<section class="nf-row"><h2>${L('המשך לשחק','Continue playing')}<small>${L('מאיפה שהפסקתם','pick up where you left off')}</small></h2><div class="nf-scr">${rec.map(r=>cardHTML(gOf(r.id),{cont:1,t:r.t})).join('')}</div></section>`;
   for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
   $('rows').innerHTML=h; hero.show(hero.i); }
-const hero={ i:0, list:()=>['chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
+const hero={ i:0, list:()=>['drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
   show(i){ const L2=this.list(); this.i=(i+L2.length)%L2.length; const g=L2[this.i]; this.g=g; const bg=$('heroBg'), ha=$('heroArt'); bg.style.opacity=0; ha.style.opacity=0; setTimeout(()=>{ bg.style.backgroundImage=ha.style.backgroundImage=`url('${g.art}')`; bg.style.opacity=1; ha.style.opacity=1; },180);
     $('heroBadge').textContent=g.isNew?L('✦ חדש באפליקציה','✦ NEW ON THE APP'):L('✦ משחק מומלץ','✦ FEATURED'); $('heroT').textContent=g.name; $('heroD').textContent=g.desc; const bt=g.bestTxt();
     $('heroMeta').innerHTML=`<span>${g.kick}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span><span class="dt">•</span><span class="pg">${L('לכל הגילאים','All ages')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`;
@@ -780,9 +807,11 @@ document.addEventListener('click',e=>{ const c=e.target.closest('[data-g]'); if(
 document.querySelector('.lang').onclick=e=>{ const b=e.target.closest('[data-lang]'); if(b) setLang(b.dataset.lang); };
 $('muteBtn').onclick=()=>{ S.mute=!S.mute; save(); staticText(); if(!S.mute){ ac(); SND.tap(); } };
 function open(id){ const g=GAMES.find(x=>x.id===id); if(!g) return; S.recent=[{id,t:Date.now()},...(S.recent||[]).filter(r=>r.id!==id)].slice(0,12); save();
-  if(g.frame){ const w=$('jetiWrap'); const old=w.querySelector('iframe'); if(old) old.remove(); const f=document.createElement('iframe'); f.src=EN&&!g.bi?g.frame.replace('.html','.en.html'):g.frame; f.allow='autoplay; fullscreen'; w.appendChild(f); $('jetiBack').hidden=!!g.ownBack; w.hidden=false; sky.pause(); history.pushState({g:id},''); return; }
+  if(g.frame){ const w=$('jetiWrap'); const old=w.querySelector('iframe'); if(old) old.remove(); const f=document.createElement('iframe'); showLoad(g); f.addEventListener('load',()=>setTimeout(hideLoad,650),{once:true}); clearTimeout(showLoad.t); showLoad.t=setTimeout(hideLoad,9000); f.src=EN&&!g.bi?g.frame.replace('.html','.en.html'):g.frame; f.allow='autoplay; fullscreen'; w.appendChild(f); $('jetiBack').hidden=!!g.ownBack; w.hidden=false; sky.pause(); history.pushState({g:id},''); return; }
   active=g; $('home').hidden=true; $('game').hidden=false; $('gTitle').textContent=g.ic+' '+g.name; const body=$('gbody'); body.innerHTML=''; scrollTo(0,0); g.mount(body); history.pushState({g:id},''); }
-function closeGame(){ if(!$('jetiWrap').hidden){ $('jetiWrap').hidden=true; const f=$('jetiWrap').querySelector('iframe'); f&&f.remove(); }
+function showLoad(g){ const l=$('gLoad'); l.querySelector('img').src=POSTER(g.id); l.querySelector('b').textContent=g.name; l.hidden=false; l.classList.remove('out'); }
+function hideLoad(){ const l=$('gLoad'); if(l.hidden) return; l.classList.add('out'); setTimeout(()=>{ l.hidden=true; },350); }
+function closeGame(){ hideLoad(); if(!$('jetiWrap').hidden){ $('jetiWrap').hidden=true; const f=$('jetiWrap').querySelector('iframe'); f&&f.remove(); }
   if(active){ active.unmount(); active=null; } $('ov').hidden=true; $('game').hidden=true; $('home').hidden=false; renderHome(); sky.resume(); }
 $('backBtn').onclick=()=>{ SND.tap(); history.state&&history.state.g?history.back():closeGame(); };
 $('jetiBack').onclick=()=>{ history.state&&history.state.g?history.back():closeGame(); };

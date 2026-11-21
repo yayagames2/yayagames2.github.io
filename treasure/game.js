@@ -16,8 +16,12 @@ const SHAPES = {
   hole: (r, c, R, C) => !((r === 4 || r === 3) && (c === 3 || c === 4)),
   hour: (r, c, R, C) => { const m = Math.abs(r - (R - 1) / 2); return Math.abs(c - (C - 1) / 2) <= 1.5 + m * .75; },
 };
-function levelDef(L) { if (L % 3 === 0) return rescueDef(L); return normalDef(L); }
-function rescueDef(L) { const k = Math.floor(L / 3); const tpl = ['left', 'right', 'center', 'both'][k % 4]; const tR = Math.min(5, 3 + Math.floor(k / 3)), hS = 10 - tR; return { L, rescue: 1, tpl, hS, types: L < 6 ? 5 : 6, moves: Math.round(16 + tR * 3 - Math.min(5, k * .35)), goal: 'sand', target: 1500 + L * 300, collect: null, nori: 0, boxes: L > 14 ? 3 : 0, seed: 91 + L * 7, shape: 'rect' }; }
+function levelDef(L) { return rescueDef(L); }
+function rescueDef(L) { const tpl = ['left', 'right', 'center', 'both', 'wide', 'narrow'][L % 6]; const tR = Math.min(6, 3 + Math.floor(L / 7)) - (tpl === 'wide' ? 1 : 0), hS = 10 - tR; const r = rng(555 + L * 31); const types = L < 6 ? 5 : 6;
+  const d = { L, rescue: 1, tpl, hS, types, moves: Math.round(16 + tR * 3 - Math.min(6, L * .16) + (tpl === 'both' ? 3 : 0) + (tpl === 'narrow' ? -2 : 0)), goal: 'sand', target: 1500 + L * 300, collect: null, nori: 0, boxes: 0, seed: 91 + L * 7, shape: 'rect' };
+  if (L >= 2 && L % 3 === 1) { d.collect = [[Math.floor(r() * types), Math.round(10 + L * .5)]]; d.moves += 3; }
+  if (L >= 5 && L % 3 === 2) { d.boxes = Math.min(9, 3 + Math.floor(L / 4)); d.moves += 3; }
+  return d; }
 function normalDef(L) { const r = rng(4242 + L * 131); const types = L < 6 ? 5 : 6; const kinds = ['score', 'collect', 'nori', 'score', 'box', 'collect', 'nori', 'mix']; const k = L === 0 ? 'score' : L === 1 ? 'collect' : L === 2 ? 'nori' : L === 4 ? 'box' : kinds[L % kinds.length];
   const shape = L < 3 ? 'rect' : ['rect', 'notch', 'diamond', 'cross', 'hole', 'hour', 'rect'][L % 7]; const moves = Math.round(24 - Math.min(8, L * .3) + (k === 'nori' ? 4 : 0) + (k === 'mix' ? 8 : 0));
   const d = { L, types, shape, moves, goal: k, target: Math.round((2200 + L * 420) / 100) * 100, collect: null, nori: 0, boxes: 0, seed: 77 + L * 13 };
@@ -36,7 +40,7 @@ function startLevel(L) { LD = levelDef(L); typesN = LD.types; const f = SHAPES[L
   for (let i = 0; i < ROWS; i++) { MASK.push([]); NORI.push([]); G.push([]); for (let j = 0; j < COLS; j++) { MASK[i][j] = TPL ? TPL[i][j] !== 'X' : f(i, j, ROWS, COLS); NORI[i][j] = 0; G[i][j] = null; if (TPL && TPL[i][j] === 'S') RUB[j] = true; } }
   if (LD.nori) { const r0 = LD.L < 10 ? ROWS - 4 : LD.L < 20 ? 3 : 1; for (let i = r0; i < ROWS; i++) for (let j = 0; j < COLS; j++) if (MASK[i][j] && ((i + j) % 2 === 0 || LD.L > 22)) NORI[i][j] = LD.L > 14 && r() < .35 ? 2 : 1; }
   for (let i = 0; i < ROWS; i++) for (let j = 0; j < COLS; j++) if (MASK[i][j] && !(TPL && TPL[i][j] === 'S')) { let t; do { t = Math.floor(r() * typesN); } while ((j > 1 && G[i][j - 1] && G[i][j - 2] && G[i][j - 1].t === t && G[i][j - 2].t === t) || (i > 1 && G[i - 1][j] && G[i - 2][j] && G[i - 1][j].t === t && G[i - 2][j].t === t)); G[i][j] = mk(t, i, j); G[i][j].y = i - ROWS - 1 - (ROWS - i) * .2; }
-  if (LD.boxes) { let n = LD.boxes; for (let k = 0; k < 200 && n > 0; k++) { const i = 3 + Math.floor(r() * (ROWS - 3)), j = Math.floor(r() * COLS); if (MASK[i][j] && G[i][j].t !== 9) { G[i][j].t = 9; G[i][j].hp = LD.L > 16 && r() < .5 ? 2 : 1; n--; } } }
+  if (LD.boxes) { let n = LD.boxes; for (let k = 0; k < 200 && n > 0; k++) { const i = 3 + Math.floor(r() * (ROWS - 3)), j = Math.floor(r() * COLS); if (MASK[i][j] && G[i][j] && G[i][j].t !== 9 && !RUB[j]) { G[i][j].t = 9; G[i][j].hp = LD.L > 16 && r() < .5 ? 2 : 1; n--; } } }
   need = {}; if (LD.collect) LD.collect.forEach(([t, n]) => need['t' + t] = n); if (LD.nori) need.nori = NORI.flat().reduce((a, b) => a + b, 0); if (LD.boxes) need.box = G.flat().filter(p => p && p.t === 9).reduce((a, p) => a + p.hp, 0);
   initSand(TPL, r); winning = false; if (LD.rescue && LD.L < 7) { const hc = Math.floor(hero.fx / K); const rr = ROWS - 1; if (G[rr][hc]) { G[rr][hc].sp = 'v'; } } moves = LD.moves; score = 0; combo = 0; busy = false; partyMode = false; state = 'play'; hintMove = null; lastMove = performance.now(); fx.length = 0; floats.length = 0;
   $('map').hidden = true; $('hud').hidden = false; $('endSheet').hidden = true; layout(); updHud(); ensureMoves();
@@ -152,7 +156,7 @@ function step(dt) { for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++
 
 /* ================= RUBBLE (falling sand) ================= */
 const K = 6; let SW = 0, SH = 0, cellSolid = null, frameN = 0, pitG = [], grainSpr = [], grainPx = 0;
-function tplGrid(d) { const g = Array.from({ length: 10 }, () => new Array(COLS).fill('.')); const cols = d.tpl === 'left' ? [0, 1, 2] : d.tpl === 'right' ? [5, 6, 7] : d.tpl === 'center' ? [2, 3, 4, 5] : [0, 1, 6, 7];
+function tplGrid(d) { const g = Array.from({ length: 10 }, () => new Array(COLS).fill('.')); const cols = d.tpl === 'left' ? [0, 1, 2] : d.tpl === 'right' ? [5, 6, 7] : d.tpl === 'center' ? [2, 3, 4, 5] : d.tpl === 'wide' ? [1, 2, 3, 4, 5, 6] : d.tpl === 'narrow' ? [3, 4] : [0, 1, 6, 7];
   for (const c of cols) for (let r = 0; r < 10; r++) g[r][c] = r < d.hS ? 'S' : 'T'; if (d.tpl === 'center') { g[0][1] = g[0][6] = 'X'; }  return g; }
 function initSand(TPL, r) { pitG = []; drained = 0; hero = null; if (!TPL) { SAND = null; return; } SW = COLS * K; SH = ROWS * K; SAND = new Uint8Array(SW * SH); cellSolid = new Uint8Array(ROWS * COLS); let n = 0;
   for (let i = 0; i < ROWS; i++) for (let j = 0; j < COLS; j++) if (TPL[i][j] === 'S') for (let y = 0; y < K; y++) for (let x = 0; x < K; x++) if (r() < .97) { SAND[(i * K + y) * SW + j * K + x] = 1 + Math.floor(r() * GRAINC.length); n++; } SAND0 = n;

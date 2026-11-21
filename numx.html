@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Find &amp; Cross</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#fdf8ec;--accent:#2a5bd7;--deep:#1a2a6a;--btn:linear-gradient(180deg,#5a8cff,#2a5bd7);--btnsh:#173a9a;--scr:linear-gradient(180deg,#fffdf6,#f4ecd8);--ink:#1f3fa8;--red:#e0303a}
+body{background:#fdf8ec;color:#1c2240;overflow:hidden;-webkit-user-select:none;user-select:none}
+#title{background:radial-gradient(circle at 50% 0,#fffef8,#f3ead2);justify-content:flex-start}
+#title::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(70,120,220,.13) 1px,transparent 1px) 0 0/100% 26px,linear-gradient(90deg,rgba(70,120,220,.13) 1px,transparent 1px) 0 0/26px 100%;pointer-events:none}
+.logo .a{color:#e0303a}.logo .b{color:#fff;-webkit-text-stroke:3px #1f3fa8;text-shadow:0 6px 0 #1f3fa8}
+.box{position:relative;width:min(420px,100%);background:#fff;border-radius:22px;padding:14px;margin-top:14px;box-shadow:0 8px 22px rgba(30,40,90,.15);text-align:start}
+.box h4{margin:0 0 8px;font-size:15px;color:#1f3fa8}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:10px 4px;border-radius:14px;background:#eef2fb;font-weight:800;font-size:14px;color:#1c2240}
+.seg button[aria-pressed=true]{background:linear-gradient(180deg,#5a8cff,#2a5bd7);color:#fff;box-shadow:0 3px 0 #173a9a}
+.seg button small{display:block;font-size:11px;opacity:.8;font-weight:700}
+#how{font-size:14px;line-height:1.5;margin:0;color:#333}
+#playBtn{margin-top:16px;height:62px;font-size:22px;padding:0 40px}
+#game{position:fixed;inset:0;display:flex;flex-direction:column}
+.half{position:relative;flex:1;display:flex;flex-direction:column;min-height:0;padding:8px 8px 6px;transition:transform .5s}
+#h1{transform:rotate(180deg)}
+#game.cpu #h1{transform:none}
+.half.p0{background:#fffdf6}.half.p1{background:#f6f8ff}
+.hd{display:flex;align-items:center;gap:8px;min-height:44px}
+.who{font-weight:900;font-size:14px;padding:4px 10px;border-radius:10px;color:#fff;flex:none}
+.p0 .who{background:#e0303a}.p1 .who{background:#2a5bd7}
+.role{flex:1;font-weight:900;font-size:18px;text-align:center;line-height:1.1}
+.role b{display:inline-block;font-size:30px;min-width:56px;padding:0 8px;border-radius:12px;background:#ffe24a;color:#1c2240;box-shadow:0 3px 0 #c8a800;vertical-align:middle;animation:tg .9s ease-in-out infinite}@keyframes tg{50%{transform:scale(1.08)}}
+.prog{flex:none;width:86px;text-align:center;font-weight:900;font-size:13px}
+.prog i{display:block;height:8px;border-radius:5px;background:#e4e8f4;overflow:hidden;margin-top:3px}
+.prog i s{display:block;height:100%;width:0;background:linear-gradient(90deg,#5ae08a,#1fb55a);transition:width .2s}
+.body{position:relative;flex:1;min-height:0;border-radius:14px;overflow:hidden;transition:transform .45s cubic-bezier(.4,1.4,.5,1),opacity .2s}
+.body.flip{transform:rotateX(90deg);opacity:.2}
+.paper{position:absolute;inset:0;background:#fff;background-image:linear-gradient(rgba(70,120,220,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(70,120,220,.16) 1px,transparent 1px);background-size:100% var(--g,22px),var(--g,22px) 100%;box-shadow:inset 0 0 0 2px #dfe6f6}
+.board .n{position:absolute;transform:translate(-50%,-50%) rotate(var(--r));font-weight:800;font-family:"Comic Sans MS","Chalkboard SE","Marker Felt",system-ui,sans-serif;line-height:1;padding:4px;border-radius:50%;touch-action:manipulation;cursor:pointer}
+.board .n.f{outline:2.5px solid #e0303a;outline-offset:1px;border-radius:50%;opacity:.55}
+.board .n.bad{animation:bad .35s}@keyframes bad{25%{transform:translate(-50%,-50%) rotate(var(--r)) translateX(-5px)}75%{transform:translate(-50%,-50%) rotate(var(--r)) translateX(5px)}}
+.board .n.ok{animation:ok .5s;color:#1fb55a!important}@keyframes ok{40%{transform:translate(-50%,-50%) rotate(var(--r)) scale(1.9)}}
+.board.lock{filter:grayscale(.6) opacity(.6)}
+.nb{position:absolute;inset:6px;display:grid;gap:0;direction:ltr}
+.nb .c{position:relative;border:1px solid rgba(70,120,220,.35);background:#fff;touch-action:manipulation}
+.nb .c svg{position:absolute;inset:12%;width:76%;height:76%;overflow:visible}
+.nb .c svg path{fill:none;stroke:var(--pen,#1f3fa8);stroke-width:12;stroke-linecap:round;stroke-dasharray:150;stroke-dashoffset:150;animation:pen .14s forwards}
+.nb .c svg path+path{animation-delay:.07s}@keyframes pen{to{stroke-dashoffset:0}}
+.p0{--pen:#e0303a}.p1{--pen:#1f3fa8}
+.ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}.ink polyline{fill:none;stroke:var(--pen,#1f3fa8);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.nb .c.nope{animation:nope .3s}@keyframes nope{50%{background:#ffe0e0}}
+.body{touch-action:none}
+.nb.wait{filter:grayscale(1) opacity(.45)}
+.wait-msg{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-size:20px;color:#1c2240;text-align:center;pointer-events:none;text-shadow:0 2px 0 #fff}
+#mid{flex:none;height:30px;display:flex;align-items:center;justify-content:center;gap:10px;background:#1c2240;color:#fff;font-weight:900;font-size:13px;z-index:2}
+#mid button{width:34px;height:26px;border-radius:9px;background:rgba(255,255,255,.15);font-size:15px}
+.mag{position:absolute;font-size:34px;transition:left .35s,top .35s;pointer-events:none;z-index:2;transform:translate(-30%,-30%)}
+#ov{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(20,25,60,.55);pointer-events:none}
+#ov .t{font-weight:900;font-size:clamp(40px,14vw,90px);color:#fff;-webkit-text-stroke:3px #1f3fa8;paint-order:stroke fill;text-shadow:0 6px 0 #1f3fa8;text-align:center}
+#ov .s{display:block;font-size:20px;-webkit-text-stroke:0;text-shadow:0 2px 4px #000;margin-top:6px}
+#win{position:fixed;inset:0;z-index:31;display:flex;flex-direction:column}
+#win .wh{flex:1;display:grid;place-items:center;text-align:center;background:rgba(20,25,60,.8);color:#fff;padding:12px}
+#win .wh:first-child{transform:rotate(180deg)}
+#win.cpu .wh:first-child{display:none}
+#win h2{margin:0;font-size:clamp(30px,9vw,52px)}
+#win p{margin:6px 0 12px;font-weight:800}
+#win .row{display:flex;gap:10px;justify-content:center}
+</style>
+</head>
+<body>
+<section class="scr" id="title">
+  <button class="rb homeT" id="homeT" hidden></button><button class="rb" id="sndBtn" style="position:absolute;top:max(12px,env(safe-area-inset-top));inset-inline-end:12px"></button>
+  <h1 class="logo" style="margin-top:44px"><span class="a" id="lgA">FIND &amp;</span><span class="b">CROSS</span></h1>
+  <div class="box"><h4 id="mT"></h4><div class="seg" id="modeSeg"><button data-m="2p"></button><button data-m="cpu"></button></div></div>
+  <div class="box" id="diffBox"><h4 id="dT"></h4><div class="seg" id="diffSeg"><button data-d="easy"></button><button data-d="normal"></button><button data-d="hard"></button></div></div>
+  <div class="box"><h4 id="sT"></h4><div class="seg" id="sizeSeg"><button data-s="20"></button><button data-s="35"></button><button data-s="60"></button></div></div>
+  <div class="box"><h4 id="hT"></h4><p id="how"></p></div>
+  <button class="btn pri" id="playBtn"></button>
+  
+</section>
+<div id="game" hidden>
+  <div class="half p1" id="h1"><div class="hd"><span class="who"></span><div class="role"></div><div class="prog"><span></span><i><s></s></i></div></div><div class="body"></div></div>
+  <div id="mid"><button id="pauseBtn">✕</button><span id="midT"></span></div>
+  <div class="half p0" id="h0"><div class="hd"><span class="who"></span><div class="role"></div><div class="prog"><span></span><i><s></s></i></div></div><div class="body"></div></div>
+</div>
+<div id="ov" hidden><div class="t"></div></div>
+<div id="win" hidden><div class="wh"></div><div class="wh"></div></div>
+<div id="toast"></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="numx/game.js"></script>
+</body>
+</html>

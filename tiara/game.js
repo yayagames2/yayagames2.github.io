@@ -115,9 +115,29 @@ function paintBg(b) { const g = b.createLinearGradient(0, 0, 0, VH); g.addColorS
   for (let i = 0; i < 26; i++) { const x = r() * VW, y = r() * VH, rr = 20 + r() * 70; const q = b.createRadialGradient(x, y, 0, x, y, rr); q.addColorStop(0, `rgba(255,255,255,${.25 + r() * .3})`); q.addColorStop(1, 'rgba(255,255,255,0)'); b.fillStyle = q; b.fillRect(x - rr, y - rr, rr * 2, rr * 2); }
   b.strokeStyle = 'rgba(255,255,255,.7)'; b.lineWidth = 8; const cxm = avail.x + avail.w / 2, cym = avail.y + avail.h / 2; b.beginPath(); b.ellipse(cxm, cym, avail.w * .46, avail.h * .48, 0, 0, TAU); b.stroke(); b.strokeStyle = 'rgba(255,190,225,.6)'; b.lineWidth = 3; b.beginPath(); b.ellipse(cxm, cym, avail.w * .46 - 9, avail.h * .48 - 9, 0, 0, TAU); b.stroke();
   for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; const x = cxm + Math.cos(a) * avail.w * .46, y = cym + Math.sin(a) * avail.h * .48; const q = b.createRadialGradient(x, y, 0, x, y, 14); q.addColorStop(0, 'rgba(255,250,220,1)'); q.addColorStop(.4, 'rgba(255,240,180,.8)'); q.addColorStop(1, 'rgba(255,240,180,0)'); b.fillStyle = q; b.fillRect(x - 14, y - 14, 28, 28); } }
-let showBg = null;
-function render() { cx.setTransform(1, 0, 0, 1, 0, 0); if (state === 'show') { if (!showBg || showBg.width !== cv.width) { showBg = cnv(cv.width, cv.height); ballroom(showBg.getContext('2d'), cv.width, cv.height); } cx.drawImage(showBg, 0, 0); } else cx.drawImage(bg, 0, 0);
-  if (!L) return; const { s, ox, oy } = camXf(); cx.setTransform(s * dpr, 0, 0, s * dpr, ox * dpr, oy * dpr); if (state === 'show') { cx.fillStyle = 'rgba(40,0,40,.25)'; cx.beginPath(); cx.ellipse(500, 1590, 420, 50, 0, 0, TAU); cx.fill(); } drawFigure(cx, L, drawMakeup); }
+let showBg = null, figC = null, figDirty = true, showT0 = 0;
+const GUESTS = (() => { const r = (a => () => (a = (a * 16807) % 2147483647) / 2147483647)(7), out = [], skins = ['#ffd9c2', '#f2c09c', '#c98a5e', '#8a5a3a', '#ffe6d6'], hairs = ['#3a2416', '#1c1410', '#d9a64a', '#8a3a1a', '#ece2d0', '#5a3a2a'], cloth = ['#6a2a8a', '#2a3a8a', '#8a1a4a', '#1a5a6a', '#3a1a5a', '#7a4a1a', '#2a2a3a', '#8a2a6a', '#1a3a5a'];
+  for (let row = 0; row < 2; row++) { const n = row ? 9 : 8; for (let i = 0; i < n; i++) { const x = (i + .5 + (row ? 0 : .5) - (row ? 0 : .5) + (r() - .5) * .35) / n; out.push({ x, row, sk: skins[(r() * skins.length) | 0], hc: hairs[(r() * hairs.length) | 0], cc: cloth[(r() * cloth.length) | 0], gown: r() < .5, ph: r() * 6, sp: 9 + r() * 5, h: .9 + r() * .2, bun: r() < .4, wave: r() < .15 }); } }
+  return out.sort((a, b) => a.row - b.row); })();
+function drawCrowd(x, w, h, t) { const base = Math.min(w, h * .62);
+  for (const g of GUESTS) { const far = g.row === 0, sc = base * (far ? .085 : .11) * g.h, gx = g.x * w, gy = h * (far ? .64 : .74), dark = far ? .55 : .8;
+    x.save(); x.translate(gx, gy); x.scale(sc / 10, sc / 10); x.globalAlpha = dark; const bob = Math.abs(Math.sin(t * g.sp * .5 + g.ph)) * 1.2; x.translate(0, -bob);
+    x.fillStyle = g.cc; x.beginPath(); if (g.gown) { x.moveTo(-6, 0); x.lineTo(6, 0); x.lineTo(3, -16); x.lineTo(-3, -16); } else { x.moveTo(-5.5, 0); x.lineTo(5.5, 0); x.lineTo(5, -17); x.lineTo(-5, -17); } x.closePath(); x.fill();
+    if (!g.gown) { x.fillStyle = '#fff'; x.beginPath(); x.moveTo(-1.5, -17); x.lineTo(1.5, -17); x.lineTo(0, -12); x.fill(); }
+    x.fillStyle = g.sk; x.beginPath(); x.arc(0, -21, 3.6, 0, TAU); x.fill();
+    x.fillStyle = g.hc; x.beginPath(); x.arc(0, -22, 3.8, PI, 0); x.fill(); if (g.gown) { x.fillRect(-3.8, -22, 1.6, 6); x.fillRect(2.2, -22, 1.6, 6); } if (g.bun) { x.beginPath(); x.arc(0, -26, 2, 0, TAU); x.fill(); }
+    const c = Math.sin(t * g.sp + g.ph), gap = 1 + Math.max(0, c) * 3.2, hy = -13 - (g.wave ? 8 + Math.sin(t * 6 + g.ph) * 2 : 0);
+    x.strokeStyle = g.gown ? g.sk : g.cc; x.lineWidth = 1.8; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(-4.5, -15); x.lineTo(-gap, hy); x.moveTo(4.5, -15); x.lineTo(gap, hy); x.stroke();
+    x.fillStyle = g.sk; x.beginPath(); x.arc(-gap, hy, 1.4, 0, TAU); x.arc(gap, hy, 1.4, 0, TAU); x.fill();
+    if (c > .92) { x.globalAlpha = .9; x.strokeStyle = '#fff6c8'; x.lineWidth = .7; for (let k = 0; k < 3; k++) { const a = -PI / 2 + (k - 1) * .6; x.beginPath(); x.moveTo(Math.cos(a) * 2.5, hy + Math.sin(a) * 2.5); x.lineTo(Math.cos(a) * 4.5, hy + Math.sin(a) * 4.5); x.stroke(); } }
+    x.restore(); } }
+function applause(sec) { for (let i = 0; i < sec * 22; i++) A.noise(.045, 'bandpass', 1100 + Math.random() * 1800, 1.2, .025 + Math.random() * .03, Math.random() * sec); }
+function render() { cx.setTransform(1, 0, 0, 1, 0, 0);
+  if (state === 'show') { if (!showBg || showBg.width !== cv.width) { showBg = cnv(cv.width, cv.height); ballroom(showBg.getContext('2d'), cv.width, cv.height); } cx.drawImage(showBg, 0, 0); drawCrowd(cx, cv.width, cv.height, performance.now() / 1000);
+    if (L) { if (!figC || figC.width !== cv.width || figC.height !== cv.height || figDirty) { figC = cnv(cv.width, cv.height); const f = figC.getContext('2d'); const { s, ox, oy } = camXf(); f.setTransform(s * dpr, 0, 0, s * dpr, ox * dpr, oy * dpr); f.fillStyle = 'rgba(40,0,40,.25)'; f.beginPath(); f.ellipse(500, 1590, 420, 50, 0, 0, TAU); f.fill(); drawFigure(f, L, drawMakeup); figDirty = false; } cx.drawImage(figC, 0, 0); } return; }
+  cx.drawImage(bg, 0, 0);
+  if (!L) return; const { s, ox, oy } = camXf(); cx.setTransform(s * dpr, 0, 0, s * dpr, ox * dpr, oy * dpr); drawFigure(cx, L, drawMakeup); }
 const toWorld = (sx, sy) => { const { s, ox, oy } = camXf(); return [(sx - ox) / s, (sy - oy) / s]; };
 const toHead = (wx, wy) => { const p = HI.transformPoint({ x: wx, y: wy }); return [p.x, p.y]; };
 const headToScreen = (hx2, hy2) => { const p = HEADM.transformPoint({ x: hx2, y: hy2 }); const { s, ox, oy } = camXf(); return [p.x * s + ox, p.y * s + oy]; };
@@ -240,7 +260,7 @@ async function back() { await persist(); showTitle(); }
 function score() { const mk = ['lips', 'blush', 'shadow', 'liner', 'lash', 'brow', 'glow', 'gems'].filter(k => M.used[k]).length; const acc = ['crown', 'ear', 'neck', 'clip'].filter(k => L[k] && L[k] !== 'none').length; return Math.min(5, Math.round(mk * .55 + acc * .5 + (L.deco !== 'none' ? .5 : 0))); }
 function show() { state = 'show'; $('hud').hidden = true; $('panel').hidden = true; $('showBar').hidden = false; layout(); A.stopMusic(); const n = Math.max(1, score());
   $('showT').textContent = [T('יפהפייה!', 'Beautiful!'), T('מקסימה!', 'Lovely!'), T('מהממת!', 'Stunning!'), T('מלכותית!', 'Royal!'), T('מלכת הנשף! 👑', 'Queen of the ball! 👑')][n - 1]; $('showS').textContent = '⭐'.repeat(n) + '☆'.repeat(5 - n);
-  [0, 4, 7, 12, 16].forEach((k, i) => A.tone(523 * Math.pow(2, k / 12), .35, 'triangle', .07, i * .12)); setTimeout(() => A.voice('wow', 1.5), 500); A.noise(1.6, 'bandpass', 1800, .6, .05, .3, 900); confetti(); }
+  [0, 4, 7, 12, 16].forEach((k, i) => A.tone(523 * Math.pow(2, k / 12), .35, 'triangle', .07, i * .12)); setTimeout(() => A.voice('wow', 1.5), 500); A.noise(1.6, 'bandpass', 1800, .6, .05, .3, 900); applause(4); confetti(); }
 async function savePhoto() { const c = portrait(600, 840, [-60, 0, 1120, 1650], true); const url = c.toDataURL('image/jpeg', .85); const alb = (await idb.get('album')) || []; alb.unshift({ id: Date.now(), url, n: pr.id }); await idb.set('album', alb.slice(0, 40)); toast(T('נשמר באלבום המלכותי 📸', 'Saved to the royal album 📸')); A.tone(1800, .05, 'square', .03); A.noise(.12, 'highpass', 4000, 1, .2); flash = 1; }
 async function showTitle() { state = 'title'; A.stopMusic(); A.allOff(); $('title').hidden = false; $('hud').hidden = $('panel').hidden = $('showBar').hidden = true; L = null; M = null; dirty = true;
   $('prs').innerHTML = PR.map((p, i) => `<button class="pc" data-i="${i}"><img data-p="${i}" src="${S.p[p.id] && S.p[p.id].th || ''}" alt=""><b>${p.n}</b></button>`).join(''); const ims = [...$('prs').querySelectorAll('img')].filter(im => !im.getAttribute('src'));
@@ -262,7 +282,7 @@ function hints(t) { if (state !== 'edit' || tab !== 'makeup' || !M || M.used[too
 let last = performance.now();
 function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; A.tick();
   if (L) { const tg = target(); for (const k of ['x', 'y', 'w', 'h']) { const d = tg[k] - cam[k]; if (Math.abs(d) > .05) { cam[k] += d * Math.min(1, dt * 7); dirty = true; } else cam[k] = tg[k]; } }
-  if (dirty) { dirty = false; render(); }
+  if (dirty) { dirty = false; figDirty = true; render(); } else if (state === 'show') render();
   fxx.setTransform(1, 0, 0, 1, 0, 0); fxx.clearRect(0, 0, fx.width, fx.height); hints(t); fxx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (state === 'show' && Math.random() < dt * 6) sparkleAt(VW * (.3 + Math.random() * .4), VH * (.15 + Math.random() * .5), 3);
   for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= .985; p.life -= dt; if (p.r != null) p.r += p.vr; if (p.life <= 0) { parts.splice(i, 1); continue; } fxx.save(); fxx.globalAlpha = Math.min(1, p.life * 2); fxx.translate(p.x, p.y); fxx.rotate(p.r || 0); fxx.fillStyle = p.c; if (p.st) fxx.fill(STAR(0, 0, p.s, p.s * .3, 4)); else fxx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); fxx.restore(); }
