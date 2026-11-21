@@ -1,5 +1,6 @@
 import { $, clamp, lerp, rng, T, EN, store, audio, toast, ICO, hubButtons, soundButton } from '../lib/kit.js';
-const S = store('cake-save', { cakes: [], tut: 0, album: {}, pity: 0, made: 0 });
+const S = store('cake-save', { cakes: [], tut: 0, album: {}, pity: 0, made: 0, coins: 0, served: 0, unl: [] });
+if (!S.unl) S.unl = []; if (S.coins == null) S.coins = 0; if (S.served == null) S.served = 0;
 if (!S.album) S.album = {}; if (S.pity == null) S.pity = 0; if (!S.cakes) S.cakes = [];
 const A = audio(S);
 const TAU = Math.PI * 2;
@@ -13,10 +14,14 @@ const ease = p => 1 - Math.pow(1 - clamp(p, 0, 1), 3);
 
 /* ================= DATA ================= */
 const FLAVORS = [['van', '#fff0c8', '🍦', T('וניל', 'Vanilla')], ['choc', '#7a4a2a', '🍫', T('שוקולד', 'Chocolate')], ['straw', '#ff9ac0', '🍓', T('תות', 'Strawberry')], ['mint', '#a8f0c8', '🌿', T('מנטה', 'Mint')],
-  ['blue', '#a8b8ff', '🫐', T('אוכמניות', 'Blueberry')], ['lemon', '#fff07a', '🍋', T('לימון', 'Lemon')], ['red', '#d0303a', '❤️', T('רד ולווט', 'Red Velvet')]];
+  ['blue', '#a8b8ff', '🫐', T('אוכמניות', 'Blueberry')], ['lemon', '#fff07a', '🍋', T('לימון', 'Lemon')], ['red', '#d0303a', '❤️', T('רד ולווט', 'Red Velvet')], ['cara', '#d8a060', '🍯', T('קרמל', 'Caramel')], ['pist', '#b8d878', '🥜', T('פיסטוק', 'Pistachio')], ['cotton', '#ffc8f0', '🍥', T('שערות סבתא', 'Cotton candy')]];
+const PRICE = { cara: 40, pist: 60, cotton: 80, '🍩': 20, '🧁': 25, '🍪': 25, '🦋': 35, '🎀': 35, '🍭': 40, '💎': 60, '🌈': 70 };
+const isUnl = k => !PRICE[k] || S.unl.includes(k);
 const FL = Object.fromEntries(FLAVORS.map(f => [f[0], f]));
 const FROST = ['#ffffff', '#ffd0e4', '#c8e8ff', '#d8ffe0', '#fff2b0', '#e0d0ff', '#6a3a20', '#ff8ab0'];
-const TOPS = ['🍓', '🍒', '🕯️', '⭐', '🫐', '🍫', '🌸', '🍬', '🦄', '👑'];
+const TOPS = ['🍓', '🍒', '🕯️', '⭐', '🫐', '🍫', '🌸', '🍬', '🦄', '👑', '🍩', '🧁', '🍪', '🦋', '🎀', '🍭', '💎', '🌈'];
+const PIPE = ['#ffffff', '#ff8ab0', '#7ad0ff', '#ffe07a', '#9ae0a0', '#c8a0ff', '#6a3a20'];
+const CUST = [['👧', T('נועה', 'Noa')], ['👦', T('איתי', 'Itai')], ['👵', T('סבתא רחל', 'Grandma Ruth')], ['👴', T('סבא משה', 'Grandpa Moe')], ['👩‍🦰', T('מאיה', 'Maya')], ['🧒', T('יובל', 'Yuval')], ['🐻', T('דובי', 'Teddy')], ['🦄', T('חד־קרן', 'Unicorn')], ['👽', T('זיבי', 'Zibi')], ['🤴', T('הנסיך', 'The Prince')], ['👸', T('הנסיכה', 'The Princess')], ['🐶', T('בובי', 'Bobby')]];
 const SPRINK = [['none', '∅'], ['rain', '🌈'], ['dots', '🔵'], ['gold', '🌟'], ['hearts', '💗']];
 const TIERS = [
   { n: T('רגיל', 'Common'), c: '#8a9aa8', g: '⚪', w: 40, fx: T('שכבות קלאסיות', 'Classic layers') },
@@ -26,7 +31,7 @@ const TIERS = [
   { n: T('מיתי', 'Mythic'), c: '#ff4ab0', g: '🌈', w: 4, fx: T('פיניאטה של ממתקים!', 'Candy piñata!') }];
 
 /* ================= STATE ================= */
-let state = 'title', step = 0, sp = null, VW = 0, VH = 0, dpr = 1, panelH = 220, rTier = 0, wheel = null, bake = 0, baking = false, cutLine = null, cutT = -1, pours = [], candies = [], hop = 0;
+let ORD = null, pipeC = -1, lastPipe = null; let state = 'title', step = 0, sp = null, VW = 0, VH = 0, dpr = 1, panelH = 220, rTier = 0, wheel = null, bake = 0, baking = false, cutLine = null, cutT = -1, pours = [], candies = [], hop = 0;
 const cv = $('cv'), cx = cv.getContext('2d');
 function layout() { dpr = Math.min(devicePixelRatio || 1, 2.5); VW = innerWidth; VH = innerHeight; cv.width = Math.round(VW * dpr); cv.height = Math.round(VH * dpr); cv.style.width = VW + 'px'; cv.style.height = VH + 'px'; panelH = $('panel').hidden ? 0 : ($('panel').offsetHeight || panelH); }
 const area = () => { const top = 70, bot = VH - panelH - 10; return { x: VW / 2, y: (top + bot) / 2 + 10, h: bot - top, w: VW }; };
@@ -48,6 +53,7 @@ function drawCake(x, G, spec, t, opts = {}) { const fr = spec.frost; const layer
   x.fillStyle = mixC(fr, '#ffffff', .3); x.beginPath(); x.ellipse(G.x, G.y - G.h, G.w / 2, G.ry, 0, 0, TAU); x.fill();
   const r = rng(spec.seed); if (spec.sprink !== 'none') for (let i = 0; i < 60; i++) { const a = r() * TAU, f = Math.sqrt(r()) * .92; const px = G.x + Math.cos(a) * G.w / 2 * f, py = G.y - G.h + Math.sin(a) * G.ry * f; x.save(); x.translate(px, py); x.rotate(r() * 3);
     if (spec.sprink === 'hearts') { x.fillStyle = '#ff4a8a'; x.font = `${G.w * .04}px serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('♥', 0, 0); } else { x.fillStyle = spec.sprink === 'gold' ? '#ffd23a' : spec.sprink === 'dots' ? pick(['#4ab0ff', '#ff6ab0', '#5ae08a']) : ['#ff4a5a', '#ffa040', '#ffe04a', '#5ae08a', '#4ab0ff', '#a86aff'][i % 6]; if (spec.sprink === 'dots' || spec.sprink === 'gold') { x.beginPath(); x.arc(0, 0, G.w * .009, 0, TAU); x.fill(); } else x.fillRect(-G.w * .016, -G.w * .005, G.w * .032, G.w * .01); } x.restore(); }
+  if (spec.pipe && spec.pipe.length) for (const [u, v, ci] of spec.pipe) { const px = G.x + u * G.w / 2, py = G.y - G.h + v * G.h, rr = G.w * .026; const c = PIPE[ci] || '#fff'; x.fillStyle = mixC(c, '#000000', .18); x.beginPath(); x.arc(px, py + rr * .25, rr, 0, TAU); x.fill(); x.fillStyle = c; x.beginPath(); x.arc(px, py, rr * .92, 0, TAU); x.fill(); x.fillStyle = 'rgba(255,255,255,.7)'; x.beginPath(); x.arc(px - rr * .3, py - rr * .35, rr * .3, 0, TAU); x.fill(); }
   const tops = spec.tops || []; tops.forEach((e, i) => { const a = (i / Math.max(1, tops.length)) * TAU + .4, f = tops.length === 1 ? 0 : .58; const px = G.x + Math.cos(a) * G.w / 2 * f, py = G.y - G.h + Math.sin(a) * G.ry * f; x.font = `${G.w * .14}px serif`; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.fillText(e, px, py + G.w * .03);
     if (e === '🕯️' && !opts.thumb) { x.fillStyle = `rgba(255,220,120,${.3 + .2 * Math.sin(t * 9 + i)})`; x.beginPath(); x.arc(px, py - G.w * .12, G.w * .05, 0, TAU); x.fill(); } });
   x.restore(); }
@@ -97,19 +103,28 @@ function landed() { const q = TIERS[rTier]; flash(.35); [0, 4, 7, 12, 16, 19].sl
   const el = $('tierB'); el.innerHTML = `<b style="--c:${q.c}">${q.g} ${q.n}${rTier >= 3 ? '!!' : '!'}</b><span>${T('מה מסתתר בפנים…?', 'What’s hiding inside…?')}</span>`; el.className = 'tierB on t' + rTier; setTimeout(() => { el.className = 'tierB'; step = 4; wheel = null; renderPanel(); }, 1700); }
 
 /* ================= PANEL ================= */
+const STEPT6 = T('🛎️ מה הלקוח אמר?', '🛎️ The verdict!');
 const STEPT = [T('🥣 שופכים שכבות', '🥣 Pour the layers'), T('🔥 אופים!', '🔥 Baking!'), T('🎨 מקשטים', '🎨 Decorate'), T('🎡 מה בפנים?!', '🎡 What’s inside?!'), T('🔪 חותכים!', '🔪 Cut it!'), T('🎂 העוגה שלכם!', '🎂 Your cake!')];
-function renderPanel() { $('stepT').textContent = STEPT[step]; let h = '';
-  if (step === 0) { h += `<div class="lbl">${T('בחרו טעמים לשכבות (עד 4) – כל לחיצה שופכת שכבה', 'Pick flavors for the layers (up to 4) – each tap pours one')}</div><div class="row2">${FLAVORS.map(([k, c, ic, n]) => `<button class="ch" data-fl="${k}" style="background:${c};color:${k === 'choc' || k === 'red' ? '#fff' : '#7a2a2a'}">${ic}<small>${n}</small></button>`).join('')}</div>`;
+function renderPanel() { $('stepT').textContent = step === 6 ? STEPT6 : STEPT[step]; let h = '';
+  if (step === 0) { h += `<div class="lbl">${T('בחרו טעמים לשכבות (עד 4) – כל לחיצה שופכת שכבה', 'Pick flavors for the layers (up to 4) – each tap pours one')}</div><div class="row2">${FLAVORS.map(([k, c, ic, n]) => `<button class="ch${isUnl(k) ? '' : ' lk'}" data-price="🪙${PRICE[k] || ''}" data-fl="${k}" style="background:${c};color:${k === 'choc' || k === 'red' ? '#fff' : '#7a2a2a'}">${isUnl(k) ? ic : '🔒'}<small>${n}</small></button>`).join('')}</div>`;
     h += `<div class="lbl">${sp.layers.length ? sp.layers.map(k => FL[k][2]).join(' ') : '…'}</div><div class="nav1">${sp.layers.length ? `<button class="btn" id="undoB" style="margin-inline-end:8px">↩️</button>` : ''}<button class="btn pri big${sp.layers.length >= 2 ? ' ready' : ''}" id="bakeB" ${sp.layers.length ? '' : 'disabled'}>🔥 ${T('לתנור!', 'Into the oven!')}</button></div>`; }
   else if (step === 1) h += `<div class="hint hb">${bake < 1 ? T('⏳ העוגה תופחת…', '⏳ The cake is rising…') : T('🔔 דינג! מוכן!', '🔔 Ding! Ready!')}</div><div class="nav1"><button class="btn pri big ready" id="outB" ${bake < 1 ? 'disabled' : ''}>🧤 ${T('להוציא מהתנור', 'Take it out')}</button></div>`;
   else if (step === 2) { h += `<div class="lbl">${T('ציפוי', 'Frosting')}</div><div class="row2">${FROST.map(c => `<button class="sw${sp.frost === c ? ' on' : ''}" data-fr="${c}" style="background:${c}"></button>`).join('')}<span class="sep"></span>${SPRINK.map(([k, ic]) => `<button class="ch${sp.sprink === k ? ' on' : ''}" data-spk="${k}">${ic}</button>`).join('')}</div>`;
-    h += `<div class="lbl">${T('קישוטים למעלה (עד 5)', 'Toppings (up to 5)')}</div><div class="row2">${TOPS.map(e => `<button class="ch${sp.tops.includes(e) ? ' on' : ''}" data-tp="${e}">${e}</button>`).join('')}</div>`;
-    h += `<div class="nav1"><button class="btn pri big ready" id="spinB">🎡 ${T('מה מסתתר בפנים?', 'What’s inside?')}</button></div>`; }
+    h += `<div class="lbl">${T('קישוטים למעלה (עד 5)', 'Toppings (up to 5)')}</div><div class="row2">${TOPS.map(e => `<button class="ch${sp.tops.includes(e) ? ' on' : ''}${isUnl(e) ? '' : ' lk'}" data-price="🪙${PRICE[e] || ''}" data-tp="${e}">${e}</button>`).join('')}</div>`;
+    h += `<div class="lbl">🖌️ ${T('קצפת – ציירו עם האצבע על העוגה!', 'Whipped cream – draw on the cake with your finger!')}</div><div class="row2"><button class="ch${pipeC < 0 ? ' on' : ''}" data-pp="-1">✋</button>${PIPE.map((c, i) => `<button class="sw${pipeC === i ? ' on' : ''}" data-pp="${i}" style="background:${c}"></button>`).join('')}${sp.pipe && sp.pipe.length ? `<button class="ch" id="pUndo">↩️</button>` : ''}</div>`;
+    h += ORD ? `<div class="nav1"><button class="btn pri big ready" id="serveB">🛎️ ${T('להגיש ל', 'Serve ')}${ORD.c[1]}!</button></div>` : `<div class="nav1"><button class="btn pri big ready" id="spinB">🎡 ${T('מה מסתתר בפנים?', 'What’s inside?')}</button></div>`; }
+  else if (step === 6) h += ORD && ORD.res ? ORD.res : '';
   else if (step === 3) h += `<div class="hint hb">${T('🥁 הגלגל מסתובב…', '🥁 The wheel is spinning…')}</div>`;
   else if (step === 4) h += `<div class="hint hb">${T('🔪 החליקו את האצבע לאורך העוגה כדי לחתוך!', '🔪 Swipe down across the cake to slice it!')}</div>`;
   else h += `<div class="hint">${T('🎉 הקישו על העוגה לחגוג שוב', '🎉 Tap the cake to celebrate again')}</div><div class="nav1"><button class="btn pri big ready" id="againB">🎂 ${T('עוד עוגה!', 'Bake another!')}</button></div>`;
   $('opts').innerHTML = h; requestAnimationFrame(() => { const ph = $('panel').offsetHeight; if (Math.abs(ph - panelH) > 4) panelH = ph; }); }
 $('opts').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; A.ac(); const d = b.dataset;
+  if ((d.fl || d.tp) && !isUnl(d.fl || d.tp)) { const k = d.fl || d.tp, pr = PRICE[k]; if (S.coins >= pr) { S.coins -= pr; S.unl.push(k); S.save(); A.tone(880, .1, 'triangle', .07); A.tone(1320, .25, 'triangle', .07, .1); burst(VW / 2, VH * .4, 14, ['✨', '🪙', '🎉']); toast(T('נפתח! 🎉', 'Unlocked! 🎉'), 1200); updCoins(); } else toast(T(`צריך 🪙 ${pr} – הגישו עוגות ללקוחות במאפייה כדי להרוויח!`, `Need 🪙 ${pr} – serve customers in the bakery to earn!`), 2200); renderPanel(); return; }
+  if (d.pp != null) { pipeC = +d.pp; A.tone(700, .06, 'triangle', .05); renderPanel(); return; }
+  if (b.id === 'pUndo') { sp.pipe.splice(Math.max(0, sp.pipe.length - 25)); }
+  if (b.id === 'serveB') { serve(); return; }
+  if (b.id === 'nextB') { startOrder(); return; }
+  if (b.id === 'menuB') { showTitle(); return; }
   if (d.fl) { if (sp.layers.length >= 4) { toast(T('מקסימום 4 שכבות 🎂', 'Max 4 layers 🎂'), 1200); return; } const G = cakeG(); pours.push({ x: G.x + (Math.random() - .5) * 30, y0: 60, y: 60, c: FL[d.fl][1], k: d.fl }); A.noise(.6, 'lowpass', 500, 2, .1, 0, 200); return; }
   if (b.id === 'undoB') { sp.layers.pop(); A.tone(300, .1, 'sine', .06); }
   if (b.id === 'bakeB') { step = 1; bake = 0; baking = true; A.tone(200, .3, 'square', .04); A.loopTone('oven', 'sawtooth', 70, .012); }
@@ -122,9 +137,22 @@ $('opts').addEventListener('click', e => { const b = e.target.closest('button');
   renderPanel(); });
 
 /* ================= FLOW ================= */
-function newSpec() { return { layers: [], frost: null, sprink: 'rain', tops: [], seed: Math.floor(Math.random() * 1e6), tier: 0 }; }
-function startMake(spec) { $('tierB').className = 'tierB'; fx.length = 0; wheel = null; cutLine = null; cutT = -1; pours = []; candies = []; A.loopOff('roll'); A.loopOff('oven');
-  $('title').hidden = true; $('album').hidden = true; $('panel').hidden = false; $('hud').hidden = false; state = 'make';
+function newSpec() { return { layers: [], frost: null, sprink: 'rain', tops: [], pipe: [], seed: Math.floor(Math.random() * 1e6), tier: 0 }; }
+function updCoins() { $('coinT').textContent = '🪙 ' + S.coins + '  ·  🛎️ ' + S.served; }
+function startOrder() { const lv = Math.floor(S.served / 4); const fl = FLAVORS.filter(f => isUnl(f[0])).map(f => f[0]); const nL = Math.min(4, 2 + (lv > 1 ? 1 : 0) + (lv > 4 ? 1 : 0)); const layers = []; for (let i = 0; i < nL; i++) layers.push(pick(fl));
+  const tp = TOPS.filter(isUnl); const nT = Math.min(3, 1 + (lv > 2 ? 1 : 0) + (lv > 6 ? 1 : 0)); const tops = []; while (tops.length < nT) { const e = pick(tp); if (!tops.includes(e)) tops.push(e); }
+  ORD = { c: pick(CUST), layers, frost: pick(FROST), tops, cream: lv > 3 && Math.random() < .5 }; startMake(null, true);
+  $('order').innerHTML = `<div class="who">${ORD.c[0]}</div><div class="nm">${ORD.c[1]} ${T('מזמין/ה:', 'orders:')}</div><div class="ly">${layers.map(k => `<i style="background:${FL[k][1]}" title="${FL[k][3]}"></i>`).join('')}</div><div><span class="fr" style="background:${ORD.frost}"></span> <span class="tp">${tops.join('')}</span>${ORD.cream ? ' 🖌️' : ''}</div>`; $('order').hidden = false;
+  A.tone(1318, .15, 'sine', .08); A.tone(1046, .25, 'sine', .08, .15); toast(`${ORD.c[0]} ${ORD.c[1]}: ${T('אני רוצה בדיוק את העוגה הזאת! 🎂', 'I want exactly this cake! 🎂')}`, 2600); }
+function serve() { const o = ORD; let ls = 0; for (let i = 0; i < o.layers.length; i++) if (sp.layers[i] === o.layers[i]) ls++; if (sp.layers.length !== o.layers.length) ls -= .5; const lS = Math.max(0, ls / o.layers.length) * 50;
+  const fS = sp.frost === o.frost ? 25 : 0; let tm = 0; for (const e of o.tops) if (sp.tops.includes(e)) tm++; const extra = sp.tops.filter(e => !o.tops.includes(e)).length; const tS = Math.max(0, tm / o.tops.length - extra * .15) * 25;
+  const cream = (sp.pipe || []).length; let score = lS + fS + tS; if (o.cream && cream < 15) score -= 10; const stars = score >= 88 ? 3 : score >= 62 ? 2 : score >= 35 ? 1 : 0; const tip = cream >= 25 ? 5 : 0; const coins = stars * 10 + tip + (stars === 3 ? 5 : 0);
+  S.coins += coins; S.served += stars ? 1 : 0; sp.tier = 0; sp.id = Date.now(); S.cakes.unshift(JSON.parse(JSON.stringify(sp))); S.cakes = S.cakes.slice(0, 30); S.save(); updCoins();
+  const face = ['😢', '🙂', '😊', '😍'][stars]; const msg = [T('אוי... זאת לא העוגה שהזמנתי', 'Oh... that’s not my cake'), T('תודה, זה בסדר', 'Thanks, it’s okay'), T('יאמי! כמעט מושלם!', 'Yummy! Almost perfect!'), T('וואו! בדיוק מה שרציתי!!', 'WOW! Exactly what I wanted!!')][stars];
+  o.res = `<div class="res"><div class="rbig">${o.c[0]}${face}</div><p>${o.c[1]}: ${msg}</p><div class="st">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div><p>🪙 +${coins}${tip ? ' · ' + T('טיפ על הקצפת! 🖌️', 'cream tip! 🖌️') : ''}</p></div><div class="nav1"><button class="btn" id="menuB" style="margin-inline-end:8px">☰</button><button class="btn pri big ready" id="nextB">🛎️ ${T('הלקוח הבא!', 'Next customer!')}</button></div>`;
+  step = 6; $('order').hidden = true; $('stepT').textContent = T('🛎️ הלקוח טועם…', '🛎️ The customer tastes…'); renderPanel(); $('stepT').textContent = T('🛎️ מה הלקוח אמר?', '🛎️ The verdict!'); flash(.4); if (stars >= 2) celebrate(); [0, 4, 7, 12].slice(0, 1 + stars).forEach((k, j) => A.tone(523 * Math.pow(2, k / 12), .3, 'triangle', .08, .1 + j * .1)); A.voice(stars >= 2 ? 'yay' : stars ? 'hm' : 'aww', 1.3); }
+function startMake(spec, ord) { if (!ord) { ORD = null; $('order').hidden = true; } pipeC = -1; $('tierB').className = 'tierB'; fx.length = 0; wheel = null; cutLine = null; cutT = -1; pours = []; candies = []; A.loopOff('roll'); A.loopOff('oven');
+  $('title').hidden = true; $('album').hidden = true; $('panel').hidden = false; if (!sp || !sp.pipe) {} $('hud').hidden = false; state = 'make';
   if (spec) { sp = JSON.parse(JSON.stringify(spec)); step = 5; cutT = 1; rTier = sp.tier; }
   else { sp = newSpec(); step = 0; if (!S.tut) { S.tut = 1; S.save(); setTimeout(() => toast(T('שופכים שכבות, אופים, מקשטים – ומגלים מה מסתתר בפנים! 🎂', 'Pour layers, bake, decorate – and discover what’s hiding inside! 🎂'), 4200), 500); } }
   renderPanel(); panelH = $('panel').offsetHeight || panelH;
@@ -137,7 +165,7 @@ function doCut() { if (cutT >= 0) return; cutT = 0; A.noise(.5, 'bandpass', 2400
 function celebrate() { for (let i = 0; i < 16 + rTier * 6; i++) setTimeout(() => burst(VW / 2 + (Math.random() - .5) * VW * .7, VH * .35, 1, rTier >= 3 ? ['⭐', '✨', '💖', '🌟', '🎉'] : ['✨', '🎉', '💗']), i * 40); }
 function saveCur() { if (!sp || !sp.id) return; const i = S.cakes.findIndex(z => z.id === sp.id); if (i >= 0) S.cakes[i] = JSON.parse(JSON.stringify(sp)); S.save(); }
 function flash(v) { const f = $('flash'); f.style.transition = 'none'; f.style.opacity = v; requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .7s'; f.style.opacity = 0; })); }
-function showTitle() { saveCur(); state = 'title'; A.stopMusic(); A.loopOff('roll'); A.loopOff('oven'); $('title').hidden = false; $('panel').hidden = true; $('hud').hidden = true; $('album').hidden = true; $('tierB').className = 'tierB';
+function showTitle() { saveCur(); ORD = null; $('order').hidden = true; updCoins(); $('ordBtn').textContent = T('🛎️ המאפייה – הזמנות מלקוחות', '🛎️ Bakery – customer orders'); state = 'title'; A.stopMusic(); A.loopOff('roll'); A.loopOff('oven'); $('title').hidden = false; $('panel').hidden = true; $('hud').hidden = true; $('album').hidden = true; $('tierB').className = 'tierB';
   $('shelf').innerHTML = S.cakes.length ? S.cakes.slice(0, 12).map((c, i) => `<button class="tc" data-i="${i}"><img src="${thumb(c)}" alt=""></button>`).join('') : `<p class="empty">${T('עוד אין עוגות – בואו נאפה את הראשונה! 🎂', 'No cakes yet – let’s bake the first! 🎂')}</p>`; $('shelfT').textContent = T('🍰 העוגות שלי', '🍰 My cakes');
   $('albumBtn').textContent = `📖 ${T('האוסף שלי', 'My album')} ${Object.keys(S.album).length}/${FLAVORS.length * TIERS.length}`;
   if (!$('demo').src) $('demo').src = thumb({ layers: ['straw', 'van', 'choc'], frost: '#ffd0e4', sprink: 'rain', tops: ['🍓', '🕯️', '🍒'], seed: 3, tier: 3 }, 240, 204); }
@@ -149,19 +177,22 @@ function thumb(spec, w = 200, h = w) { const c = cnv(w * 2, h * 2), x = c.getCon
   const R = { x: w * .62, y: h * .4, w: w * .3, h: h * .38 }; x.save(); x.shadowColor = 'rgba(0,0,0,.2)'; x.shadowBlur = 8; x.fillStyle = '#fff'; x.fillRect(R.x - 6, R.y - 10, R.w + 12, R.h + 16); x.restore(); drawInside(x, R, spec, 0); return c.toDataURL(); }
 $('shelf').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; A.ac(); startMake(S.cakes[+b.dataset.i]); };
 $('albumBtn').onclick = () => { A.ac(); openAlbum(); };
-$('newBtn').onclick = () => { A.ac(); startMake(null); }; $('backBtn').onclick = () => showTitle();
+$('newBtn').onclick = () => { A.ac(); startMake(null); }; $('ordBtn').onclick = () => { A.ac(); startOrder(); }; $('backBtn').onclick = () => showTitle();
 
 /* ================= INPUT ================= */
 const fx = []; function burst(x, y, n, em) { for (let i = 0; i < n; i++) fx.push({ x: x + (Math.random() - .5) * 40, y, vx: (Math.random() - .5) * 260, vy: -150 - Math.random() * 260, l: 1.1 + Math.random() * .8, e: pick(em), s: 18 + Math.random() * 18 }); }
 cv.addEventListener('pointerdown', e => { if (state === 'title') return; A.ac(); try { cv.setPointerCapture(e.pointerId); } catch (er) { } const x = e.clientX, y = e.clientY; const G = cakeG();
+  if (step === 2 && pipeC >= 0) { lastPipe = null; addPipe(x, y); return; }
   if (step === 4 && cutT < 0) { cutLine = { x0: x, y0: y, x, y }; A.tone(1800, .06, 'sine', .04); return; }
   if (step === 5 && Math.abs(x - G.x) < G.w * .8 && y > G.y - G.h * 2.2 && y < G.y + G.ry * 2) { hop = 1; celebrate(); A.voice('yay', 1.4); } });
-cv.addEventListener('pointermove', e => { if (!cutLine) return; cutLine.x = e.clientX; cutLine.y = e.clientY; const G = cakeG(); if (Math.abs(cutLine.y - cutLine.y0) > G.h * .7 && Math.abs(cutLine.x0 - G.x) < G.w * .6) { cutLine = null; doCut(); } });
+function addPipe(x, y) { const G = cakeG(); const u = (x - G.x) / (G.w / 2), v = (y - (G.y - G.h)) / G.h; const topV = (G.ry / G.h) * 1.05; if (Math.abs(u) > 1.03 || v < -topV || v > 1 + (G.ry / G.h) * Math.sqrt(Math.max(0, 1 - u * u))) return; if (v < topV) { const eu = u, ev = v / (G.ry / G.h); if (eu * eu + ev * ev > 1.08 && v < 0) return; }
+  if (!sp.pipe) sp.pipe = []; if (sp.pipe.length > 600) return; if (lastPipe && Math.hypot(x - lastPipe[0], y - lastPipe[1]) < G.w * .03) return; lastPipe = [x, y]; sp.pipe.push([+u.toFixed(3), +v.toFixed(3), pipeC]); if (Math.random() < .35) A.noise(.05, 'lowpass', 700, 2, .04); if (sp.pipe.length === 1) renderPanel(); }
+cv.addEventListener('pointermove', e => { if (step === 2 && pipeC >= 0 && e.buttons) { addPipe(e.clientX, e.clientY); return; } if (!cutLine) return; cutLine.x = e.clientX; cutLine.y = e.clientY; const G = cakeG(); if (Math.abs(cutLine.y - cutLine.y0) > G.h * .7 && Math.abs(cutLine.x0 - G.x) < G.w * .6) { cutLine = null; doCut(); } });
 const up = () => { if (cutLine) { const G = cakeG(); if (Math.abs(cutLine.y - cutLine.y0) > 40) { cutLine = null; doCut(); } else { cutLine = null; toast(T('החליקו למטה לאורך העוגה 👇', 'Swipe down across the cake 👇'), 1200); } } };
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 /* ================= LOOP ================= */
-$('backBtn').innerHTML = ICO.home('#a8303a'); $('homeT').innerHTML = ICO.home('#a8303a'); soundButton('sndBtn', S, A, '#a8303a'); hubButtons(['homeT'], A); $('newBtn').textContent = T('🎂 עוגה חדשה!', '🎂 New cake!');
+$('backBtn').innerHTML = ICO.home('#a8303a'); $('homeT').innerHTML = ICO.home('#a8303a'); soundButton('sndBtn', S, A, '#a8303a'); hubButtons(['homeT'], A); $('newBtn').textContent = T('🎂 עוגה חופשית + גלגל הפתעות', '🎂 Free cake + surprise wheel');
 $('tSub').textContent = T('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל… וחותכים! מה מסתתר בפנים? לב? קשת? פיניאטה של ממתקים?!', 'Pour colorful layers, bake, decorate, spin the wheel… and slice! What’s inside? A heart? A rainbow? A candy piñata?!');
 addEventListener('resize', layout);
 let last = performance.now();
@@ -169,7 +200,7 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(1 / 30, 
   const G = cakeG(); hop = Math.max(0, hop - dt * 3); const hy = -Math.sin(hop * Math.PI) * 14; const Gh = { ...G, y: G.y + hy };
   if (step === 0) { for (const p of pours) { p.y += 900 * dt; const surf = G.y - sp.layers.length * G.h * .9 / 4 - 10; if (p.y >= surf) { p.done = 1; sp.layers.push(p.k); renderPanel(); A.noise(.25, 'lowpass', 400, 2, .1); A.tone(180, .25, 'sine', .07, 0, 110); buzz(15); } } pours = pours.filter(p => !p.done); drawPan(cx, G, t); }
   if (step === 1) { if (baking) { bake = Math.min(1, bake + dt / 4); if (bake >= 1) { baking = false; A.loopOff('oven'); A.tone(1568, .6, 'sine', .12); A.tone(2093, .8, 'sine', .08, .15); buzz([40, 40, 40]); renderPanel(); } } drawOven(t); }
-  if (step === 2 || step === 3) { drawStand(cx, G); drawCake(cx, Gh, sp, t); if (step === 3) { wheelTick(dt); drawWheel(t); } }
+  if (step === 2 || step === 3 || step === 6) { drawStand(cx, G); drawCake(cx, Gh, sp, t); if (step === 3) { wheelTick(dt); drawWheel(t); } }
   if (step === 4 && cutT < 0) { drawStand(cx, G); drawCake(cx, G, sp, t); const pulse = .5 + .5 * Math.sin(t * 5); cx.strokeStyle = `rgba(255,255,255,${.5 + .4 * pulse})`; cx.setLineDash([10, 10]); cx.lineWidth = 4; cx.beginPath(); cx.moveTo(G.x, G.y - G.h - G.ry - 30); cx.lineTo(G.x, G.y + G.ry + 10); cx.stroke(); cx.setLineDash([]);
     cx.font = '44px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('🔪', G.x + 34, G.y - G.h - G.ry - 30 + ((t * 70) % (G.h + G.ry + 60)));
     if (cutLine) { cx.strokeStyle = '#fff'; cx.lineWidth = 6; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(cutLine.x0, cutLine.y0); cx.lineTo(cutLine.x, cutLine.y); cx.stroke(); } }

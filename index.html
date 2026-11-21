@@ -229,6 +229,12 @@ body{background:#0b0b12}
 .nf-info{height:46px;padding:0 20px;border-radius:6px;background:rgba(109,109,110,.7);color:#fff;font-weight:800;font-size:16px;display:inline-flex;align-items:center;gap:8px;backdrop-filter:blur(6px)}
 .nf-hdots{display:flex;gap:6px;margin-top:14px}.nf-hdots i{width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}.nf-hdots i.on{background:#fff}
 .nf-row{margin-top:22px;position:relative}
+.nf-big .nf-c{width:min(72vw,380px);border-radius:12px}.nf-big .nf-c b{font-size:17px}
+.nf-mine .nf-c{width:min(52vw,280px);border-radius:12px;box-shadow:0 6px 18px rgba(229,9,20,.25),0 0 0 2px rgba(255,255,255,.08)}
+@keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.12) translate(-1.5%,-1%)}}.nf-hart{animation:kb2 12s ease-in-out infinite alternate}@keyframes kb2{from{background-size:100%;background-position:50% 50%}to{background-size:114%;background-position:40% 45%}}
+.nf-play{transform-origin:center;animation:pp 2.2s ease-in-out infinite}@keyframes pp{0%,100%{transform:scale(1)}50%{transform:scale(1.06);box-shadow:0 0 0 6px rgba(255,255,255,.15),0 8px 24px rgba(0,0,0,.4)}}
+#hero .nf-play{min-width:150px;height:52px;font-size:19px}
+@media (prefers-reduced-motion:reduce){.nf-hbg,.nf-hart,.nf-play{animation:none}}
 .nf-row h2{margin:0 0 8px;padding:0 16px;font-size:18px;font-weight:800;display:flex;align-items:baseline;gap:8px}
 .nf-row h2 small{font-size:12px;font-weight:700;color:#9a98b0}
 .nf-scr{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 10px;scroll-snap-type:x mandatory;scroll-padding:0 16px;scrollbar-width:none}
@@ -250,9 +256,9 @@ body{background:#0b0b12}
 .nf-c.cls .glow{position:absolute;width:120px;height:120px;border-radius:50%;filter:blur(30px);opacity:.6}
 .nf-c.cls .ill{position:relative;width:64px;height:64px;margin-top:-18px}
 .g2048.nf-c{background:linear-gradient(135deg,#3a2a10,#1a1420)}.gsud.nf-c{background:linear-gradient(135deg,#10204a,#121428)}.gmem.nf-c{background:linear-gradient(135deg,#2a1050,#141028)}.gfour.nf-c{background:linear-gradient(135deg,#0c3a34,#101820)}
-.nf-top .nf-c{width:min(60vw,320px);aspect-ratio:auto;height:min(38vw,190px);background:none;box-shadow:none;overflow:visible;display:flex;align-items:flex-end}
-.nf-top .nf-c .num{font-size:min(36vw,190px);font-weight:900;line-height:.8;color:#0b0b12;-webkit-text-stroke:4px #8a8a9a;letter-spacing:-8px;flex:none;width:42%;text-align:center;direction:ltr;font-family:Arial,Rubik,sans-serif}
-.nf-top .nf-c .pst{flex:1;height:100%;border-radius:8px;background:#1c1c28 center/cover;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.nf-top .nf-c{width:min(78vw,400px);aspect-ratio:auto;height:auto;background:none;box-shadow:none;overflow:visible;display:flex;align-items:flex-end}
+.nf-top .nf-c .num{font-size:min(30vw,150px);font-weight:900;line-height:.8;color:#0b0b12;-webkit-text-stroke:4px #8a8a9a;letter-spacing:-8px;flex:none;width:30%;text-align:center;direction:ltr;font-family:Arial,Rubik,sans-serif}
+.nf-top .nf-c .pst{flex:1;height:auto;aspect-ratio:16/10;border-radius:8px;background:#1c1c28 center/cover;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .nf-foot{padding:30px 16px 10px;text-align:center}
 .nf-soon{display:flex;flex-direction:column;gap:3px;color:#9a98b0;margin-bottom:14px}.nf-soon b{color:#fff;font-size:15px}
 .nf-sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center}
@@ -336,7 +342,7 @@ body{background:#0b0b12}
 .nf-hb{margin-top:10px}.nf-play,.nf-info{height:42px}
 @media (min-width:900px){.nf-hart{width:min(48vw,620px,(100vh - 290px)*1.466)}.nf-hc{width:min(56vw,720px)!important}}
 @media (orientation:landscape) and (max-height:600px){.nf-hart{width:min(60vw,(100vh - 230px)*1.466)}}
-.nf-hart{cursor:pointer}
+.nf-hart{cursor:pointer;overflow:hidden}.nf-hart .hvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;border-radius:inherit;pointer-events:none}.nf-hart .hvid.on{opacity:1}
 </style>
 </head>
 <body>
@@ -723,7 +729,8 @@ const GMINE={ id:'mines', name:L('שולה המוקשים','Minesweeper'), ic:'�
   unmount(){ this.cleanup&&this.cleanup(); } };
 
 /* ---------- hub ---------- */
-const mk=(id,name,art,kick,desc,best)=>({ id, name, sub:'', art:'art/'+art+'.jpg', kick, desc, isNew:true, bi:true, frame:id+'.html', ownBack:true, bestTxt:best });
+const NEWEST=['robo','drift','pet'];
+const mk=(id,name,art,kick,desc,best)=>({ id, name, sub:'', art:'art/'+art+'.jpg', kick, desc, get isNew(){ return NEWEST.includes(id) && !((S.recent||[]).some(r=>r.id===id)); }, bi:true, frame:id+'.html', ownBack:true, bestTxt:best });
 const GJAM=mk('jam','Jam Escape','jam',L('פאזל חניון','Parking puzzle'),L('מזיזים מכוניות בחניון הפקוק ומשחררים את המכונית האדומה – 40 שלבים','Slide cars around the jammed lot and free the red car – 40 levels'),()=>{ try{ const z=JSON.parse(localStorage.getItem('jam-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/120':''; }catch(e){ return ''; } } );
 const GSKY=mk('sky','Sky Dodge','sky',L('רפלקסים','Reflexes'),L('מטוס ניאון שטס בין מכשולים – כמה רחוק תגיעו?','A neon jet weaving through obstacles – how far can you fly?'),()=>{ try{ const z=JSON.parse(localStorage.getItem('sky-save')||'{}'); return z.best?'🏆 '+z.best+'m':''; }catch(e){ return ''; } });
 const GCLAW=mk('claw','Claw Zoo','claw',L('מכונת פרסים','Claw machine'),L('תופסים בובות פרווה, אוספים נדירות ופותחים מכונות חדשות','Grab plush toys, collect rare ones and unlock new machines'),()=>{ try{ const z=JSON.parse(localStorage.getItem('claw-save')||'{}'); const n=Object.keys(z.got||{}).length; return n?'🧸 '+n+'/30':''; }catch(e){ return ''; } });
@@ -748,10 +755,11 @@ const GSLIME=mk('slime','Slime Lab','slime',L('מעבדת סליים עם גלג
 const GCAKE=mk('cake','Surprise Cake','cake',L('אופים עוגה עם הפתעה בפנים','Bake a cake with a surprise inside'),L('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל וחותכים – מה מסתתר בפנים? נקודות? לב? קשת? פיניאטה של ממתקים?!','Pour colorful layers, bake, decorate, spin the wheel and slice – what’s inside? Dots? A heart? A rainbow? A candy piñata?!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('cake-save')||'{}'); const n=Object.keys(z.album||{}).length; return n?'📖 '+n+'/35':''; }catch(e){ return ''; } });
 const GNUMX=mk('numx','Find & Cross','numx',L('מצא את המספר וסמן איקסים – 1 נגד 1','Find the number & cross boxes – 1 vs 1'),L('משחק המחברת מהילדות! אחד מחפש מספר בדף מבולגן, השני ממלא איקסים הכי מהר שאפשר – וכשמוצאים, מתחלפים. מי שממלא ראשון את המחברת מנצח! שני שחקנים על אותו טלפון או נגד המחשב','The classic notebook game! One player hunts a number on a messy page while the other crosses boxes as fast as possible – find it and swap. First to fill the notebook wins! 2 players on one phone or vs the CPU'),()=>{ try{ const z=JSON.parse(localStorage.getItem('numx-save')||'{}'); const w=(z.cpuW||0)+((z.wins||[0,0])[0]||0); return w?'🏆 '+w:''; }catch(e){ return ''; } });
 const GGOAL=mk('goal','Goal Duel','goal',L('כדורגל 1 על 1 בתלת־ממד','1-on-1 3D football'),L('אצטדיון מואר, קהל שואג ושני שחקנים – כדררו, עקפו, תקלו ובעטו בעיטות חזקות לשער! נגד המחשב או שני שחקנים על אותו טלפון','A floodlit stadium, a roaring crowd and two players – dribble, dodge, tackle and fire power shots! vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('goal-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GROBO=mk('robo','Robo Siege','robo',L('קרבות רובוטים – קלפים ומגדלים','Robot battles – cards & towers'),L('שולחים רובוטים, טנקים, דרונים וצלפים בשני נתיבים כדי להפיל את המגדלים של היריב! אנרגיה שמתמלאת, טילים ו־EMP, 4 זירות, שדרוג קלפים – נגד המחשב או שני שחקנים על אותו טלפון','Deploy robots, tanks, drones and snipers down two lanes to blast the enemy towers! Recharging energy, rockets & EMP, 4 arenas, card upgrades – vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('robo-save')||'{}'); return z.tro?'🏆 '+z.tro:''; }catch(e){ return ''; } });
 const GDRIFT=mk('drift','Drift King','drift',L('דריפטים אמיתיים בתלת־ממד','Real 3D drifting'),L('מחליקים בפניות, משאירים סימני צמיגים ועשן, בונים קומבו ×5 ואוספים מתנות! 3 מסלולים – נמל בשקיעה, הרים ועיר ניאון בלילה, 8 אירועים, מוסך עם 4 מכוניות, צבעים ועשן צבעוני','Slide through corners, leave tire marks and smoke, build ×5 combos and grab gifts! 3 tracks – sunset docks, mountains and a neon night city, 8 events, a garage with 4 cars, paints and colored smoke'),()=>{ try{ const z=JSON.parse(localStorage.getItem('drift-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/24':''; }catch(e){ return ''; } });
 const GPET=mk('pet','Pet Pals','pet',L('מגדלים חיית מחמד – או חייזר!','Raise a pet – or an alien!'),L('בוחרים כלבלב, חתלתולה, ארנבון, פנדה או חייזר ידידותי – מאכילים, מקלחים עם ספוג ומקלחת, משחקים בכדור ובבועות, מלטפים, משכיבים לישון ומלבישים כובעים ומשקפיים!','Pick a puppy, kitty, bunny, panda or a friendly alien – feed, scrub and shower, play ball and bubbles, cuddle, tuck into bed and dress up with hats and glasses!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('pet-save')||'{}'); const p=(z.pets||{})[z.cur]; return p?'⭐ '+(EN?'Lv ':'רמה ')+p.lvl:''; }catch(e){ return ''; } });
 const GWAVE=mk('wave','Wave Rush','wave',L('מרוץ אופנועי ים בתלת־ממד','3D jet-ski racing'),L('דוהרים על גלים אמיתיים, אוספים כוכבים וטורבו, קופצים מרמפות ועושים סלטות! דולפינים קופצים לידכם, כרישים מסתובבים בשונית ו־4 מסלולים – עד לים הסוער','Race over real waves, grab stars and turbo, launch off ramps and pull flips! Dolphins leap beside you, sharks circle the reef, 4 courses – all the way to the storm sea'),()=>{ try{ const z=JSON.parse(localStorage.getItem('wave-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/12':''; }catch(e){ return ''; } });
-const NEW=[GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
+const NEW=[GROBO,GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
 const BIG=[GRON,GSALON,GZORI,GJETI,GNYC], SMALL=[GSOL,GMINE,G2048,GSUD,GMEM,GC4], GAMES=[...NEW,...BIG,...SMALL]; let active=null;
 const PLAY='<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>';
 function staticText(){ try{ net(); }catch(e){}
@@ -765,12 +773,12 @@ function staticText(){ try{ net(); }catch(e){}
 }
 const gOf=id=>GAMES.find(x=>x.id===id);
 const ROWS=()=>[
-  {k:'top', t:L('🔥 הטופ 10 שלנו','🔥 Our Top 10'), ids:['drift','pet','wave','goal','numx','slime','chase','squishy','cake','treasure','dash','sushi','momo','peep','mud','tiara','brawl','garage','mosaic','nyc','claw','chef','jeti','crayon','salon','sky']},
-  {k:'new', t:L('חדש באפליקציה','New on the app'), ids:NEW.map(g=>g.id)},
+  {k:'top', t:L('🔥 הטופ 10 שלנו','🔥 Our Top 10'), ids:['jeti','goal','zori','squishy','tiara','mud','sushi','pet','salon','nyc','brawl','drift','wave','numx','slime','chase','cake','treasure','dash','momo','peep','garage','mosaic','claw','chef','crayon','sky']},
+  {k:'new', t:L('✨ חדש באפליקציה','✨ New on the app'), ids:NEW.slice(0,8).map(g=>g.id)},
   {t:L('הרפתקאות בתלת־ממד','3D adventures'), ids:BIG.map(g=>g.id)},
   {t:L('צביעה ויצירה 🎨','Coloring & creating 🎨'), ids:['pet','slime','cake','squishy','tiara','mosaic','crayon','salon','garage']},
   {t:L('חשיבה ופאזלים 🧠','Brain & puzzles 🧠'), ids:['numx','treasure','sushi','momo','peep','claim','jam','liar','mines','solitaire','spot','ron','sudoku','2048','memory','four']},
-  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
+  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['robo','drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
   {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['pet','numx','slime','cake','squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
   {t:L('קלאסיקות קצרות','Quick classics'), ids:SMALL.map(g=>g.id)},
 ];
@@ -785,11 +793,13 @@ function cardHTML(g,o={}){ if(!g) return ''; const bt=g.bestTxt(); const art=`ba
   if(o.top) return `<button class="nf-c" data-g="${g.id}"><span class="num">${o.n}</span><span class="pst${cls}" style="${art}">${body}</span></button>`;
   return `<button class="nf-c${o.cont?' cont':''}${cls}" data-g="${g.id}" style="${art}">${body}</button>`; }
 function renderHome(){ const rec=(S.recent||[]).filter(r=>gOf(r.id)).slice(0,10); let h='';
-  if(rec.length) h+=`<section class="nf-row"><h2>${L('המשך לשחק','Continue playing')}<small>${L('מאיפה שהפסקתם','pick up where you left off')}</small></h2><div class="nf-scr">${rec.map(r=>cardHTML(gOf(r.id),{cont:1,t:r.t})).join('')}</div></section>`;
-  for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
+  if(rec.length) h+=`<section class="nf-row nf-mine"><h2>${L('🎮 המשחקים שלי','🎮 My games')}<small>${L('מאיפה שהפסקתם','pick up where you left off')}</small></h2><div class="nf-scr">${rec.map(r=>cardHTML(gOf(r.id),{cont:1,t:r.t})).join('')}</div></section>`;
+  for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}${r.k==='new'?' nf-big':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
   $('rows').innerHTML=h; hero.show(hero.i); }
-const hero={ i:0, list:()=>['drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
-  show(i){ const L2=this.list(); this.i=(i+L2.length)%L2.length; const g=L2[this.i]; this.g=g; const bg=$('heroBg'), ha=$('heroArt'); bg.style.opacity=0; ha.style.opacity=0; setTimeout(()=>{ bg.style.backgroundImage=ha.style.backgroundImage=`url('${g.art}')`; bg.style.opacity=1; ha.style.opacity=1; },180);
+const VIDS=['robo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
+function heroVid(g){ const ha=$('heroArt'); let v=ha.querySelector('video'); if(v){ v.pause(); v.remove(); } if(!navigator.onLine||!VIDS.includes(g.id)) return; v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.playsInline=true; v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.loop=true; v.autoplay=true; v.preload='auto'; v.className='hvid'; v.src='vid/'+g.id+'.mp4'; v.addEventListener('playing',()=>v.classList.add('on'),{once:true}); v.addEventListener('error',()=>v.remove()); ha.appendChild(v); const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{}); }
+const hero={ i:0, list:()=>['robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
+  show(i){ const L2=this.list(); this.i=(i+L2.length)%L2.length; const g=L2[this.i]; this.g=g; const bg=$('heroBg'), ha=$('heroArt'); bg.style.opacity=0; ha.style.opacity=0; setTimeout(()=>{ bg.style.backgroundImage=ha.style.backgroundImage=`url('${g.art}')`; bg.style.opacity=1; ha.style.opacity=1; heroVid(g); },180);
     $('heroBadge').textContent=g.isNew?L('✦ חדש באפליקציה','✦ NEW ON THE APP'):L('✦ משחק מומלץ','✦ FEATURED'); $('heroT').textContent=g.name; $('heroD').textContent=g.desc; const bt=g.bestTxt();
     $('heroMeta').innerHTML=`<span>${g.kick}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span><span class="dt">•</span><span class="pg">${L('לכל הגילאים','All ages')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`;
     $('heroDots').innerHTML=L2.map((_,k)=>`<i class="${k===this.i?'on':''}"></i>`).join(''); },
@@ -816,7 +826,7 @@ function closeGame(){ hideLoad(); if(!$('jetiWrap').hidden){ $('jetiWrap').hidde
 $('backBtn').onclick=()=>{ SND.tap(); history.state&&history.state.g?history.back():closeGame(); };
 $('jetiBack').onclick=()=>{ history.state&&history.state.g?history.back():closeGame(); };
 addEventListener('popstate',()=>closeGame());
-addEventListener('message',e=>{ if(e.data==='skyplay-home' && !$('jetiWrap').hidden){ history.state&&history.state.g?history.back():closeGame(); } });
+addEventListener('message',e=>{ if(e.data==='skyplay-home' && !$('jetiWrap').hidden){ const hs=history.state&&history.state.g; closeGame(); if(hs){ try{ history.replaceState(null,''); }catch(er){} } } });
 
 /* ---------- animated sky ---------- */
 const sky=(()=>{ const c=$('sky'), x=c.getContext('2d'); let W=0,H=0,DPR=1,stars=[],clouds=[],shoot=null,raf=0,run=true,t0=performance.now();

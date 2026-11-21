@@ -121,13 +121,17 @@ function hitTargets(f) { const M = f.mv || {}; const reach = (M.r || 1) * (f.rea
   return any; }
 function aoe(f, r, dm) { for (const o of fighters) { if (o.team === f.team || o.team === 2 || o.dead || o.inv > 0 || o.st === 'down') continue; if (Math.hypot(o.x - f.x, (o.z - f.z) * 1.6) < r) damage(o, dm, true, Math.sign(o.x - f.x) || 1, f, { kn: 1 }); }
   shake = .45; E.grade.uniforms.uFlash.value = .25; FX.burst(V3(f.x, .15, f.z), 50, [[2.6, 2.2, 1.2], [1.6, 1.6, 1.8]], 5, .1, .6, 6); A.noise(.4, 'lowpass', 500, 1, .5); A.tone(70, .4, 'sine', .25, 0, 40); }
-function damage(o, dmg, knock, dir, src, M = {}) { o.hp -= dmg; o.hits++; const p = V3(o.x, 1.1 * (o.sc || 1), o.z + .2); FX.burst(p, 14, [[2.6, 2.4, .8], [2.6, 1.2, .4]], 3, .08, .3, 0); A.noise(.12, 'lowpass', 900, 1, .35); A.tone(110 + Math.random() * 40, .1, 'square', .08, 0, 60); hitStop = knock ? .09 : .05; shake = Math.max(shake, o.team === 0 ? .3 : knock ? .22 : .1);
+function damage(o, dmg, knock, dir, src, M = {}) { o.hp -= dmg; o.hits++; const p = V3(o.x, 1.1 * (o.sc || 1), o.z + .2); o.flash = .12; o.snap = 1; impact(V3(o.x - dir * .25, (M.trip ? .4 : 1.15) * (o.sc || 1), o.z + .3), knock); if (src && src.team === 0) A.noise(.07, 'highpass', 2500, 1, .18); FX.burst(p, 14, [[2.6, 2.4, .8], [2.6, 1.2, .4]], 3, .08, .3, 0); A.noise(.12, 'lowpass', 900, 1, .35); A.tone(110 + Math.random() * 40, .1, 'square', .08, 0, 60); hitStop = knock ? .09 : .05; shake = Math.max(shake, o.team === 0 ? .3 : knock ? .22 : .1);
   if (src && src.team === 0) { combo++; comboT = 1.4; meter = Math.min(1, meter + .055); score += Math.round(10 * dmg) + combo * 2; if (combo >= 3) $('comboUI').textContent = combo + ' HITS!'; $('scoreTxt').textContent = score; updMeter(); if (knock) popText(p, WORDS[Math.floor(Math.random() * WORDS.length)], ['#ffd23a', '#ff5a8a', '#5af0ff', '#7dff5a'][Math.floor(Math.random() * 4)]); }
   if (o.team === 0) { combo = 0; $('comboUI').textContent = ''; buzz(50); meter = Math.min(1, meter + .03); updMeter(); E.grade.uniforms.uFlash.value = .12; }
   if (o.team === 1) dropHold(o); if (o.team === 0 && o.hold && !o.hold.weapon) dropHold(o, false);
   o.face = -dir; if (o.hp <= 0 || knock || o.hits >= 4) { o.st = 'down'; o.t = 0; o.vx = dir * (M.trip ? 1.5 : 4.4); o.vy = M.launch || (M.trip ? 3 : 4.8); o.hits = 0; A.voice(o.team === 0 ? 'aww' : 'grr', o.team === 0 ? 1 : .7); if (o.hp <= 0) o.dead = true; }
   else { o.st = 'hurt'; o.t = 0; o.vx = dir * 2.4; o.stun = M.stun || .35; }
   if (o.boss) $('bossI').style.width = Math.max(0, o.hp / o.maxhp * 100) + '%'; if (o.team === 0) updHud(); }
+const ringTex = (() => { const c = cnv(128, 128), x = c.getContext('2d'); x.strokeStyle = '#fff'; x.lineWidth = 10; x.beginPath(); x.arc(64, 64, 52, 0, 7); x.stroke(); x.fillStyle = '#fff'; for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283; x.save(); x.translate(64, 64); x.rotate(a); x.beginPath(); x.moveTo(-6, -30); x.lineTo(0, -62); x.lineTo(6, -30); x.fill(); x.restore(); } return ctex(c); })();
+const starTex = (() => { const c = cnv(128, 128), x = c.getContext('2d'); const g = x.createRadialGradient(64, 64, 4, 64, 64, 60); g.addColorStop(0, '#fff'); g.addColorStop(.35, '#ffe24a'); g.addColorStop(1, 'rgba(255,120,0,0)'); x.fillStyle = g; x.beginPath(); for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283, r = i % 2 ? 22 : 62; x.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } x.fill(); return ctex(c); })();
+const impacts = []; function impact(p, big) { for (const [tx, s0, s1, life] of [[starTex, .5, big ? 1.9 : 1.3, .16], [ringTex, .3, big ? 2.6 : 1.8, .24]]) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, rotation: Math.random() * 6 })); m.position.copy(p); m.scale.setScalar(s0); m.renderOrder = 20; scene.add(m); impacts.push({ m, s0, s1, life, max: life }); } }
+function stepImpacts(dt) { for (let i = impacts.length - 1; i >= 0; i--) { const q = impacts[i]; q.life -= dt; const k = 1 - q.life / q.max; if (q.life <= 0) { scene.remove(q.m); q.m.material.dispose(); impacts.splice(i, 1); continue; } q.m.scale.setScalar(lerp(q.s0, q.s1, Math.sqrt(k))); q.m.material.opacity = 1 - k * k; } }
 function updMeter() { $('spI').style.width = meter * 100 + '%'; $('bSp').classList.toggle('ready', meter >= 1); }
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) { } };
 const bangTex = (() => { const c = cnv(64, 64), x = c.getContext('2d'); x.fillStyle = '#ff2a2a'; x.beginPath(); x.arc(32, 32, 28, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = '900 46px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('!', 32, 35); return ctex(c); })();
@@ -140,9 +144,11 @@ function pose(f, dt, t) { const P = f.P, s = Math.min(1, dt * 20), A0 = P.arms[0
   const walking = Math.hypot(f.vx, f.vz) > .4 && f.y < .01;
   if (walking && st === 'idle') { const w = Math.sin(t * (f.run ? 18 : 13)); l0 = w * (f.run ? 1 : .7); l1 = -w * (f.run ? 1 : .7); a0 = -1 - w * .3; a1 = -1 + w * .3; by = Math.abs(w) * .04; if (f.run) lean = .25; }
   if (st === 'idle' && !walking) by = Math.sin(t * 4 + f.x) * .02;
-  if (st === 'p1' || st === 'p3') { a1 = lerp(-1, -1.72, ext); lean = .12 * ext; }
-  if (st === 'p2') { a0 = lerp(-1, -1.72, ext); lean = .12 * ext; }
-  if (st === 'p4') { a0 = lerp(-1, -1.9, ext); a1 = lerp(-1, -1.5, ext); lean = .25 * ext; spin = -.6 * ext; }
+  let pa = -1, pl = -1; const snapE = k < .3 ? -.35 * (k / .3) : Math.sin(Math.min(1, (k - .3) / .45) * Math.PI); // wind-up then snap
+  if (st === 'p1' || st === 'p3') { a1 = lerp(-1, -1.62, Math.max(0, snapE)) + Math.min(0, snapE) * -.6; z1 = lerp(.25, -.05, Math.max(0, snapE)); lean = .18 * Math.max(0, snapE); pa = 1; }
+  if (st === 'p2') { a0 = lerp(-1, -1.62, Math.max(0, snapE)) + Math.min(0, snapE) * -.6; z0 = lerp(-.25, .05, Math.max(0, snapE)); lean = .18 * Math.max(0, snapE); pa = 0; }
+  if (st === 'p4') { a0 = lerp(-1, -1.65, Math.max(0, snapE)) + Math.min(0, snapE) * -.8; z0 = lerp(-.25, .1, Math.max(0, snapE)); lean = .3 * Math.max(0, snapE); spin = -.5 * snapE; pa = 0; }
+  if (st === 'dpunch') pa = 0; if (st === 'upper') pa = 1; if (st === 'lowp') pa = 1; if (st === 'lowk' || st === 'hik' || st === 'kick' || st === 'jkick') pl = 1;
   if (st === 'upper') { a1 = k < .3 ? lerp(-1, -.2, k / .3) : lerp(-.2, -3.0, Math.min(1, (k - .3) / .25)); lean = k < .3 ? .25 : -.2; by = k > .3 ? Math.sin((k - .3) / .7 * Math.PI) * .35 : -.12; }
   if (st === 'lowp') { a1 = lerp(-1, -1.25, ext); by = -.18 * ext; lean = .4 * ext; }
   if (st === 'lowk') { l1 = -.85 * ext; lean = -.1 * ext; a0 = -.6; a1 = -.6; }
@@ -167,6 +173,10 @@ function pose(f, dt, t) { const P = f.P, s = Math.min(1, dt * 20), A0 = P.arms[0
   if (st === 'down') { lean = -1.45; a0 = a1 = .4; }
   if (st === 'getup') lean = lerp(-1.45, 0, k);
   if (st === 'win') { a0 = a1 = -2.8; by = Math.abs(Math.sin(t * 8)) * .3; }
+  const ps = Math.min(1, dt * 34); const reachE = pa >= 0 ? Math.max(0, st === 'upper' || st === 'dpunch' ? ext : snapE) : 0; A0.scale.y = lerp(A0.scale.y, pa === 0 ? 1 + .35 * reachE : 1, ps); A1.scale.y = lerp(A1.scale.y, pa === 1 ? 1 + .35 * reachE : 1, ps); const legE = pl >= 0 ? ext : 0; L1.scale.y = lerp(L1.scale.y, 1 + .25 * legE, ps);
+  P.g.position.z = lerp(P.g.position.z, (pa >= 0 ? .28 * reachE : 0) + (pl >= 0 ? .1 * legE : 0) - (st === 'hurt' ? .2 : 0), ps); if (!spin && pa >= 0) P.g.rotation.y = lerp(P.g.rotation.y, (pa ? -.4 : .4) * reachE, ps); else if (!spin) P.g.rotation.y = lerp(P.g.rotation.y, 0, s);
+  if (P.head) { f.snap = Math.max(0, (f.snap || 0) - dt * 5); P.head.rotation.x = -.5 * Math.sin((f.snap || 0) * Math.PI); }
+  if (f.flash > 0 || f.flashOn) { f.flash = (f.flash || 0) - dt; const on = f.flash > 0; if (!f.mats) { f.mats = []; P.g.traverse(m => { if (m.isMesh && m.material && m.material.emissive) f.mats.push(m.material); }); } if (on !== !!f.flashOn) { f.flashOn = on; for (const m of f.mats) { m.emissive.setRGB(on ? .55 : 0, on ? .55 : 0, on ? .55 : 0); } } }
   lr(A0.rotation, 'x', a0, s); lr(A1.rotation, 'x', a1, s); lr(A0.rotation, 'z', z0, s); lr(A1.rotation, 'z', z1, s); lr(L0.rotation, 'x', l0, s); lr(L1.rotation, 'x', l1, s);
   if (st === 'flip') P.g.rotation.x = roll; else lr(P.g.rotation, 'x', lean, st === 'down' ? Math.min(1, dt * 10) : s);
   P.g.position.y = lerp(P.g.position.y, by + (st === 'down' ? .22 * (f.sc || 1) : 0) + (st === 'flip' ? .75 * (f.sc || 1) * Math.sin(k * Math.PI) * 0 : 0), s);
@@ -327,7 +337,7 @@ function loop(now) { requestAnimationFrame(loop); let dt = Math.min(.05, (now - 
   if (stageObj) for (const m of stageObj.movers) { m.o.position.x += m.v * dt; if (m.o.position.x > m.max) m.o.position.x = m.min; }
   shake = Math.max(0, shake - dt * 1.5); const port = innerWidth < innerHeight; const d = camera.userData.d || 14;
   camera.position.set(camX + (Math.random() - .5) * shake, 2.9 + (Math.random() - .5) * shake, d); camera.lookAt(camX, 1.1, -.4); sun.position.set(camX + 4, 12, 9); sun.target.position.set(camX, 0, 0);
-  FX.update(dt, 0); E.grade.uniforms.uFlash.value *= Math.pow(.05, dt); E.render(); }
+  stepImpacts(dt); FX.update(dt, 0); E.grade.uniforms.uFlash.value *= Math.pow(.05, dt); E.render(); }
 setTimeout(() => { E.resize(); showTitle(); $('loading').hidden = true; requestAnimationFrame(loop); window.__brawlOK = true; }, 20);
 window.__br = { MOVES, get meter() { return meter; }, set meter(v) { meter = v; updMeter(); }, spawnFoe, startAtk, addItem, startStage, get hero() { return hero; }, get fighters() { return fighters; }, inp, get state() { return state; }, get camX() { return camX; }, items, set god(v) { if (hero) hero.inv = v; } };
 

@@ -32,6 +32,8 @@ body{background:#0a1a10;overflow:hidden;color:#fff;-webkit-user-select:none;user
 .seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 4px;border-radius:14px;background:rgba(255,255,255,.12);font-weight:800;font-size:14px;color:#fff}
 .seg button[aria-pressed=true]{background:linear-gradient(180deg,#ffe27a,#f0a020);color:#3a2200}
 .seg button small{display:block;font-size:11px;opacity:.85}
+#title{justify-content:flex-start}#title .box{padding:9px 10px;margin-top:8px}.seg.pit button{font-size:12px;padding:7px 2px}.seg.pit button i{display:block;font-style:normal;font-size:20px}
+#jug{position:fixed;z-index:4;left:0;right:0;top:max(60px,calc(env(safe-area-inset-top) + 56px));text-align:center;pointer-events:none;font-weight:900;color:#fff;text-shadow:0 3px 0 #0a3a1a,0 0 16px rgba(0,0,0,.5);direction:ltr}#jug b{display:block;font-size:64px;line-height:1}#jug small{font-size:15px}
 #playBtn{margin-top:16px;height:62px;font-size:22px;padding:0 44px}
 #endS .card{text-align:center}
 body.two #hud{top:calc(50% - 22px);opacity:.9}body.two .sb span{padding:3px 8px;font-size:15px}body.two #menuBtn{top:calc(50% - 21px);inset-inline-start:auto;inset-inline-end:8px;width:40px;height:40px}
@@ -44,14 +46,17 @@ body.two #hud{top:calc(50% - 22px);opacity:.9}body.two .sb span{padding:3px 8px;
 <div class="ctl c0" id="c0" hidden><div class="joy"><i></i></div><div class="btns"><div class="pw"><i></i></div><button class="bs" data-b="shoot"></button><button class="bt" data-b="tackle"></button></div></div>
 <div class="ctl c1" id="c1" hidden><div class="joy"><i></i></div><div class="btns"><div class="pw"><i></i></div><button class="bs" data-b="shoot"></button><button class="bt" data-b="tackle"></button></div></div>
 <div id="big"></div>
+<div id="jug" hidden><b id="jugN">0</b><small id="jugB"></small></div>
 <div id="toast"></div>
 <section class="scr" id="title" hidden>
   <button class="rb homeT" id="homeT" hidden></button>
   <h1 class="logo" style="margin-top:6vh"><span class="a">GOAL</span><span class="b">DUEL</span></h1>
   <p class="sub" id="tSub" style="max-width:380px"></p>
-  <div class="box"><h4 id="mT"></h4><div class="seg" id="modeSeg"><button data-m="cpu"></button><button data-m="2p"></button></div></div>
+  <div class="box"><h4 id="tyT"></h4><div class="seg" id="typeSeg"><button data-y="match"></button><button data-y="keepers"></button><button data-y="juggle"></button></div></div>
+  <div class="box" id="modeBox"><h4 id="mT"></h4><div class="seg" id="modeSeg"><button data-m="cpu"></button><button data-m="2p"></button></div></div>
   <div class="box" id="diffBox"><h4 id="dT"></h4><div class="seg" id="diffSeg"><button data-d="easy"></button><button data-d="normal"></button><button data-d="hard"></button></div></div>
-  <div class="box"><h4 id="lT"></h4><div class="seg" id="lenSeg"><button data-l="3"></button><button data-l="5"></button><button data-l="t"></button></div></div>
+  <div class="box" id="pitchBox"><h4 id="pT"></h4><div class="seg pit" id="pitchSeg"><button data-p="stadium"></button><button data-p="night"></button><button data-p="snow"></button><button data-p="beach"></button><button data-p="street"></button></div></div>
+  <div class="box" id="lenBox"><h4 id="lT"></h4><div class="seg" id="lenSeg"><button data-l="3"></button><button data-l="5"></button><button data-l="t"></button></div></div>
   <button class="btn pri" id="playBtn"></button>
   <div class="chips"><button class="chip" id="qBtn"></button><button class="chip" id="sndChip"></button></div>
 </section>

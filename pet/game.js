@@ -104,7 +104,10 @@ function buildPet(sp, acc) { const D = SPEC[sp]; const g = new THREE.Group(); co
   R.hatS = new THREE.Group(); R.hatS.position.set(0, .46 * hs, 0); head.add(R.hatS); R.glassS = new THREE.Group(); R.glassS.position.set(0, .05, fz); head.add(R.glassS); R.neckS = new THREE.Group(); R.neckS.position.set(0, 1.0, .02); root.add(R.neckS);
   R.g = g; R.D = D; R.sp = sp; R.hs = hs; R.mouthLocal = V3(0, my, mz + .1);
   R.hitMeshes = []; root.traverse(m => { if (m.isMesh) R.hitMeshes.push(m); });
+  const lv = (S.pets[sp] && S.pets[sp].lvl) || 1; const stg = stageOf(lv); R.stage = stg; const ST = [[.62, 1.2, 1.18], [.8, 1.1, 1.08], [1, 1, 1]][stg]; g.scale.setScalar(ST[0]); head.scale.setScalar(ST[1]); eyes.forEach(e => e.scale.setScalar(ST[2])); happy.forEach(e => e.scale.setScalar(ST[2])); sleepE.forEach(e => e.scale.setScalar(ST[2]));
   setAcc(R, acc); return R; }
+function stageOf(lv) { return lv < 3 ? 0 : lv < 6 ? 1 : 2; }
+const STN = [T('תינוק', 'Baby'), T('צעיר', 'Young'), T('גדול', 'Grown-up')];
 function accMesh(slot, id, R) { const g = new THREE.Group(); const gold = std('#ffcf3a', { metalness: .8, roughness: .25 });
   if (slot === 'hat') {
     if (id === 'party') { const c = new THREE.Mesh(new THREE.ConeGeometry(.2, .45, 24), std('#ff5aa8', { roughness: .5 })); c.position.y = .2; g.add(c); for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(.16 - i * .05, .018, 6, 20).rotateX(Math.PI / 2), std('#ffe24a')); r.position.y = .07 + i * .13; g.add(r); } const p = new THREE.Mesh(new THREE.SphereGeometry(.06, 10, 8), std('#3ad8ff')); p.position.y = .45; g.add(p); g.rotation.z = .2; g.position.x = -.08; }
@@ -131,14 +134,14 @@ function applyOffline(p) { const mins = Math.min(240, (Date.now() - (p.t || Date
 function setNeed(k, v) { P.n[k] = clamp(v, 0, 100); }
 function addXp(v) { P.xp += v; const need = 40 + P.lvl * 30; if (P.xp >= need) { P.xp -= need; P.lvl++; S.coins += 20; lvlUp(); } S.save(); updTop(); }
 function coins(v, at) { S.coins += v; S.save(); updTop(); if (at) popAt('🪙 +' + v, at[0], at[1] - 30, '#d89a00'); A.tone(1320, .08, 'square', .04); A.tone(1760, .12, 'square', .04, .06); }
-function lvlUp() { $('lvl').innerHTML = `<div><b>⭐ ${T('רמה', 'Level')} ${P.lvl}!</b><p>${T('החבר שלך גדל! +20 🪙', 'Your pal grew up! +20 🪙')}</p></div>`; $('lvl').hidden = false; A.tone(523, .15, 'triangle', .08); A.tone(659, .15, 'triangle', .08, .12); A.tone(784, .15, 'triangle', .08, .24); A.tone(1047, .4, 'triangle', .08, .36); confetti(); happyJump(); setTimeout(() => $('lvl').hidden = true, 2200); }
+function lvlUp() { const before = pet.stage; if (stageOf(P.lvl) !== before) setTimeout(() => { const acc = P.acc; scene.remove(pet.g); pet = buildPet(pet.sp, acc); scene.add(pet.g); dirt = []; if (P.n.c < 60) makeDirt(); confetti(); A.voice('wow', pet.D.pitch); $('lvl').innerHTML = `<div><b>🌱 ${P.name} ${T('גדל/ה!', 'grew up!')}</b><p>${STN[pet.stage]} – ${T('עדיין הכי חמוד/ה בעולם 💕', 'still the cutest ever 💕')}</p></div>`; $('lvl').hidden = false; setTimeout(() => $('lvl').hidden = true, 2600); }, 2400); $('lvl').innerHTML = `<div><b>⭐ ${T('רמה', 'Level')} ${P.lvl}!</b><p>${T('החבר שלך גדל! +20 🪙', 'Your pal grew up! +20 🪙')}</p></div>`; $('lvl').hidden = false; A.tone(523, .15, 'triangle', .08); A.tone(659, .15, 'triangle', .08, .12); A.tone(784, .15, 'triangle', .08, .24); A.tone(1047, .4, 'triangle', .08, .36); confetti(); happyJump(); setTimeout(() => $('lvl').hidden = true, 2200); }
 function confetti() { FX.burst(V3(0, 2.2, .5), 60, CONFETTI, 4, .07, 1.6, 6); }
 
 /* ================= UI ================= */
 const ACTIONS = [['feed', '🍖', T('אוכל', 'Food')], ['bath', '🛁', T('מקלחת', 'Bath')], ['play', '⚽', T('משחק', 'Play')], ['sleep', '💤', T('שינה', 'Sleep')], ['style', '🎀', T('סטייל', 'Style')]];
 $('dock').innerHTML = ACTIONS.map(([k, e, n]) => `<button data-a="${k}">${e}<small>${n}</small></button>`).join('');
 $('needs').innerHTML = NEEDS.map(([k, e, c]) => `<div class="nd" id="nd_${k}" style="--c:${c};--v:50"><span>${e}</span></div>`).join('');
-function updTop() { if (!P) return; $('pName').textContent = `${P.name} · ${T('רמה', 'Lv')} ${P.lvl}`; $('xpBar').style.width = (P.xp / (40 + P.lvl * 30) * 100) + '%'; $('coinN').textContent = S.coins; }
+function updTop() { if (!P) return; $('pName').textContent = `${P.name} · ${STN[stageOf(P.lvl)]} · ${T('רמה', 'Lv')} ${P.lvl}`; $('xpBar').style.width = (P.xp / (40 + P.lvl * 30) * 100) + '%'; $('coinN').textContent = S.coins; }
 function updNeeds() { if (!P) return; let low = null, lv = 101; for (const [k] of NEEDS) { const v = P.n[k]; const el = $('nd_' + k); el.style.setProperty('--v', v.toFixed(0)); el.classList.toggle('low', v < 30); if (v < lv) { lv = v; low = k; } }
   const act = lv < 40 ? NEEDS.find(n => n[0] === low)[3] : null; for (const b of $('dock').children) b.classList.toggle('blink', mode === 'home' && b.dataset.a === act);
   AN.want = lv < 40 ? NEEDS.find(n => n[0] === low)[1] : null; }
@@ -267,7 +270,7 @@ function animate(dt, t) { const R = pet; if (!R) return; const D = R.D; const P 
   // expressions
   AN.blinkT -= dt; const blink = AN.blinkT < .12; if (AN.blinkT < 0) AN.blinkT = rnd(2, 4.5); AN.tPet -= dt; if (AN.eat > 0) { AN.eat -= dt; if (AN.eat <= 0) AN.mood = 'idle'; }
   const m = AN.sleep ? 'sleep' : AN.eat > 0 ? 'eat' : AN.mood === 'happy' || AN.tPet > 0 || AN.jump > 0 ? 'happy' : AN.mood === 'open' ? 'open' : sad ? 'sad' : 'idle';
-  const eOpen = m === 'idle' || m === 'open' || m === 'sad' || m === 'eat'; R.eyes.forEach(e => { e.visible = eOpen; e.scale.y = blink ? .12 : (m === 'sad' ? .8 : 1); }); R.happyE.forEach(e => e.visible = m === 'happy'); R.sleepE.forEach(e => e.visible = m === 'sleep');
+  const eOpen = m === 'idle' || m === 'open' || m === 'sad' || m === 'eat'; const es0 = [1.18, 1.08, 1][R.stage || 0]; R.eyes.forEach(e => { e.visible = eOpen; e.scale.y = es0 * (blink ? .12 : (m === 'sad' ? .8 : 1)); }); R.happyE.forEach(e => e.visible = m === 'happy'); R.sleepE.forEach(e => e.visible = m === 'sleep');
   R.smile.visible = m === 'idle'; R.sad.visible = m === 'sad'; R.openM.visible = m === 'happy' || m === 'open' || (m === 'eat' && Math.sin(t * 22) > 0); R.openM.scale.setScalar(m === 'open' ? 1.3 : 1);
   // ears & tail
   const happyLv = (P.n.l + P.n.f) / 200; R.ears.forEach((ep, i) => { const s = i ? 1 : -1; if (D.ear === 'flop') ep.rotation.z = s * (.35 + (sad ? .4 : 0)) + Math.sin(t * 3 + i) * .05 + (AN.jump > 0 ? s * -.4 : 0); if (D.ear === 'bun') ep.rotation.z = -s * .15 + (sad ? s * .9 : 0) + Math.sin(t * 2.3 + i * 2) * .06; if (D.ear === 'cat') ep.rotation.x = Math.max(0, Math.sin(t * 1.7 + i * 3)) > .97 ? -.3 : 0; if (D.ear === 'ant') ep.rotation.x = Math.sin(t * 3 + i) * .15; });

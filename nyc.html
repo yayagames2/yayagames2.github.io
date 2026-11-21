@@ -3176,7 +3176,8 @@ stage.addEventListener('pointerup',endCd); stage.addEventListener('pointercancel
 
 applyQuality();
 if(window.parent!==window){ const goHome=()=>{ try{ document.exitPointerLock(); }catch(e){} try{ if(audio) audio.ctx.suspend(); }catch(e){} window.parent.postMessage('skyplay-home','*'); };
-  ['bSkyHome','bSkyHome2','bSkyHome3'].forEach(id=>{ const b=$(id); b.hidden=false; b.addEventListener('click',goHome); }); }
+  let gone=0; const go=e=>{ if(e){ e.preventDefault(); e.stopPropagation(); } if(gone) return; gone=1; setTimeout(()=>gone=0,800); goHome(); };
+  ['bSkyHome','bSkyHome2','bSkyHome3'].forEach(id=>{ const b=$(id); b.hidden=false; b.style.pointerEvents='auto'; b.style.zIndex='60'; b.style.touchAction='manipulation'; b.addEventListener('pointerdown',e=>e.stopPropagation(),true); b.addEventListener('pointerup',go); b.addEventListener('click',go); b.addEventListener('touchend',go,{passive:false}); }); }
 window.__tcOK=true;
 requestAnimationFrame(frame);
 setTimeout(()=>{ const l=$('loading'); l.style.opacity=0; $('creator').hidden=false; setTimeout(()=>{ l.hidden=true; },650); },250);
