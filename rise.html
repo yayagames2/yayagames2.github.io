@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Skyrise</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#1a2230;--accent:#ffb21a;--deep:#1a2a44;--btn:linear-gradient(180deg,#ffcf3a,#ff8a1a);--btnsh:#8a3a00;--panel:rgba(14,20,32,.66);--scr:transparent}
+body{background:#1a2230;color:#fff;overflow:hidden}
+#hud{position:fixed;z-index:5;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;gap:6px;align-items:center;pointer-events:none;direction:ltr}
+#hud>*{pointer-events:auto}#hud .sp{flex:1}
+.hp{height:40px;padding:0 11px;border-radius:14px;background:rgba(12,18,30,.6);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);display:flex;align-items:center;gap:5px;font-weight:900;font-size:17px;color:#fff;font-variant-numeric:tabular-nums}
+.hp small{font-size:11px;opacity:.7;font-weight:700}
+.ib{width:40px;height:40px;border-radius:14px;background:rgba(12,18,30,.6);border:1px solid rgba(255,255,255,.16);font-size:18px;color:#fff;display:grid;place-items:center}
+#meter{position:fixed;z-index:5;right:max(10px,env(safe-area-inset-right));top:30%;bottom:30%;width:10px;border-radius:6px;background:rgba(0,0,0,.35);pointer-events:none}
+#meter i{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:linear-gradient(0deg,#ffb21a,#ff5a3a)}
+#meter b{position:absolute;left:-5px;width:20px;height:4px;border-radius:2px;background:#7affc8}
+#ctl{position:fixed;inset:0;z-index:4}
+#look{position:absolute;inset:0;touch-action:none}
+.joy{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);touch-action:none}
+.joy i{position:absolute;left:37px;top:37px;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+#bJ{position:absolute;right:max(20px,env(safe-area-inset-right));bottom:max(30px,env(safe-area-inset-bottom));width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.5),rgba(255,255,255,.18));border:3px solid rgba(255,255,255,.6);font-size:32px;font-weight:900;color:#fff;touch-action:none;display:grid;place-items:center;line-height:1}
+#bJ small{display:block;font-size:11px}
+#bJ.on{transform:scale(.94);background:rgba(255,255,255,.55)}
+#tip{position:fixed;z-index:6;left:12px;right:12px;top:max(64px,calc(env(safe-area-inset-top) + 58px));text-align:center;pointer-events:none;opacity:0;transition:opacity .3s}
+#tip span{display:inline-block;background:rgba(10,16,28,.82);color:#fff;font-weight:800;font-size:15px;padding:8px 14px;border-radius:14px;max-width:440px}
+#tip.on{opacity:1}
+#big{position:fixed;z-index:8;left:0;right:0;top:34%;text-align:center;pointer-events:none;font-weight:900;font-size:clamp(30px,10vw,64px);color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 24px rgba(0,0,0,.5);opacity:0;transform:scale(.4);transition:transform .35s cubic-bezier(.2,1.6,.4,1),opacity .2s}
+#big.on{opacity:1;transform:scale(1)}#big small{display:block;font-size:17px}
+#title{justify-content:flex-start;background:linear-gradient(180deg,rgba(8,14,26,.55),rgba(8,14,26,0) 30%,rgba(8,14,26,0) 55%,rgba(8,14,26,.88) 72%)}
+#title .logo .a{color:#ffcf3a;letter-spacing:8px;font-size:clamp(16px,4.5vw,24px)}
+#title .logo .b{-webkit-text-stroke:0;color:#fff;letter-spacing:2px;text-shadow:0 4px 0 #b04a10,0 10px 30px rgba(0,0,0,.5);background:linear-gradient(180deg,#fff 30%,#ffd27a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8a3a10)}
+.spc{flex:1;min-height:28vh}
+.modes{display:flex;gap:8px;width:min(420px,100%);margin-top:8px}
+.modes button{flex:1;border-radius:16px;padding:10px 6px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.2);color:#fff;font-weight:900;font-size:14px;line-height:1.25}
+.modes button small{display:block;font-weight:700;font-size:11px;opacity:.8}
+.modes button[aria-pressed=true]{background:rgba(255,178,26,.25);border-color:#ffb21a}
+.rec{margin-top:10px;font-weight:800;color:#ffd27a;font-size:14px;direction:rtl}
+#endS .card,#pauseS .card{background:linear-gradient(180deg,#ffffff,#eef4ff)}
+.st{display:flex;justify-content:center;gap:14px;font-weight:900;font-size:19px;margin:8px 0 14px;direction:ltr;flex-wrap:wrap}
+@media (orientation:landscape) and (max-height:560px){.spc{min-height:0;flex:0}#title{background:linear-gradient(180deg,rgba(8,14,26,.4),rgba(8,14,26,.85) 70%)}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ctl" hidden><div id="look"></div><div class="joy" id="joy"><i></i></div><button id="bJ">⤒<small></small></button></div>
+<div id="hud" hidden><button class="ib" id="pBtn" aria-label="pause">⏸</button><div class="hp" id="hH">📏 <span id="nH">0</span><small>m</small></div><div class="hp"><small>🏆</small><span id="nB">0</span><small>m</small></div><div class="sp"></div><div class="hp" id="hT">⏱ <span id="nT">0:00</span></div><button class="ib" id="cpBtn" aria-label="checkpoint">↩</button></div>
+<div id="meter" hidden><i id="mF"></i><b id="mB"></b></div>
+<div id="tip"><span></span></div>
+<div id="big"></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:3vh"><span class="a">ONLY · HIGHER</span><span class="b">SKYRISE</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="spc"></div>
+  <div class="modes" id="modes"><button data-m="easy"></button><button data-m="hard"></button></div>
+  <div class="rec" id="rec"></div>
+  <button class="big" id="goBtn"></button>
+  <div class="chips"><button class="chip" id="newBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndChip"></button></div>
+</section>
+<div class="sheet" id="endS" hidden><div class="card"><div style="font-size:56px">🏆</div><h3 id="eT"></h3><p id="eP"></p><div class="st" id="eS"></div><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div class="sheet" id="pauseS" hidden><div class="card"><h3 id="pT"></h3><p id="pP"></p><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="rise/game.js"></script>
+</body>
+</html>

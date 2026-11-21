@@ -36,6 +36,7 @@ body{background:#ffe8f0;color:#3a1a3a}
 #bub::after{content:'';position:absolute;bottom:-10px;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
 #bub.on{opacity:1}
 #hint{position:fixed;z-index:6;left:0;right:0;padding:0 12px;bottom:max(150px,calc(env(safe-area-inset-bottom) + 146px));text-align:center;pointer-events:none;font-weight:900;font-size:16px;color:#8a2a5a;text-shadow:0 2px 0 #fff,0 0 10px #fff}
+#task{position:fixed;z-index:6;left:0;right:0;margin:0 auto;width:max-content;top:max(120px,calc(env(safe-area-inset-top) + 118px));background:#fff;border-radius:999px;padding:6px 14px;font-weight:900;font-size:15px;color:#6a3a1a;box-shadow:0 0 0 3px #ffd23a,0 6px 16px rgba(80,20,60,.2);white-space:nowrap;animation:bl2 .8s ease-in-out infinite alternate;pointer-events:none}#task small{font-size:11px;color:#a06a4a}
 #pops{position:fixed;inset:0;z-index:7;pointer-events:none}
 #pops div{position:absolute;transform:translate(-50%,-50%);font-weight:900;font-size:22px;color:#ff4a9a;text-shadow:0 2px 0 #fff,0 0 8px #fff;animation:up 1.2s ease-out forwards;white-space:nowrap}
 @keyframes up{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-60%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-180%)}}
@@ -63,6 +64,7 @@ body{background:#ffe8f0;color:#3a1a3a}
 <div id="needs" hidden></div>
 <div id="bub"></div>
 <div id="hint"></div>
+<div id="task" hidden></div>
 <div id="tray" hidden></div>
 <div id="wd" hidden><div class="wt" id="wTabs"></div><div class="wl" id="wList"></div></div>
 <div id="dock" hidden></div>

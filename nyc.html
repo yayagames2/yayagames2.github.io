@@ -82,7 +82,7 @@ input[type=range]{flex:1;accent-color:var(--hg)}
 .btn{flex:1;min-height:50px;border-radius:14px;border:1px solid var(--line);background:var(--chip);font-weight:600}
 .btn.go{flex:2;background:var(--amber);color:#1b1306;border-color:var(--amber);font:700 17px var(--font-head)}
 
-#hud{position:fixed;inset:0;pointer-events:none;z-index:3}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
 #hud .tl{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));
   background:rgba(10,13,30,.38);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:5px 9px;
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -101,6 +101,7 @@ input[type=range]{flex:1;accent-color:var(--hg)}
   background:rgba(10,13,30,.6);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font-size:13px;transition:opacity .8s}
 #toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);font:700 22px var(--font-head);color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.6);opacity:0;transition:opacity .35s;text-align:center;max-width:80vw}
 #touch{position:fixed;inset:0;z-index:4;pointer-events:none}
+#bTutSkip{pointer-events:auto}
 #touch>*{pointer-events:auto;touch-action:none}
 #look{position:absolute;right:0;top:0;width:58%;height:100%}
 #joy{position:absolute;left:max(24px,env(safe-area-inset-left,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));width:128px;height:128px;border-radius:50%;

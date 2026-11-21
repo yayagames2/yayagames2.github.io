@@ -132,7 +132,7 @@ const AN = { mood: 'idle', jump: 0, jumpV: 0, look: V3(0, 1.3, 4), eat: 0, purr:
 function petData(sp) { if (!S.pets[sp]) S.pets[sp] = { name: SPEC[sp].nm, n: { h: 70, c: 75, f: 65, e: 80, l: 60 }, lvl: 1, xp: 0, acc: { hat: 'none', glass: 'none', neck: 'collar' }, t: Date.now(), dirt: 0 }; return S.pets[sp]; }
 function applyOffline(p) { const mins = Math.min(240, (Date.now() - (p.t || Date.now())) / 60000); for (const k in DECAY) p.n[k] = Math.max(Math.min(p.n[k], 15), p.n[k] - DECAY[k] * mins * .5); p.t = Date.now(); }
 function setNeed(k, v) { P.n[k] = clamp(v, 0, 100); }
-function addXp(v) { P.xp += v; const need = 40 + P.lvl * 30; if (P.xp >= need) { P.xp -= need; P.lvl++; S.coins += 20; lvlUp(); } S.save(); updTop(); }
+let xpBud = 20; function addXp(v) { v = Math.min(v, xpBud); if (v <= 0) return; xpBud -= v; P.xp += v; const need = 40 + P.lvl * 30; if (P.xp >= need) { P.xp -= need; P.lvl++; S.coins += 20; lvlUp(); } S.save(); updTop(); }
 function coins(v, at) { S.coins += v; S.save(); updTop(); if (at) popAt('🪙 +' + v, at[0], at[1] - 30, '#d89a00'); A.tone(1320, .08, 'square', .04); A.tone(1760, .12, 'square', .04, .06); }
 function lvlUp() { const before = pet.stage; if (stageOf(P.lvl) !== before) setTimeout(() => { const acc = P.acc; scene.remove(pet.g); pet = buildPet(pet.sp, acc); scene.add(pet.g); dirt = []; if (P.n.c < 60) makeDirt(); confetti(); A.voice('wow', pet.D.pitch); $('lvl').innerHTML = `<div><b>🌱 ${P.name} ${T('גדל/ה!', 'grew up!')}</b><p>${STN[pet.stage]} – ${T('עדיין הכי חמוד/ה בעולם 💕', 'still the cutest ever 💕')}</p></div>`; $('lvl').hidden = false; setTimeout(() => $('lvl').hidden = true, 2600); }, 2400); $('lvl').innerHTML = `<div><b>⭐ ${T('רמה', 'Level')} ${P.lvl}!</b><p>${T('החבר שלך גדל! +20 🪙', 'Your pal grew up! +20 🪙')}</p></div>`; $('lvl').hidden = false; A.tone(523, .15, 'triangle', .08); A.tone(659, .15, 'triangle', .08, .12); A.tone(784, .15, 'triangle', .08, .24); A.tone(1047, .4, 'triangle', .08, .36); confetti(); happyJump(); setTimeout(() => $('lvl').hidden = true, 2200); }
 function confetti() { FX.burst(V3(0, 2.2, .5), 60, CONFETTI, 4, .07, 1.6, 6); }
@@ -144,7 +144,7 @@ $('needs').innerHTML = NEEDS.map(([k, e, c]) => `<div class="nd" id="nd_${k}" st
 function updTop() { if (!P) return; $('pName').textContent = `${P.name} · ${STN[stageOf(P.lvl)]} · ${T('רמה', 'Lv')} ${P.lvl}`; $('xpBar').style.width = (P.xp / (40 + P.lvl * 30) * 100) + '%'; $('coinN').textContent = S.coins; }
 function updNeeds() { if (!P) return; let low = null, lv = 101; for (const [k] of NEEDS) { const v = P.n[k]; const el = $('nd_' + k); el.style.setProperty('--v', v.toFixed(0)); el.classList.toggle('low', v < 30); if (v < lv) { lv = v; low = k; } }
   const act = lv < 40 ? NEEDS.find(n => n[0] === low)[3] : null; for (const b of $('dock').children) b.classList.toggle('blink', mode === 'home' && b.dataset.a === act);
-  AN.want = lv < 40 ? NEEDS.find(n => n[0] === low)[1] : null; }
+  AN.want = mess.length && lv >= 25 ? (mess.some(m => m.k === 'poop') ? '💩' : '💦') : lv < 40 ? NEEDS.find(n => n[0] === low)[1] : null; updTask(); }
 function popAt(txt, x, y, col) { const d = document.createElement('div'); d.textContent = txt; d.style.left = x + 'px'; d.style.top = y + 'px'; if (col) d.style.color = col; $('pops').appendChild(d); setTimeout(() => d.remove(), 1200); }
 function scr(v) { const p = v.clone().project(camera); return [(p.x + 1) / 2 * innerWidth, (1 - p.y) / 2 * innerHeight]; }
 function headW() { return pet.head.getWorldPosition(V3()); }
@@ -152,7 +152,7 @@ function mouthW() { return pet.head.localToWorld(pet.mouthLocal.clone()); }
 function hint(t) { $('hint').textContent = t || ''; }
 
 /* ================= MODES ================= */
-function setMode(m) { const prev = mode; if (prev === 'sleep' && m !== 'sleep') wake(); if (prev === 'bath' && m !== 'bath') endBath(false); if (prev === 'play' && m !== 'play') endPlay();
+function setMode(m) { if (m === 'sleep' && mode !== 'sleep' && P && P.n.e > 85) { notNow(T('אני לא עייף/ה! 😝', 'I’m not tired! 😝')); return; } if (m === 'bath' && mode !== 'bath' && P && P.n.c > 92 && !mess.length) { notNow(T('אני כבר נקי/ה! ✨', 'I’m already clean! ✨')); return; } const prev = mode; if (prev === 'sleep' && m !== 'sleep') wake(); if (prev === 'bath' && m !== 'bath') endBath(false); if (prev === 'play' && m !== 'play') endPlay();
   mode = m; for (const b of $('dock').children) b.classList.toggle('on', b.dataset.a === m); $('tray').hidden = true; $('wd').hidden = true; hint('');
   if (m === 'feed') { showTray(FOODS.filter(f => !['🎋', '🌟', '🐟', '🍖', '🥕'].includes(f.e) || f.e === pet.D.fav || (f.e === '🥕' && pet.sp !== 'alien')).map(f => ({ e: f.e, k: f.e })), 'feed'); hint(T('גררו אוכל לפה של ' + P.name + ' 😋', 'Drag food to ' + P.name + '’s mouth 😋')); }
   if (m === 'bath') startBath(); if (m === 'play') startPlay(); if (m === 'sleep') goSleep(); if (m === 'style') showWardrobe(); updNeeds(); }
@@ -170,7 +170,7 @@ function moveGhost(e) { $('ghost').style.left = e.clientX + 'px'; $('ghost').sty
 addEventListener('pointermove', e => { if (drag) { moveGhost(e); const w = unproj(e.clientX, e.clientY, 2.2); AN.look.copy(w); if (drag.feather) featherMove(e); else { const [mx, my] = scr(mouthW()); const d = Math.hypot(mx - e.clientX, my - e.clientY); AN.mood = d < 140 ? 'open' : 'idle'; } } });
 addEventListener('pointerup', e => { if (!drag) return; const d0 = drag; drag = null; $('ghost').hidden = true; if (d0.feather) { AN.mood = 'idle'; return; } const [mx, my] = scr(mouthW()); if (Math.hypot(mx - e.clientX, my - e.clientY) < 110 * Math.max(.8, innerHeight / 900)) eat(d0.k); else AN.mood = 'idle'; });
 function eat(k) { const f = FOODS.find(x => x.e === k); if (P.n.h > 94 && f.h > 10) { AN.shake = 1; AN.mood = 'idle'; A.voice('hm', pet.D.pitch); const [x, y] = scr(headW()); popAt(T('אני מלא! 😮‍💨', 'I’m full! 😮‍💨'), x, y - 90); return; }
-  AN.eat = 1.2; AN.mood = 'eat'; const fav = k === pet.D.fav; setNeed('h', P.n.h + f.h * (fav ? 1.3 : 1)); setNeed('f', P.n.f + f.f); setNeed('l', P.n.l + (fav ? 6 : 2)); addXp(fav ? 6 : 3);
+  AN.eat = 1.2; AN.mood = 'eat'; P.gut = (P.gut || 0) + 1; if (P.gut >= 3 && !pooT) pooT = rnd(12, 22); const fav = k === pet.D.fav; setNeed('h', P.n.h + f.h * (fav ? 1.3 : 1)); setNeed('f', P.n.f + f.f); setNeed('l', P.n.l + (fav ? 6 : 2)); addXp(fav ? 6 : 3);
   for (let i = 0; i < 3; i++) setTimeout(() => { A.noise(.08, 'bandpass', 1800 + Math.random() * 800, 2, .1); FX.burst(mouthW(), 6, [[1, .8, .5], [.9, .6, .3]], 1.2, .035, .6, 6); }, i * 320);
   setTimeout(() => { A.voice(fav ? 'yay' : 'hm', pet.D.pitch); const [x, y] = scr(headW()); if (fav) { popAt('💖 ' + T('האהוב עליי!', 'My favorite!'), x, y - 100); happyJump(); } else popAt('😋', x, y - 90); if (Math.random() < .5) coins(1, [x, y - 40]); }, 1100); updNeeds(); }
 
@@ -232,18 +232,51 @@ function unproj(x, y, zp = 2) { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeigh
 function floorAt(x, y) { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); const r = ray.ray; if (r.direction.y >= -.01) return null; const t = -r.origin.y / r.direction.y; return r.origin.clone().addScaledVector(r.direction, t); }
 let down = null, strokeD = 0;
 $('stage').addEventListener('pointerdown', e => { if (mode === 'title') return; A.ac(); down = { x: e.clientX, y: e.clientY, t: performance.now(), hit: hitPet(e.clientX, e.clientY) }; strokeD = 0; try { $('stage').setPointerCapture(e.pointerId); } catch (er) { }
+  if (mode !== 'bath' && !AN.sleep) { const m = messAt(e.clientX, e.clientY); if (m) { down.hit = null; if (m.k === 'poop') { scoop(m); down = null; return; } down.mop = m; $('ghost').textContent = '🧽'; $('ghost').hidden = false; moveGhost(e); return; } }
   if (mode === 'bath') { $('ghost').textContent = tool; $('ghost').hidden = false; moveGhost(e); bathRub(down.hit, e); }
   if (mode === 'play' && tool === '🫧') { const b = pickBubble(e.clientX, e.clientY); if (b) popBubble(b); else bubbleTap(e.clientX, e.clientY); } });
-$('stage').addEventListener('pointermove', e => { if (mode === 'title' || !pet) return; if (!down) { if (mode === 'home' || mode === 'feed' || mode === 'style') AN.look.copy(unproj(e.clientX, e.clientY, 2.2)); return; }
+$('stage').addEventListener('pointermove', e => { if (mode === 'title' || !pet) return; if (down && down.mop) { moveGhost(e); mopAt(down.mop, e); return; } if (!down) { if (mode === 'home' || mode === 'feed' || mode === 'style') AN.look.copy(unproj(e.clientX, e.clientY, 2.2)); return; }
   const h = hitPet(e.clientX, e.clientY); const mv = Math.hypot(e.clientX - down.x, e.clientY - down.y);
   if (mode === 'bath') { moveGhost(e); bathRub(h, e); if (tool === '🚿') { const w = unproj(e.clientX, e.clientY, 1.0); for (let i = 0; i < 3; i++) FX.emit(w, V3(rnd(-.3, .3), -4, rnd(-.3, .3)), [.6, .85, 1], .05, .5, 8, .8); if (Math.random() < .3) A.noise(.08, 'highpass', 3000, 1, .03); } if (tool === '💨' && Math.random() < .3) A.noise(.1, 'bandpass', 900, 1, .04); return; }
   if ((mode === 'home' || mode === 'feed' || mode === 'style' || mode === 'play') && h && down.hit && mv > 8 && !AN.sleep) { strokeD += Math.hypot(e.movementX || 4, e.movementY || 4); AN.tPet = .6; AN.mood = 'happy'; setNeed('l', P.n.l + .35); if (strokeD > 60) { strokeD = 0; popAt(['💗', '💕', '💖', '✨'][Math.random() * 4 | 0], e.clientX + rnd(-20, 20), e.clientY - 30); addXp(1); } } });
-$('stage').addEventListener('pointerup', e => { if (!down || !pet) { down = null; return; } const quick = performance.now() - down.t < 280 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 12; $('ghost').hidden = mode !== 'bath' ? true : true;
+$('stage').addEventListener('pointerup', e => { if (down && down.mop) { $('ghost').hidden = true; down = null; return; } if (!down || !pet) { down = null; return; } const quick = performance.now() - down.t < 280 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 12; $('ghost').hidden = mode !== 'bath' ? true : true;
   if (quick && mode === 'play' && tool === '⚽') { const f = floorAt(e.clientX, e.clientY); if (f) throwBall(f); }
   else if (quick && down.hit && !AN.sleep && (mode === 'home' || mode === 'style' || mode === 'feed')) { AN.giggle = .8; happyJump(.55); A.voice(Math.random() < .5 ? 'huh' : 'yay', pet.D.pitch * 1.1); setNeed('f', P.n.f + 1); setNeed('l', P.n.l + 1); popAt(['😆', '🤭', '💕'][Math.random() * 3 | 0], e.clientX, e.clientY - 40); }
   if (AN.mood === 'happy' && mode !== 'bath') setTimeout(() => { if (AN.tPet <= 0) AN.mood = 'idle'; }, 400); down = null; });
 function pickBubble(x, y) { let best = null, bd = 50; for (const b of bubbles) { const [bx, by] = scr(b.position); const d = Math.hypot(bx - x, by - y); if (d < bd) { bd = d; best = b; } } return best; }
 function happyJump(s = 1) { if (AN.jump > 0) return; AN.jump = .001; AN.jumpV = 3.2 * s; }
+
+
+/* ================= POOP & PEE ================= */
+let mess = [], pooT = 0, peeT = 70, stinkT = 0;
+const pooM = std('#7a4a22', { roughness: .45 }), pooHi = std('#9a6232', { roughness: .4 });
+function notNow(txt) { AN.shake = .6; A.voice('hm', pet.D.pitch); const [x, y] = scr(headW()); popAt(txt, x, y - 90); A.tone(260, .12, 'triangle', .05); }
+function pooMesh() { const g = new THREE.Group(); const tiers = [[.2, .075, 0], [.15, .065, .1], [.1, .055, .19]]; for (const [r, tb, y] of tiers) { const t = new THREE.Mesh(new THREE.TorusGeometry(r, tb, 12, 28).rotateX(Math.PI / 2), pooM); t.position.y = y + .06; t.scale.y = 1.25; g.add(t); } const c = new THREE.Mesh(new THREE.SphereGeometry(.1, 14, 10), pooM); c.position.y = .08; c.scale.set(1.6, .8, 1.6); g.add(c); const tip = new THREE.Mesh(new THREE.ConeGeometry(.07, .16, 14), pooHi); tip.position.y = .3; tip.rotation.z = .3; g.add(tip);
+  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.SphereGeometry(.048, 12, 10), std('#ffffff', { roughness: .2 })); w.position.set(s * .075, .25, .2); g.add(w); const b = new THREE.Mesh(new THREE.SphereGeometry(.024, 10, 8), std('#1a1010')); b.position.set(s * .075, .25, .245); g.add(b); }
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; }); g.scale.setScalar(.9); return g; }
+function peeMesh() { const sh = new THREE.Shape(); const n = 14, r0 = rng(Date.now() & 1023); for (let i = 0; i <= n; i++) { const a = i / n * TAU, r = .32 + r0() * .1; i ? sh.lineTo(Math.cos(a) * r, Math.sin(a) * r * .75) : sh.moveTo(Math.cos(a) * r, Math.sin(a) * r * .75); } const m = new THREE.Mesh(new THREE.ShapeGeometry(sh, 6).rotateX(-Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: '#f2c200', roughness: .05, clearcoat: 1, transparent: true, opacity: .82, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })); m.position.y = .012; m.renderOrder = 2; return m; }
+function addMessMesh(m) { m.mesh = m.k === 'poop' ? pooMesh() : peeMesh(); m.mesh.position.set(m.x, m.k === 'poop' ? 0 : .012, m.z); m.amt = m.amt == null ? 1 : m.amt; if (m.k === 'pee') m.mesh.scale.setScalar(.4 + m.amt * .6); scene.add(m.mesh); }
+function clearMessMeshes() { for (const m of mess) m.mesh && scene.remove(m.mesh); mess = []; }
+function loadMess() { clearMessMeshes(); P.mess = (P.mess || []).slice(0, 5); mess = P.mess.map(o => ({ ...o })); mess.forEach(addMessMesh); if ((P.gut || 0) >= 3) pooT = rnd(6, 12); }
+function saveMess() { P.mess = mess.map(m => ({ k: m.k, x: m.x, z: m.z, amt: m.amt })); S.save(); }
+function messSpot() { for (let i = 0; i < 20; i++) { const s = Math.random() < .5 ? -1 : 1; const x = s * rnd(.65, 1.05), z = rnd(.35, 1.05); if (!mess.some(m => Math.hypot(m.x - x, m.z - z) < .5)) return [x, z]; } return [rnd(-1, 1), rnd(.4, 1)]; }
+function doMess(k) { if (mess.length >= 5) return; const [x, z] = messSpot(); const m = { k, x, z, amt: 1 }; mess.push(m); addMessMesh(m); m.mesh.scale.setScalar(.01); m.pop = 0;
+  AN.shake = .5; A.voice('huh', pet.D.pitch * .9); const [sx, sy] = scr(headW()); popAt(k === 'poop' ? T('💩 אופס! עשיתי קקי', '💩 Oops! I pooped') : T('💦 אופס! עשיתי פיפי', '💦 Oops! I peed'), sx, sy - 100);
+  if (k === 'poop') { A.tone(140, .18, 'sawtooth', .06); A.tone(90, .25, 'sine', .07, .12); P.gut = 0; setNeed('c', P.n.c - 6); } else { A.noise(.7, 'bandpass', 2400, 3, .05); setNeed('c', P.n.c - 4); } saveMess(); updNeeds(); }
+function messAt(x, y) { let best = null, bd = 1e9; for (const m of mess) { const [mx, my] = scr(m.mesh.position.clone().setY(m.k === 'poop' ? .15 : 0)); const d = Math.hypot(mx - x, my - y); const r = (m.k === 'poop' ? 55 : 75) * Math.max(.8, innerHeight / 900); if (d < r && d < bd) { bd = d; best = m; } } return best; }
+function scoop(m) { const p = m.mesh.position.clone(); m.gone = 1; m.shrink = 1; mess.splice(mess.indexOf(m), 1); A.tone(660, .08, 'triangle', .06); A.tone(990, .14, 'triangle', .06, .08); GL.burst(p.clone().setY(.2), 14, [[2, 2, 1.6], [1.6, 2, 2]], 1.4, .05, .6, 0); const [x, y] = scr(p); popAt('🧻 ' + T('נקי!', 'Clean!'), x, y - 40); messReward(x, y); fading.push(m); saveMess(); updNeeds(); }
+function mopAt(m, e) { if (!mess.includes(m)) return; const [mx, my] = scr(m.mesh.position); if (Math.hypot(mx - e.clientX, my - e.clientY) > 110 * Math.max(.8, innerHeight / 900)) return; m.amt -= .012 * Math.min(4, Math.hypot(e.movementX || 3, e.movementY || 3) / 3); if (Math.random() < .25) { A.noise(.06, 'bandpass', 3200, 2, .03); FX.emit(m.mesh.position.clone().setY(.05), V3(rnd(-.6, .6), rnd(.3, .9), rnd(-.6, .6)), [1, .95, .6], .04, .4, 6); }
+  m.mesh.scale.setScalar(Math.max(.05, .4 + m.amt * .6)); m.mesh.material.opacity = .82 * Math.max(.1, m.amt); if (m.amt <= 0) { scene.remove(m.mesh); mess.splice(mess.indexOf(m), 1); const [x, y] = scr(m.mesh.position); popAt('✨ ' + T('ניגבתי!', 'Mopped!'), x, y - 40); A.tone(880, .1, 'triangle', .06); A.tone(1320, .18, 'triangle', .06, .1); messReward(x, y); saveMess(); updNeeds(); } }
+const fading = [];
+function messReward(x, y) { setNeed('c', P.n.c + 8); setNeed('l', P.n.l + 4); addXp(4); coins(2, [x, y]); if (!mess.length) { happyJump(.8); A.voice('yay', pet.D.pitch); const [hx, hy] = scr(headW()); popAt(T('תודה! 💕', 'Thank you! 💕'), hx, hy - 100); } }
+function stepMess(dt, t) { for (let i = fading.length - 1; i >= 0; i--) { const m = fading[i]; m.shrink -= dt * 4; m.mesh.scale.setScalar(Math.max(.001, m.shrink * .9)); m.mesh.position.y += dt * .8; if (m.shrink <= 0) { scene.remove(m.mesh); fading.splice(i, 1); } }
+  for (const m of mess) { if (m.pop != null && m.pop < 1) { m.pop = Math.min(1, m.pop + dt * 3); const k = m.k === 'poop' ? .9 : .4 + m.amt * .6; m.mesh.scale.setScalar(k * (m.pop < 1 ? 1 + Math.sin(m.pop * Math.PI) * .25 : 1)); } if (m.k === 'poop') m.mesh.rotation.y = Math.sin(t * 1.5 + m.x * 5) * .15; }
+  if (mode === 'title' || AN.sleep || mode === 'bath') return;
+  stinkT -= dt; if (stinkT < 0) { stinkT = .35; for (const m of mess) if (m.k === 'poop') FX.emit(m.mesh.position.clone().add(V3(rnd(-.08, .08), .35, 0)), V3(rnd(-.1, .1), .5, 0), [.55, .75, .3], .05, 1.1, 0); }
+  if (mess.length && Math.random() < dt * .25) { setNeed('c', P.n.c - .4); setNeed('l', P.n.l - .2); }
+  if (pooT > 0) { pooT -= dt; if (pooT <= 0) { pooT = 0; if (AN.eat <= 0 && !AN.target) doMess('poop'); else pooT = 3; } }
+  peeT -= dt; if (peeT <= 0) { peeT = rnd(80, 140); if (mode === 'home' && mess.length < 4 && !AN.target) doMess('pee'); } }
+function updTask() { const el = $('task'); if (!el) return; const pc = mess.filter(m => m.k === 'poop').length, wc = mess.length - pc; el.hidden = !mess.length || mode === 'title'; if (mess.length) el.innerHTML = `🧹 ${T('משימה', 'Task')}: ${pc ? `💩×${pc} <small>${T('הקישו', 'tap')}</small>` : ''} ${wc ? `💦×${wc} <small>${T('נגבו באצבע', 'wipe')}</small>` : ''}`; }
 
 /* ================= ANIMATE ================= */
 let purrOn = 0;
@@ -285,7 +318,7 @@ function animate(dt, t) { const R = pet; if (!R) return; const D = R.D; const P 
   const showB = AN.want && mode === 'home' && !AN.sleep; const bub = $('bub'); if (showB) { const [x, yy] = scr(headW().add(V3(.55, .55, 0))); bub.style.left = x + 'px'; bub.style.top = yy + 'px'; if (bub.textContent !== AN.want) bub.textContent = AN.want; } bub.classList.toggle('on', !!showB); }
 let decayT = 0;
 function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; A.tick(); const t = now / 1000; update(dt, t); E.render(); }
-function update(dt, t) { if (pet && mode !== 'title') { animate(dt, t); stepBall(dt); stepBubbles(dt, t);
+function update(dt, t) { xpBud = Math.min(20, xpBud + dt * .6); if (pet && mode !== 'title') { animate(dt, t); stepBall(dt); stepBubbles(dt, t); stepMess(dt, t);
     decayT += dt; if (decayT > 1) { decayT = 0; for (const k in DECAY) if (!(k === 'e' && AN.sleep)) P.n[k] = Math.max(0, P.n[k] - DECAY[k] / 60 * (k === 'c' && mode === 'bath' ? 0 : 1)); P.t = Date.now(); updNeeds(); if (P.n.c < 60 && !dirt.length && mode === 'home') makeDirt(); if (Math.random() < .1) S.save(); } }
   else if (pet) { animate(dt, t); }
   if (tub && tub.parent) tub.userData.duck.position.y = .63 + Math.sin(t * 3) * .04;
@@ -301,12 +334,12 @@ function renderTitle() { $('tSub').textContent = T('בחרו חבר לגדל –
 $('pets').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; A.ac(); sel = b.dataset.p; A.voice('yay', SPEC[sel].pitch); renderTitle(); happyJump(.6); };
 $('nameIn').oninput = () => { if (!S.pets[sel]) $('goBtn').textContent = T('🏠 לאמץ את ', '🏠 Adopt ') + ($('nameIn').value || SPEC[sel].nm); };
 function showPet(sp) { if (pet) scene.remove(pet.g); const p = S.pets[sp]; pet = buildPet(sp, p ? p.acc : { neck: 'collar' }); scene.add(pet.g); AN.home = V3(); AN.look.set(0, 1.3, 5); dirt = []; }
-$('goBtn').onclick = () => { A.ac(); lastAsp = 0; const fresh = !S.pets[sel]; P = petData(sel); window.__P = P; const nm = $('nameIn').value.trim(); if (nm) P.name = nm; applyOffline(P); S.cur = sel; S.save(); showPet(sel); $('title').hidden = true; ['top', 'needs', 'dock'].forEach(id => $(id).hidden = false); mode = 'home'; updTop(); updNeeds(); if (P.n.c < 60) makeDirt(); startMusic();
+$('goBtn').onclick = () => { A.ac(); lastAsp = 0; const fresh = !S.pets[sel]; P = petData(sel); window.__P = P; const nm = $('nameIn').value.trim(); if (nm) P.name = nm; applyOffline(P); S.cur = sel; S.save(); showPet(sel); $('title').hidden = true; ['top', 'needs', 'dock'].forEach(id => $(id).hidden = false); mode = 'home'; loadMess(); updTop(); updNeeds(); if (P.n.c < 60) makeDirt(); startMusic();
   if (fresh) { confetti(); A.voice('yay', pet.D.pitch); setTimeout(() => toast(T('ליטפו את ' + P.name + ' באצבע, ותטפלו בכל מה שצריך 💕', 'Stroke ' + P.name + ' with your finger and take care of every need 💕'), 4200), 600); } happyJump(); };
-$('backBtn').onclick = () => { setMode('home'); mode = 'title'; window.__P = null; S.save(); ['top', 'needs', 'dock', 'tray', 'wd'].forEach(id => $(id).hidden = true); $('bub').classList.remove('on'); hint(''); A.stopMusic(); A.allOff(); purrOn = 0; $('title').hidden = false; lastAsp = 0; renderTitle(); };
+$('backBtn').onclick = () => { setMode('home'); clearMessMeshes(); mode = 'title'; window.__P = null; S.save(); ['top', 'needs', 'dock', 'tray', 'wd', 'task'].forEach(id => $(id).hidden = true); $('bub').classList.remove('on'); hint(''); A.stopMusic(); A.allOff(); purrOn = 0; $('title').hidden = false; lastAsp = 0; renderTitle(); };
 $('sndBtn').innerHTML = S.mute ? SND_OFF('#8a2a5a') : SND_ON('#8a2a5a'); $('sndBtn').onclick = () => { A.setMute(!S.mute); S.save(); $('sndBtn').innerHTML = S.mute ? SND_OFF('#8a2a5a') : SND_ON('#8a2a5a'); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) { S.save(); A.allOff(); purrOn = 0; } });
 $('homeT').innerHTML = ICO.home('#8a2a5a'); hubButtons(['homeT'], A); qualityButton('qBtn', S);
 if (EN) { document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; }
 E.resize(); $('title').hidden = false; renderTitle(); setTimeout(() => { $('loading').hidden = true; requestAnimationFrame(frame); window.__petOK = true; }, 30);
-window.__pt = { scene, get tub() { return tub; }, get pet() { return pet; }, get P() { return P; }, get mode() { return mode; }, setMode, S, AN, eat, scr, headW, mouthW, throwBall, get foam() { return foam; }, get bathStep() { return bathStep; }, update };
+window.__pt = { doMess, get mess() { return mess; }, get xpBud() { return xpBud; }, scene, get tub() { return tub; }, get pet() { return pet; }, get P() { return P; }, get mode() { return mode; }, setMode, S, AN, eat, scr, headW, mouthW, throwBall, get foam() { return foam; }, get bathStep() { return bathStep; }, update };

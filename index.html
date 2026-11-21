@@ -295,6 +295,7 @@ body{background:#0b0b12}
 .mq.op{background:#1c2040;box-shadow:none}.mq.fl{background:linear-gradient(160deg,#ffb84a,#e8702a)}
 .mq.bm{background:#ff3b4e}
 .mq[data-n="1"]{color:#4fc3ff}.mq[data-n="2"]{color:#7dff9a}.mq[data-n="3"]{color:#ff6a6a}.mq[data-n="4"]{color:#b07aff}.mq[data-n="5"]{color:#ffb84a}.mq[data-n="6"]{color:#3ae8d8}.mq[data-n="7"]{color:#fff}.mq[data-n="8"]{color:#aaa}
+.solHelpBox.hb2{background:linear-gradient(180deg,#2a2370,#15123f);border-color:#ffc83a}
 .solHelp{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px}.solHelpBox{background:linear-gradient(180deg,#123a26,#0a1f16);border:2px solid #2fd36a;border-radius:22px;padding:18px 18px 16px;max-width:440px;max-height:88vh;overflow:auto;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.5)}.solHelpBox h3{margin:0 0 10px;font-size:22px;text-align:center}.solHelpBox p{margin:0 0 10px;font-size:15px;line-height:1.45}
 .gsol.nf-c{background:linear-gradient(135deg,#0c4a2a,#0a1a14)}.gmine.nf-c{background:linear-gradient(135deg,#2a3448,#10141e)}.gsol .glow{background:#2fd36a}.gmine .glow{background:#ff6a4a}
 
@@ -381,6 +382,7 @@ body{background:#0b0b12}
     <button class="back" id="backBtn" aria-label="back"></button>
     <h2 id="gTitle"></h2>
     <div id="gStats" style="display:flex;gap:6px"></div>
+    <button class="back" id="helpBtn" aria-label="help" hidden>❓</button>
   </div>
   <div id="gbody"></div>
 </section>
@@ -415,6 +417,39 @@ const buzz=ms=>{ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} };
 /* ---------- overlay ---------- */
 function popup(ic,t,p,btns){ $('ovIc').textContent=ic; $('ovT').textContent=t; $('ovP').textContent=p; const r=$('ovBtns'); r.innerHTML='';
   btns.forEach(b=>{ const e=document.createElement('button'); e.className='btn'+(b.pri?' pri':''); e.textContent=b.t; e.onclick=()=>{ $('ov').hidden=true; b.f&&b.f(); }; r.appendChild(e); }); $('ov').hidden=false; }
+
+/* ---- how-to-play for classics ---- */
+const HELP={
+  '2048':['🔢',L('איך משחקים 2048','How to play 2048'),[
+    ['🎯',L('המטרה','Goal'),L('לחבר מספרים עד שמגיעים לאריח 2048.','Merge numbers until you make the 2048 tile.')],
+    ['👆',L('איך מזיזים','How to move'),L('מחליקים עם האצבע למעלה, למטה, ימינה או שמאלה – כל האריחים זזים יחד לאותו כיוון.','Swipe up, down, left or right – all tiles slide together that way.')],
+    ['➕',L('חיבור','Merging'),L('שני אריחים עם אותו מספר שנפגשים מתחברים לאחד: שני 2 נהיים 4, שני 4 נהיים 8, וכן הלאה.','Two tiles with the same number join into one: 2+2=4, 4+4=8 and so on.')],
+    ['⚠️',L('מתי נגמר','Game over'),L('אחרי כל החלקה מופיע אריח חדש. כשהלוח מלא ואין יותר חיבורים – המשחק נגמר.','A new tile appears after every swipe. When the board is full with no merges left – game over.')],
+    ['💡',L('טיפ','Tip'),L('תשאירו את המספר הכי גדול בפינה אחת ואל תזיזו אותו משם.','Keep your biggest number in one corner and don’t move it out.')]]],
+  sudoku:['🧩',L('איך משחקים סודוקו','How to play Sudoku'),[
+    ['🎯',L('המטרה','Goal'),L('למלא את כל הלוח במספרים 1 עד 9.','Fill the whole board with the numbers 1 to 9.')],
+    ['📏',L('החוק','The rule'),L('בכל שורה, בכל עמודה ובכל ריבוע 3×3 – כל מספר מופיע פעם אחת בלבד.','Each row, each column and each 3×3 box has every number exactly once.')],
+    ['👆',L('איך ממלאים','How to fill'),L('נוגעים במשבצת ריקה ואז בוחרים מספר מהשורה למטה. טעיתם? "מחק".','Tap an empty square, then pick a number below. Mistake? Use “Erase”.')],
+    ['❌',L('טעויות','Mistakes'),L('מספר שגוי נצבע באדום ונספר כטעות.','A wrong number turns red and counts as a mistake.')],
+    ['💡',L('טיפ','Tip'),L('תתחילו מהשורות והריבועים שכמעט מלאים. נתקעתם? "רמז".','Start with rows and boxes that are almost full. Stuck? Press “Hint”.')]]],
+  memory:['🃏',L('איך משחקים זיכרון','How to play Memory'),[
+    ['🎯',L('המטרה','Goal'),L('למצוא את כל זוגות הקלפים הזהים.','Find all the matching pairs of cards.')],
+    ['👆',L('איך משחקים','How to play'),L('הופכים שני קלפים. אם הם זהים – הם נשארים פתוחים. אם לא – הם מתהפכים בחזרה, ותנסו לזכור איפה כל אחד.','Flip two cards. If they match they stay open. If not they flip back – try to remember where each one is.')],
+    ['👥',L('שני שחקנים','Two players'),L('כל שחקן בתורו. מצאתם זוג? מקבלים עוד תור! מי שמוצא הכי הרבה זוגות – מנצח.','Take turns. Found a pair? Go again! Whoever finds the most pairs wins.')],
+    ['⭐',L('ניקוד','Score'),L('כמה שפחות מהלכים – יותר טוב.','The fewer moves, the better.')]]],
+  four:['🔴',L('איך משחקים ארבע בשורה','How to play Four in a Row'),[
+    ['🎯',L('המטרה','Goal'),L('להיות הראשון שמסדר 4 דיסקיות בצבע שלו ברצף.','Be the first to line up 4 of your discs in a row.')],
+    ['👆',L('איך משחקים','How to play'),L('נוגעים בעמודה – והדיסקית נופלת למקום הפנוי הכי נמוך בה.','Tap a column – your disc drops to the lowest free spot.')],
+    ['↔️',L('איך מנצחים','How to win'),L('4 ברצף בשורה, בעמודה או באלכסון.','4 in a row across, up-and-down or diagonally.')],
+    ['💡',L('טיפ','Tip'),L('תמיד תבדקו אם היריב עומד לסגור 3 – ותחסמו אותו!','Always check if your opponent is about to make 4 – and block them!')]]],
+  mines:['💣',L('איך משחקים שולה המוקשים','How to play Minesweeper'),[
+    ['🎯',L('המטרה','Goal'),L('לפתוח את כל המשבצות שאין בהן מוקש.','Open every square that has no mine.')],
+    ['⛏️',L('חפירה','Dig'),L('לחיצה רגילה פותחת משבצת. עליתם על מוקש? המשחק נגמר.','A tap opens a square. Hit a mine? Game over.')],
+    ['🔢',L('המספרים','The numbers'),L('מספר במשבצת אומר כמה מוקשים יש סביבה – ב־8 המשבצות שנוגעות בה.','A number tells how many mines touch that square – in the 8 squares around it.')],
+    ['🚩',L('דגל','Flag'),L('לחיצה ארוכה (או כפתור "מצב דגל") שמה דגל על משבצת שאתם בטוחים שיש בה מוקש.','Long-press (or the “Flag mode” button) to put a flag where you’re sure a mine is.')],
+    ['💡',L('טיפ','Tip'),L('תתחילו מהמספר 1 – אם יש לידו רק משבצת סגורה אחת, שם המוקש.','Start with the 1s – if only one closed square touches it, that’s the mine.')]]]
+};
+function showHelp(id,first){ const H=HELP[id]; if(!H) return; const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox hb2" dir="${EN?'ltr':'rtl'}"><div style="font-size:46px;text-align:center;line-height:1">${H[0]}</div><h3>${H[1]}</h3>${H[2].map(r=>`<p><b>${r[0]} ${r[1]}:</b> ${r[2]}</p>`).join('')}<button class="btn pri" style="width:100%">${L('הבנתי, בוא נשחק!','Got it, let’s play!')}</button></div>`; o.onclick=e=>{ if(e.target===o||e.target.tagName==='BUTTON'){ o.remove(); S['help_'+id]=1; save(); } }; document.body.appendChild(o); }
 function pills(list){ $('gStats').innerHTML=list.map(p=>`<div class="pill"><small>${p[0]}</small><b id="${p[1]}">${p[2]??''}</b></div>`).join(''); }
 const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 
@@ -729,7 +764,7 @@ const GMINE={ id:'mines', name:L('שולה המוקשים','Minesweeper'), ic:'�
   unmount(){ this.cleanup&&this.cleanup(); } };
 
 /* ---------- hub ---------- */
-const NEWEST=['robo','drift','pet'];
+const NEWEST=['rise','kibo','robo','drift','pet'];
 const mk=(id,name,art,kick,desc,best)=>({ id, name, sub:'', art:'art/'+art+'.jpg', kick, desc, get isNew(){ return NEWEST.includes(id) && !((S.recent||[]).some(r=>r.id===id)); }, bi:true, frame:id+'.html', ownBack:true, bestTxt:best });
 const GJAM=mk('jam','Jam Escape','jam',L('פאזל חניון','Parking puzzle'),L('מזיזים מכוניות בחניון הפקוק ומשחררים את המכונית האדומה – 40 שלבים','Slide cars around the jammed lot and free the red car – 40 levels'),()=>{ try{ const z=JSON.parse(localStorage.getItem('jam-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/120':''; }catch(e){ return ''; } } );
 const GSKY=mk('sky','Sky Dodge','sky',L('רפלקסים','Reflexes'),L('מטוס ניאון שטס בין מכשולים – כמה רחוק תגיעו?','A neon jet weaving through obstacles – how far can you fly?'),()=>{ try{ const z=JSON.parse(localStorage.getItem('sky-save')||'{}'); return z.best?'🏆 '+z.best+'m':''; }catch(e){ return ''; } });
@@ -755,11 +790,13 @@ const GSLIME=mk('slime','Slime Lab','slime',L('מעבדת סליים עם גלג
 const GCAKE=mk('cake','Surprise Cake','cake',L('אופים עוגה עם הפתעה בפנים','Bake a cake with a surprise inside'),L('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל וחותכים – מה מסתתר בפנים? נקודות? לב? קשת? פיניאטה של ממתקים?!','Pour colorful layers, bake, decorate, spin the wheel and slice – what’s inside? Dots? A heart? A rainbow? A candy piñata?!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('cake-save')||'{}'); const n=Object.keys(z.album||{}).length; return n?'📖 '+n+'/35':''; }catch(e){ return ''; } });
 const GNUMX=mk('numx','Find & Cross','numx',L('מצא את המספר וסמן איקסים – 1 נגד 1','Find the number & cross boxes – 1 vs 1'),L('משחק המחברת מהילדות! אחד מחפש מספר בדף מבולגן, השני ממלא איקסים הכי מהר שאפשר – וכשמוצאים, מתחלפים. מי שממלא ראשון את המחברת מנצח! שני שחקנים על אותו טלפון או נגד המחשב','The classic notebook game! One player hunts a number on a messy page while the other crosses boxes as fast as possible – find it and swap. First to fill the notebook wins! 2 players on one phone or vs the CPU'),()=>{ try{ const z=JSON.parse(localStorage.getItem('numx-save')||'{}'); const w=(z.cpuW||0)+((z.wins||[0,0])[0]||0); return w?'🏆 '+w:''; }catch(e){ return ''; } });
 const GGOAL=mk('goal','Goal Duel','goal',L('כדורגל 1 על 1 בתלת־ממד','1-on-1 3D football'),L('אצטדיון מואר, קהל שואג ושני שחקנים – כדררו, עקפו, תקלו ובעטו בעיטות חזקות לשער! נגד המחשב או שני שחקנים על אותו טלפון','A floodlit stadium, a roaring crowd and two players – dribble, dodge, tackle and fire power shots! vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('goal-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GRISE=mk('rise','Skyrise','rise',L('טיפוס לגובה – רק למעלה!','Vertical climb – only higher!'),L('מטפסים על צינורות, קורות, מכולות וסלעים מרחפים מעל עיר ענקית – קופצים, נתלים על קצוות ומטפסים עד לגביע בפסגה ב־120 מטר. רגיל עם נקודות שמירה, או אמיתי – נפילה מחזירה למטה!','Climb pipes, beams, containers and floating rocks above a giant city – jump, hang from ledges and climb to the trophy at 120 m. Normal with checkpoints, or hardcore – a fall sends you down!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('rise-save')||'{}'); return z.best?'📏 '+z.best+'m':''; }catch(e){ return ''; } });
+const GKIBO=mk('kibo','Kibo Jungle','kibo',L('הרפתקת קפיצות בג׳ונגל','Jungle platform adventure'),L('קיבו רץ, קופץ ומסתובב בג׳ונגל בתלת־ממד! שוברים ארגזים, אוספים מנגו, קופצים על סרטנים, בורחים מסלע ענק ועוברים מקדש עתיק – 5 שלבים, יהלום לכל מי ששובר את כל הארגזים','Kibo runs, jumps and spins through a 3D jungle! Smash crates, collect mangos, bop crabs, outrun a giant boulder and cross an ancient temple – 5 levels and a gem for breaking every crate'),()=>{ try{ const z=JSON.parse(localStorage.getItem('kibo-save')||'{}'); const n=Object.values(z.best||{}).filter(b=>b.gem).length; return n?'💎 '+n:''; }catch(e){ return ''; } });
 const GROBO=mk('robo','Robo Siege','robo',L('קרבות רובוטים – קלפים ומגדלים','Robot battles – cards & towers'),L('שולחים רובוטים, טנקים, דרונים וצלפים בשני נתיבים כדי להפיל את המגדלים של היריב! אנרגיה שמתמלאת, טילים ו־EMP, 4 זירות, שדרוג קלפים – נגד המחשב או שני שחקנים על אותו טלפון','Deploy robots, tanks, drones and snipers down two lanes to blast the enemy towers! Recharging energy, rockets & EMP, 4 arenas, card upgrades – vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('robo-save')||'{}'); return z.tro?'🏆 '+z.tro:''; }catch(e){ return ''; } });
 const GDRIFT=mk('drift','Drift King','drift',L('דריפטים אמיתיים בתלת־ממד','Real 3D drifting'),L('מחליקים בפניות, משאירים סימני צמיגים ועשן, בונים קומבו ×5 ואוספים מתנות! 3 מסלולים – נמל בשקיעה, הרים ועיר ניאון בלילה, 8 אירועים, מוסך עם 4 מכוניות, צבעים ועשן צבעוני','Slide through corners, leave tire marks and smoke, build ×5 combos and grab gifts! 3 tracks – sunset docks, mountains and a neon night city, 8 events, a garage with 4 cars, paints and colored smoke'),()=>{ try{ const z=JSON.parse(localStorage.getItem('drift-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/24':''; }catch(e){ return ''; } });
 const GPET=mk('pet','Pet Pals','pet',L('מגדלים חיית מחמד – או חייזר!','Raise a pet – or an alien!'),L('בוחרים כלבלב, חתלתולה, ארנבון, פנדה או חייזר ידידותי – מאכילים, מקלחים עם ספוג ומקלחת, משחקים בכדור ובבועות, מלטפים, משכיבים לישון ומלבישים כובעים ומשקפיים!','Pick a puppy, kitty, bunny, panda or a friendly alien – feed, scrub and shower, play ball and bubbles, cuddle, tuck into bed and dress up with hats and glasses!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('pet-save')||'{}'); const p=(z.pets||{})[z.cur]; return p?'⭐ '+(EN?'Lv ':'רמה ')+p.lvl:''; }catch(e){ return ''; } });
 const GWAVE=mk('wave','Wave Rush','wave',L('מרוץ אופנועי ים בתלת־ממד','3D jet-ski racing'),L('דוהרים על גלים אמיתיים, אוספים כוכבים וטורבו, קופצים מרמפות ועושים סלטות! דולפינים קופצים לידכם, כרישים מסתובבים בשונית ו־4 מסלולים – עד לים הסוער','Race over real waves, grab stars and turbo, launch off ramps and pull flips! Dolphins leap beside you, sharks circle the reef, 4 courses – all the way to the storm sea'),()=>{ try{ const z=JSON.parse(localStorage.getItem('wave-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/12':''; }catch(e){ return ''; } });
-const NEW=[GROBO,GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
+const NEW=[GRISE,GKIBO,GROBO,GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
 const BIG=[GRON,GSALON,GZORI,GJETI,GNYC], SMALL=[GSOL,GMINE,G2048,GSUD,GMEM,GC4], GAMES=[...NEW,...BIG,...SMALL]; let active=null;
 const PLAY='<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>';
 function staticText(){ try{ net(); }catch(e){}
@@ -778,7 +815,7 @@ const ROWS=()=>[
   {t:L('הרפתקאות בתלת־ממד','3D adventures'), ids:BIG.map(g=>g.id)},
   {t:L('צביעה ויצירה 🎨','Coloring & creating 🎨'), ids:['pet','slime','cake','squishy','tiara','mosaic','crayon','salon','garage']},
   {t:L('חשיבה ופאזלים 🧠','Brain & puzzles 🧠'), ids:['numx','treasure','sushi','momo','peep','claim','jam','liar','mines','solitaire','spot','ron','sudoku','2048','memory','four']},
-  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['robo','drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
+  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['rise','kibo','robo','drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
   {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['pet','numx','slime','cake','squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
   {t:L('קלאסיקות קצרות','Quick classics'), ids:SMALL.map(g=>g.id)},
 ];
@@ -796,9 +833,9 @@ function renderHome(){ const rec=(S.recent||[]).filter(r=>gOf(r.id)).slice(0,10)
   if(rec.length) h+=`<section class="nf-row nf-mine"><h2>${L('🎮 המשחקים שלי','🎮 My games')}<small>${L('מאיפה שהפסקתם','pick up where you left off')}</small></h2><div class="nf-scr">${rec.map(r=>cardHTML(gOf(r.id),{cont:1,t:r.t})).join('')}</div></section>`;
   for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}${r.k==='new'?' nf-big':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
   $('rows').innerHTML=h; hero.show(hero.i); }
-const VIDS=['robo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
+const VIDS=['rise','kibo','robo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
 function heroVid(g){ const ha=$('heroArt'); let v=ha.querySelector('video'); if(v){ v.pause(); v.remove(); } if(!navigator.onLine||!VIDS.includes(g.id)) return; v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.playsInline=true; v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.loop=true; v.autoplay=true; v.preload='auto'; v.className='hvid'; v.src='vid/'+g.id+'.mp4'; v.addEventListener('playing',()=>v.classList.add('on'),{once:true}); v.addEventListener('error',()=>v.remove()); ha.appendChild(v); const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{}); }
-const hero={ i:0, list:()=>['robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
+const hero={ i:0, list:()=>['rise','kibo','robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
   show(i){ const L2=this.list(); this.i=(i+L2.length)%L2.length; const g=L2[this.i]; this.g=g; const bg=$('heroBg'), ha=$('heroArt'); bg.style.opacity=0; ha.style.opacity=0; setTimeout(()=>{ bg.style.backgroundImage=ha.style.backgroundImage=`url('${g.art}')`; bg.style.opacity=1; ha.style.opacity=1; heroVid(g); },180);
     $('heroBadge').textContent=g.isNew?L('✦ חדש באפליקציה','✦ NEW ON THE APP'):L('✦ משחק מומלץ','✦ FEATURED'); $('heroT').textContent=g.name; $('heroD').textContent=g.desc; const bt=g.bestTxt();
     $('heroMeta').innerHTML=`<span>${g.kick}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span><span class="dt">•</span><span class="pg">${L('לכל הגילאים','All ages')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`;
@@ -818,12 +855,13 @@ document.querySelector('.lang').onclick=e=>{ const b=e.target.closest('[data-lan
 $('muteBtn').onclick=()=>{ S.mute=!S.mute; save(); staticText(); if(!S.mute){ ac(); SND.tap(); } };
 function open(id){ const g=GAMES.find(x=>x.id===id); if(!g) return; S.recent=[{id,t:Date.now()},...(S.recent||[]).filter(r=>r.id!==id)].slice(0,12); save();
   if(g.frame){ const w=$('jetiWrap'); const old=w.querySelector('iframe'); if(old) old.remove(); const f=document.createElement('iframe'); showLoad(g); f.addEventListener('load',()=>setTimeout(hideLoad,650),{once:true}); clearTimeout(showLoad.t); showLoad.t=setTimeout(hideLoad,9000); f.src=EN&&!g.bi?g.frame.replace('.html','.en.html'):g.frame; f.allow='autoplay; fullscreen'; w.appendChild(f); $('jetiBack').hidden=!!g.ownBack; w.hidden=false; sky.pause(); history.pushState({g:id},''); return; }
-  active=g; $('home').hidden=true; $('game').hidden=false; $('gTitle').textContent=g.ic+' '+g.name; const body=$('gbody'); body.innerHTML=''; scrollTo(0,0); g.mount(body); history.pushState({g:id},''); }
+  active=g; $('home').hidden=true; $('game').hidden=false; $('gTitle').textContent=g.ic+' '+g.name; const body=$('gbody'); body.innerHTML=''; scrollTo(0,0); g.mount(body); history.pushState({g:id},''); $('helpBtn').hidden=!HELP[id]; if(HELP[id]&&!S['help_'+id]) setTimeout(()=>{ if(active===g) showHelp(id,1); },350); }
 function showLoad(g){ const l=$('gLoad'); l.querySelector('img').src=POSTER(g.id); l.querySelector('b').textContent=g.name; l.hidden=false; l.classList.remove('out'); }
 function hideLoad(){ const l=$('gLoad'); if(l.hidden) return; l.classList.add('out'); setTimeout(()=>{ l.hidden=true; },350); }
 function closeGame(){ hideLoad(); if(!$('jetiWrap').hidden){ $('jetiWrap').hidden=true; const f=$('jetiWrap').querySelector('iframe'); f&&f.remove(); }
   if(active){ active.unmount(); active=null; } $('ov').hidden=true; $('game').hidden=true; $('home').hidden=false; renderHome(); sky.resume(); }
 $('backBtn').onclick=()=>{ SND.tap(); history.state&&history.state.g?history.back():closeGame(); };
+$('helpBtn').onclick=()=>{ SND.tap(); active&&showHelp(active.id); };
 $('jetiBack').onclick=()=>{ history.state&&history.state.g?history.back():closeGame(); };
 addEventListener('popstate',()=>closeGame());
 addEventListener('message',e=>{ if(e.data==='skyplay-home' && !$('jetiWrap').hidden){ const hs=history.state&&history.state.g; closeGame(); if(hs){ try{ history.replaceState(null,''); }catch(er){} } } });
