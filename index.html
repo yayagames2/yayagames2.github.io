@@ -837,8 +837,9 @@ function renderHome(){ const rec=(S.recent||[]).filter(r=>gOf(r.id)).slice(0,10)
 const VIDS=['yaya','rise','kibo','robo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
 /* ---- stats (GoatCounter, no cookies, no personal data) ---- */
 const GC_CODE='yayagames2';
+const GC_APP=(()=>{ try{ if((document.referrer||'').startsWith('android-app://com.yayagames.offlinearcade')) sessionStorage.setItem('oa-app','1'); return sessionStorage.getItem('oa-app')==='1'; }catch(e){ return false; } })();
 function gc(path,title,ev){ try{ if(GC_CODE.startsWith('__')||location.hostname!=='yayagames2.github.io'||navigator.webdriver||!navigator.onLine) return;
-  const q=new URLSearchParams({p:path,t:title||path,e:ev?'true':'false',s:screen.width+','+screen.height+','+(devicePixelRatio||1),r:ev?'':document.referrer,rnd:Math.random().toString(36).slice(2)});
+  const q=new URLSearchParams({p:(GC_APP?'/app':'')+path,t:title||path,e:ev?'true':'false',s:screen.width+','+screen.height+','+(devicePixelRatio||1),r:ev?'':document.referrer,rnd:Math.random().toString(36).slice(2)});
   const i=new Image(); i.referrerPolicy='no-referrer-when-downgrade'; i.src='https://'+GC_CODE+'.goatcounter.com/count?'+q; }catch(e){} }
 function heroVid(g){ const ha=$('heroArt'); let v=ha.querySelector('video'); if(v){ v.pause(); v.remove(); } if(!navigator.onLine||!VIDS.includes(g.id)) return; v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.playsInline=true; v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.loop=true; v.autoplay=true; v.preload='auto'; v.className='hvid'; v.src='vid/'+g.id+'.mp4'; v.addEventListener('playing',()=>v.classList.add('on'),{once:true}); v.addEventListener('error',()=>v.remove()); ha.appendChild(v); const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{}); }
 const hero={ i:0, list:()=>['yaya','rise','kibo','robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
