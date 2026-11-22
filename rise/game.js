@@ -55,17 +55,17 @@ function genCourse() { let p = V3(0, 0, -2), h = 0, n = 0;
   while (p.y < 118 && n < 400) { n++; sinceCp++;
     const sec = sectionOf(p.y); h += rr(-.75, .75); const d0 = Math.hypot(p.x, p.z); if (d0 > 16) { const toC = Math.atan2(-p.x, p.z) ; let dd = toC - h; dd = Math.atan2(Math.sin(dd), Math.cos(dd)); h += dd * .6; }
     const dir = dirOf(h), side = V3(-dir.z, 0, dir.x);
-    if (sinceCp >= 11) { sinceCp = 0; const g = rr(1.3, 2), top = p.y + rr(.2, .8); const c = p.clone().addScaledVector(dir, g + 1.7); c.y = top; const mat = ['concrete', 'steel', 'concrete', 'rock'][sec]; box(c.x, top - .3, c.z, 3.4, .6, 3.4, -h, mat); if (sec === 3) box(c.x, top - 1.1, c.z, 2.6, 1, 2.6, -h + .4, 'rock', false); CPS.push(V3(c.x, top, c.z)); p.copy(c).addScaledVector(dir, 1.4); supports(c, top - .6, sec); continue; }
+    if (sinceCp >= 8) { sinceCp = 0; const g = rr(1.3, 2), top = p.y + rr(.2, .8); const c = p.clone().addScaledVector(dir, g + 1.7); c.y = top; const mat = ['concrete', 'steel', 'concrete', 'rock'][sec]; box(c.x, top - .3, c.z, 3.4, .6, 3.4, -h, mat); if (sec === 3) box(c.x, top - 1.1, c.z, 2.6, 1, 2.6, -h + .4, 'rock', false); CPS.push(V3(c.x, top, c.z)); p.copy(c).addScaledVector(dir, 1.4); supports(c, top - .6, sec); continue; }
     const kinds = [['crate', 'cont', 'plank', 'cont', 'ac', 'climb', 'pipe'], ['pipe', 'pipe', 'pipe', 'steelbox', 'climb', 'beam', 'pipe'], ['beam', 'beam', 'slab', 'cont', 'climb', 'pipe', 'plank'], ['rock', 'rock', 'plank', 'cloud', 'climb', 'rock', 'cont']][sec];
     const k = kinds[(R() * kinds.length) | 0];
-    if (k === 'pipe' || k === 'beam' || k === 'plank') { const dy = rr(-.2, 1.0), gap = rr(1.3, 2.5 - dy * .5), L = rr(4.5, 9); const top = p.y + dy; const st = p.clone().addScaledVector(dir, gap); const c = st.clone().addScaledVector(dir, L / 2); const ry = Math.PI / 2 - h;
-      if (k === 'pipe') { const r = rr(.32, .55); pipe(c.x, top - r, c.z, r, L, ry, R() < .6 ? 'rust' : 'steel'); }
-      else if (k === 'beam') { const w = rr(.45, .7); box(c.x, top - .2, c.z, L, .4, w, ry, 'paint'); box(c.x, top - .55, c.z, L, .3, .12, ry, 'paint', false); box(c.x, top - .78, c.z, L, .1, w, ry, 'paint', false); }
-      else { const w = rr(.7, 1.1); box(c.x, top - .08, c.z, L, .16, w, ry, 'wood'); }
+    if (k === 'pipe' || k === 'beam' || k === 'plank') { const dy = rr(-.2, 1.0), gap = rr(1.1, 2.15 - dy * .5), L = rr(4.5, 9); const top = p.y + dy; const st = p.clone().addScaledVector(dir, gap); const c = st.clone().addScaledVector(dir, L / 2); const ry = Math.PI / 2 - h;
+      if (k === 'pipe') { const r = rr(.42, .6); pipe(c.x, top - r, c.z, r, L, ry, R() < .6 ? 'rust' : 'steel'); }
+      else if (k === 'beam') { const w = rr(.6, .85); box(c.x, top - .2, c.z, L, .4, w, ry, 'paint'); box(c.x, top - .55, c.z, L, .3, .12, ry, 'paint', false); box(c.x, top - .78, c.z, L, .1, w, ry, 'paint', false); }
+      else { const w = rr(.9, 1.25); box(c.x, top - .08, c.z, L, .16, w, ry, 'wood'); }
       supports(c, top - .6, sec, L, h); p.copy(st).addScaledVector(dir, L); p.y = top; continue; }
     if (k === 'climb') { const top = p.y + rr(1.6, 2.0), gap = rr(.4, .9), sz = rr(1.6, 2.6), hh = rr(2.2, 4); const c = p.clone().addScaledVector(dir, gap + sz / 2); const mat = ['contB', 'steel', 'concrete', 'rock'][sec]; box(c.x, top - hh / 2, c.z, sz, hh, sz, -h, mat, true, { grab: 1 }); p.copy(c).addScaledVector(dir, sz / 2 - .2); p.y = top; continue; }
     // block types
-    const dy = rr(-.1, 1.05), gap = rr(1.2, 2.4 - dy * .5); let sx = 2, sy = 1, sz = 2, mat = 'wood', ry = -h;
+    const dy = rr(-.1, .95), gap = rr(1.0, 2.05 - dy * .5); let sx = 2, sy = 1, sz = 2, mat = 'wood', ry = -h;
     if (k === 'crate') { sx = sz = rr(1.1, 1.6); sy = sx; mat = 'wood'; }
     if (k === 'cont') { sx = 2.4; sy = 2.6; sz = rr(5, 6.5); mat = ['contR', 'contB', 'contG', 'contO'][(R() * 4) | 0]; }
     if (k === 'ac') { sx = 1.3; sy = 1; sz = 1.1; mat = 'steel'; }
@@ -160,12 +160,12 @@ function collideH() { const P = PL.p; for (const c of COL) { if (!near(c, P.x, P
 function ceiling() { const P = PL.p; for (const c of COL) { if (c.t !== 'b' || !near(c, P.x, P.z)) continue; const bot = c.y - c.hy; if (bot < P.y + HGT - .35 || bot > P.y + HGT + .05) continue; const [lx, lz] = loc(c, P.x, P.z); if (Math.abs(lx) < c.hx && Math.abs(lz) < c.hz) { P.y = bot - HGT; if (PL.v.y > 0) PL.v.y = 0; } } }
 function moveIntent() { const mx = inp.x, my = inp.y; const L = Math.min(1, Math.hypot(mx, my)); if (L < .08) return { d: V3(), L: 0 }; const f = V3(-Math.sin(camYaw), 0, -Math.cos(camYaw)), r = V3(Math.cos(camYaw), 0, -Math.sin(camYaw)); const d = f.multiplyScalar(-my).addScaledVector(r, mx); d.normalize(); return { d, L }; }
 function tryGrab(mi) { const P = PL.p; const intent = mi.L > .2 ? mi.d : V3(PL.v.x, 0, PL.v.z).normalize(); if (intent.lengthSq() < .1) return false;
-  for (const c of COL) { if (c.t !== 'b' || !near(c, P.x, P.z)) continue; const top = c.y + c.hy, dh = top - P.y; if (dh < 1.3 || dh > 2.2) continue; const [lx, lz] = loc(c, P.x, P.z); const cx = clamp(lx, -c.hx, c.hx), cz = clamp(lz, -c.hz, c.hz); const ox = lx - cx, oz = lz - cz, d = Math.hypot(ox, oz); if (d < .01 || d > RAD + .32) continue;
+  for (const c of COL) { if (c.t !== 'b' || !near(c, P.x, P.z)) continue; const top = c.y + c.hy, dh = top - P.y; if (dh < 1.1 || dh > 2.45) continue; const [lx, lz] = loc(c, P.x, P.z); const cx = clamp(lx, -c.hx, c.hx), cz = clamp(lz, -c.hz, c.hz); const ox = lx - cx, oz = lz - cz, d = Math.hypot(ox, oz); if (d < .01 || d > RAD + .32) continue;
     let nlx = 0, nlz = 0, ex, ez; if (Math.abs(ox) > Math.abs(oz)) { nlx = Math.sign(ox); ex = nlx * c.hx; ez = clamp(lz, -c.hz + .22, c.hz - .22); } else { nlz = Math.sign(oz); ez = nlz * c.hz; ex = clamp(lx, -c.hx + .22, c.hx - .22); }
     const n = V3(nlx * c.c + nlz * c.s, 0, -nlx * c.s + nlz * c.c); if (intent.dot(n) > -.35) continue; const [wx, wz] = toW(c, ex, ez);
     if (COL.some(o => o !== c && o.t === 'b' && Math.abs(o.y - o.hy - top) < 1.2 && o.y - o.hy > top - .2 && (() => { const [a, b] = loc(o, wx - n.x * .4, wz - n.z * .4); return Math.abs(a) < o.hx && Math.abs(b) < o.hz; })())) continue;
     PL.hang = { c, n, e: V3(wx, top, wz) }; P.set(wx + n.x * (RAD + .04), top - 2.02, wz + n.z * (RAD + .04)); PL.v.set(0, 0, 0); PL.st = 'hang'; PL.face = Math.atan2(-n.x, -n.z); A.noise(.08, 'lowpass', 900, 1, .08); A.tone(180, .08, 'triangle', .05); return true; } return false; }
-function stepPlayer(dt) { const P = PL, mi = moveIntent(); P.noGrab -= dt; P.jb -= dt; P.coy -= dt; if (inp.jump) { P.jb = .14; inp.jump = 0; } P.stun = Math.max(0, P.stun - dt);
+function stepPlayer(dt) { const P = PL, mi = moveIntent(); P.noGrab -= dt; P.jb -= dt; P.coy -= dt; if (inp.jump) { P.jb = .18; inp.jump = 0; } P.stun = Math.max(0, P.stun - dt);
   if (P.st === 'hang') { const n = P.hang.n; if (P.jb > 0 || (mi.L > .5 && mi.d.dot(n) < -.6)) { P.jb = 0; P.st = 'climb'; P.cu = 0; P.from.copy(P.p); P.to.copy(P.hang.e).addScaledVector(n, -.42); A.noise(.25, 'lowpass', 700, 1, .06); } else if (mi.L > .5 && mi.d.dot(n) > .5) { P.st = 'air'; P.noGrab = .45; P.v.set(n.x * 1.6, 0, n.z * 1.6); P.airT = 0; P.peak = P.p.y; } return; }
   if (P.st === 'climb') { P.cu += dt / 1.05; const u = Math.min(1, P.cu); const e1 = t => t * t * (3 - 2 * t); if (u < .55) { const q = e1(u / .55); P.p.set(P.from.x, lerp(P.from.y, P.to.y, q), P.from.z); } else { const q = e1((u - .55) / .45); P.p.set(lerp(P.from.x, P.to.x, q), P.to.y, lerp(P.from.z, P.to.z, q)); } if (u >= 1) { P.st = 'idle'; P.onG = 1; P.v.set(0, 0, 0); P.gH = P.p.y; } return; }
   let spd = 0; if (mi.L > 0 && !P.stun) spd = mi.L < .75 ? 2.3 * mi.L / .75 : 5.4; const tv = mi.d.clone().multiplyScalar(spd); const k = Math.min(1, (P.onG ? 14 : 3.2) * dt); P.v.x = lerp(P.v.x, tv.x, k); P.v.z = lerp(P.v.z, tv.z, k);
@@ -174,7 +174,7 @@ function stepPlayer(dt) { const P = PL, mi = moveIntent(); P.noGrab -= dt; P.jb 
   P.p.x += P.v.x * dt; P.p.z += P.v.z * dt; collideH();
   const y0 = P.p.y; P.v.y = Math.max(-40, P.v.y - 20 * dt); P.p.y += P.v.y * dt; if (P.v.y > 0) ceiling();
   const g = groundAt(P.p.x, P.p.z, Math.max(y0, P.p.y)); P.gH = g.h;
-  if (P.onG) { if (g.h >= P.p.y - .45 && P.v.y <= 0) { P.p.y = g.h; P.v.y = 0; } else { P.onG = 0; P.coy = .1; P.st = 'air'; P.airT = 0; P.peak = P.p.y; } }
+  if (P.onG) { if (g.h >= P.p.y - .45 && P.v.y <= 0) { P.p.y = g.h; P.v.y = 0; } else { P.onG = 0; P.coy = .17; P.st = 'air'; P.airT = 0; P.peak = P.p.y; } }
   else { P.airT += dt; P.peak = Math.max(P.peak, P.p.y); if (P.v.y <= 0 && P.p.y <= g.h) { const fall = P.peak - g.h; P.p.y = g.h; P.v.y = 0; P.onG = 1; P.st = 'idle'; P.land = clamp(fall / 4, .2, 1); A.noise(.1, 'lowpass', 400 + 200 * (1 - P.land), 1, .05 + P.land * .08); FX.burst(P.p.clone().add(V3(0, .05, 0)), 6 + (P.land * 12 | 0), [[.7, .68, .62]], 1 + P.land * 2, .1, .5, 2);
         if (fall > 7) { P.stun = .7; shake = .4; buzz(60); A.tone(140, .25, 'sine', .12, 0, 70); if (fall > 12) bigTxt('−' + Math.round(fall) + T(' מ׳ 😱', ' m 😱'), '', 1200); } }
       else if (P.noGrab <= 0 && P.airT > .1 && P.v.y < 2.5) tryGrab(mi); }

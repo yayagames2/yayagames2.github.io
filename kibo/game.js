@@ -64,12 +64,15 @@ const LEVELS = [
   { n: T('בריחה מהסלע', 'Boulder Run'), ic: '🪨', th: 'chase', chase: 1, rows: ['.....*10', '.c...', '.....*3', '...c.', '.....*3', '     *2', '.....*4', '.i...', '.....*3', '...i.', '.....*3', '.f.f.*2', '.....*2', '     *2', '.....*3', ' ... *4', '.....*3', '..i..', '.....*3', '..k..', '.....*3', '^1', '.....*4', '^0', '.....*3', '     *3', '.....*3', '.c.c.', '.....*2', 'f.f.f', '.....*3', 'i...i', '.....*2', '..i..', '.....*3', '     *2', '.....*4', '..G..', '.....*8'],
     tips: { 2: T('🪨 סלע ענק! רוצו – רק ימינה ושמאלה וקפיצה', '🪨 A giant boulder! Run – just steer and jump') } },
   { n: T('מפל הענקים', 'Giant Falls'), ic: '💦', th: 'falls', rows: ['.....*5', '..f..*2', '.e.e.', '.....*2', '     ', ' m   ', '     ', '   m ', '     ', '.....*2', '..z..', '.....', '.s.s.', '.....*2', '^1', '.c?c.', '.....*2', '^2', '.....', '.p.p.', '.....*2', '..k..', '.....*2', '  .  *3', '     ', '  m  ', '     ', '.....*2', '.t.t.', '.....', '..e..', '.....*2', '^1', '.....', 'z...z', '.....*2', '..b..', '^3', '.....*2', '.f.f.', '.....', '..l..', '.....*2', '^2', '.....', 's...s', '.....', '..z..', '.....*2', '^0', '.....', '     ', ' m   ', '     ', '   m ', '     ', '.....*2', '.qCc.', '.....*2', '..G..', '.....*6'],
-    tips: {} }];
+    tips: {} },
+  { n: T('מלך הסרטנים', 'The Crab King'), ic: '👑', th: 'boss', boss: 1, rows: ['.....*5', '..f..*2', '.c.c.', '.....*2', '^1', '.....*2', '.f.f.', '..e..', '.....*2', '^0', '.....*2', '..?..', '.....*2', '..q..', '.....*2', '^1', '.....*2', 'f...f', '..z..', '.....*2', '  .  *3', '.....*2', '.l.C.', '.....*2', '^0', '.....*3', '.....*10', '..B..', '.....*5'],
+    tips: { 2: T('👑 בסוף השלב מחכה מלך הסרטנים!', '👑 The Crab King waits at the end!') } }];
 const THEMES = {
   day: { top: '#3a9aff', hor: '#cfeeff', fog: '#bfe6dc', sun: '#fff2d8', hemi: ['#e8f6ff', '#5a7a3a', 1.1], key: 2.6, stone: 0, near: 26, far: 95 },
   river: { top: '#2a8af0', hor: '#d8f4ff', fog: '#c8ecf0', sun: '#ffffff', hemi: ['#e8f8ff', '#3a6a5a', 1.15], key: 2.5, stone: 0, near: 26, far: 95, water: 1 },
   temple: { top: '#ff8a4a', hor: '#ffd8a0', fog: '#e8b088', sun: '#ffc888', hemi: ['#ffd8b0', '#5a4a3a', .95], key: 2.4, stone: 1, near: 22, far: 85 },
   chase: { top: '#4aa0e8', hor: '#e0f0e0', fog: '#c8e0c8', sun: '#fff0d0', hemi: ['#f0f8ff', '#4a6a3a', 1.05], key: 2.5, stone: 0, near: 26, far: 95 },
+  boss: { top: '#5a2a9a', hor: '#ffae6a', fog: '#d89a8a', sun: '#ffcf9a', hemi: ['#ffe0c8', '#4a3a5a', 1.05], key: 2.4, stone: 1, near: 24, far: 85 },
   falls: { top: '#5ab0ff', hor: '#f0fbff', fog: '#d8f0ff', sun: '#ffffff', hemi: ['#f4fbff', '#4a7a6a', 1.2], key: 2.3, stone: 1, near: 20, far: 80, water: 1 } };
 
 /* ================= LIGHTS / SKY ================= */
@@ -140,7 +143,7 @@ const flyPool = []; for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(frui
 
 /* ================= LEVEL BUILD ================= */
 let LV = null, lvG = null, water = null, portal = null; const crates = [], enemies = [], fruits = [], plats = [], spikes = [], flags = []; let fruitIM = null, fLeafIM = null;
-function clearLevel() { if (lvG) { scene.remove(lvG); lvG.traverse(o => { if (o.isInstancedMesh) o.dispose(); }); } for (const a of [crates, enemies, fruits, plats, spikes, flags]) a.length = 0; }
+function clearLevel() { BS = null; nuts.length = 0; rings.length = 0; if ($('bossBar')) $('bossBar').hidden = true; if (lvG) { scene.remove(lvG); lvG.traverse(o => { if (o.isInstancedMesh) o.dispose(); }); } for (const a of [crates, enemies, fruits, plats, spikes, flags]) a.length = 0; }
 function inst(geo, mat, list, shadow = true, recv = false, colors) { if (!list.length) return null; const im = new THREE.InstancedMesh(geo, mat, list.length); list.forEach((o, i) => { DUM.position.set(o[0], o[1], o[2]); DUM.rotation.set(o[3] || 0, o[4] || 0, o[5] || 0, 'YXZ'); DUM.scale.set(o[6] ?? 1, o[7] ?? o[6] ?? 1, o[8] ?? o[6] ?? 1); DUM.updateMatrix(); im.setMatrixAt(i, DUM.matrix); if (colors) im.setColorAt(i, C(colors[i])); }); im.castShadow = shadow; im.receiveShadow = recv; lvG.add(im); return im; }
 function buildLevel(i) { clearLevel(); const D = LEVELS[i], th = THEMES[D.th]; lvG = new THREE.Group(); scene.add(lvG); const R = rng(100 + i * 17);
   const rows = []; let h = 0; for (const ln of D.rows) { if (ln[0] === '^') { h = +ln.slice(1); continue; } const [s, n] = ln.split('*'); for (let k = 0; k < (+n || 1); k++) rows.push({ s: s.padEnd(5).slice(0, 5), h }); }
@@ -179,6 +182,7 @@ function buildLevel(i) { clearLevel(); const D = LEVELS[i], th = THEMES[D.th]; l
     if (ch === 'z') { const o = buildBee(); enemies.push({ k: 'bee', o, g: o.g, x, x0: x, y: y + 1.15, z, alive: 1, ph: R() * 6, amp: 1.7 }); }
     if (ch === 's') { const o = buildSpikes(); o.g.position.set(x, y, z); lvG.add(o.g); spikes.push({ o, x, y, z, ph: (ri % 3) * .8 }); }
     if (ch === 'm') { const g = buildPlat(); lvG.add(g); plats.push({ g, x: 0, x0: x, h: rows[Math.max(0, ri - 1)].h, z, ph: 0, px: 0, dx: 0 }); }
+    if (ch === 'B') LV.bossAt = { x, y, z };
     if (ch === 'G') { portal = buildPortal(); portal.position.set(x, y, z); lvG.add(portal); LV.goal = { x, y, z }; } });
     if (r.full && ri % 2 === 0 && !r.s.includes('m')) fr.push([0, rows[Math.max(0, ri - 1)].h + 1.5, z]); });
   for (const e of enemies) { e.g.position.set(e.x, e.y, e.z); lvG.add(e.g); }
@@ -187,8 +191,51 @@ function buildLevel(i) { clearLevel(); const D = LEVELS[i], th = THEMES[D.th]; l
   LV.total = crates.filter(c => c.kind !== 'i' && c.kind !== 'b').length;
   // theme
   skyU.top.value.set(th.top); skyU.hor.value.set(th.hor); scene.fog.color.set(th.fog); scene.fog.near = th.near; scene.fog.far = th.far; hemi.color.set(th.hemi[0]); hemi.groundColor.set(th.hemi[1]); hemi.intensity = th.hemi[2]; sun.color.set(th.sun); sun.intensity = th.key;
-  boulder.visible = LV.chase; }
+  boulder.visible = LV.chase; if (LV.bossAt) makeBoss(LV.bossAt); }
 function addCrate(kind, x, y, z) { const m = new THREE.Mesh(G.crate, CRM[kind]); m.position.set(x, y + .45, z); m.castShadow = true; m.receiveShadow = true; lvG.add(m); const c = { kind, m, x, y, z, base: y, alive: 1, fuse: 0, sq: 0, vy: 0, below: null, tn: 0 }; crates.push(c); return c; }
+
+/* ================= BOSS ================= */
+let BS = null; const nuts = [], rings = [];
+const nutGeo = new THREE.SphereGeometry(.34, 16, 12), nutMat = std('#7a4a26', { roughness: .8 }), ringMat = new THREE.MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: .8, side: THREE.DoubleSide, depthWrite: false });
+function makeBoss(at) { const o = buildCrab(); const g = o.g; g.scale.setScalar(2.7); const gold = new THREE.MeshPhysicalMaterial({ color: '#ffcf3a', roughness: .25, metalness: .7, clearcoat: 1 });
+  const crown = new THREE.Group(); crown.position.set(0, .62, 0); g.add(crown); mk(new THREE.CylinderGeometry(.16, .18, .1, 16, 1, true), gold, 0, 0, 0, crown); for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; const sp = mk(new THREE.ConeGeometry(.04, .12, 6), gold, Math.sin(a) * .16, .1, Math.cos(a) * .16, crown); mk(new THREE.SphereGeometry(.025, 8, 6), std('#ff3a6a', { roughness: .2 }), Math.sin(a) * .16, .17, Math.cos(a) * .16, crown); }
+  const stars = new THREE.Group(); stars.position.set(0, .95, 0); g.add(stars); for (let k = 0; k < 4; k++) { const a = k / 4 * TAU; mk(new THREE.OctahedronGeometry(.05), new THREE.MeshBasicMaterial({ color: '#fff27a' }), Math.sin(a) * .22, 0, Math.cos(a) * .22, stars); } stars.visible = false;
+  g.rotation.y = 0; g.position.set(at.x, at.y, at.z); lvG.add(g); BS = { o, g, crown, stars, x: 0, y: at.y, z: at.z, hp: 3, st: 'wait', t: 0, nt: 0, on: 0, flash: 0, dead: 0, kv: null, arenaZ: at.z + 11 }; }
+function bossBar() { const b = $('bossBar'); if (!b || !BS) return; b.hidden = !BS.on || BS.st === 'gone'; b.querySelector('i').style.width = (BS.hp / 3 * 100) + '%'; }
+function throwNut() { const lane = clamp(Math.round(PL.p.x + rnd(-1, 1)), -2, 2); const m = new THREE.Mesh(nutGeo, nutMat); m.castShadow = true; lvG.add(m); const spd = 4.6 + (3 - BS.hp) * 1.1; nuts.push({ m, x: BS.x, tx: lane, y: BS.y + .34, z: BS.z + 1.4, v: spd, alive: 1 }); A.tone(160, .14, 'square', .05, 0, 90); BS.o.claws.forEach(c => c.rotation.x = -1); }
+function slam() { const m = new THREE.Mesh(new THREE.RingGeometry(.85, 1, 40).rotateX(-Math.PI / 2), ringMat.clone()); m.position.set(BS.x, BS.y + .06, BS.z); lvG.add(m); rings.push({ m, r: 1, alive: 1 }); shake = .8; sfx.boom(); buzz([30, 30, 50]); FX.burst(V3(BS.x, BS.y + .2, BS.z), 30, [[.8, .7, .55]], 4, .2, .8, 6); }
+function bossHit() { BS.hp--; BS.flash = .5; BS.st = 'hit'; BS.t = 0; PL.v.y = 12; PL.onG = 0; PL.cut = 0; sfx.knock(); A.voice('grr', .55); buzz([20, 20, 40]); GL.burst(V3(BS.x, BS.y + 2.2, BS.z), 30, [[2, 2, .8], [2, 1, .4]], 4, .12, .8, 2); bossBar();
+  for (const n of nuts) { n.alive = 0; lvG.remove(n.m); } nuts.length = 0;
+  if (BS.hp <= 0) { BS.st = 'dead'; BS.kv = V3(0, 9, -6); A.stopMusic(); big(T('👑 ניצחת את המלך!', '👑 You beat the King!'), T('קפצו לפורטל', 'Jump into the portal'), 2400); flash(.7); for (let i = 0; i < 4; i++) setTimeout(() => confettiAt(V3(BS ? BS.x : 0, BS ? BS.y : 0, BS ? BS.z : 0)), i * 250); }
+  else big(T('💥 פגיעה!', '💥 Hit!'), (BS.hp) + ' ' + T('עוד', 'more'), 1000); }
+function stepBoss(dt, t) { if (!BS) return; const P = PL.p; BS.t += dt;
+  if (!BS.on) { if (state === 'play' && P.z < BS.arenaZ) { BS.on = 1; BS.st = 'attack'; BS.t = -1.2; LV.cp = { x: 0, z: P.z, y: PL.supH }; big('👑 ' + T('מלך הסרטנים!', 'The Crab King!'), T('חכו שיסתחרר – וקפצו לו על הראש!', 'Wait till he’s dizzy – then jump on his head!'), 2600); A.startMusic({ chords: [[52, 55, 59], [48, 52, 55], [50, 53, 57], [47, 50, 54]], bpm: 132, lead: true, vol: .4 }); bossBar(); }
+    BS.o.claws.forEach((c, i) => c.rotation.x = Math.sin(t * 2 + i) * .2); BS.g.position.set(BS.x, BS.y, BS.z); return; }
+  const o = BS.o, g = BS.g;
+  if (BS.st === 'dead') { BS.t += 0; BS.kv.y -= 16 * dt; g.position.addScaledVector(BS.kv, dt); g.rotation.x += dt * 5; g.rotation.z += dt * 3; if (g.position.y < BS.y - 12) { BS.st = 'gone'; g.visible = false; portal = buildPortal(); portal.position.set(0, BS.y, BS.z); lvG.add(portal); LV.goal = { x: 0, y: BS.y, z: BS.z }; GL.burst(V3(0, BS.y + 1.3, BS.z), 50, [[.6, 2, 1.4]], 3, .1, 1.2, 0); A.tone(660, .2, 'triangle', .08); A.tone(990, .3, 'triangle', .08, .15); bossBar(); } return; }
+  if (BS.st === 'gone') return;
+  const fast = 3 - BS.hp;
+  if (BS.st === 'attack') { const dur = 5.2 + fast * .6; BS.x = Math.sin(t * (1 + fast * .35)) * 1.5; o.legs.forEach((l, i) => l.rotation.x = Math.sin(t * 16 + i) * .45);
+    BS.nt -= dt; if (BS.t > 0 && BS.nt <= 0) { BS.nt = 1.25 - fast * .22; throwNut(); }
+    o.claws.forEach(c => c.rotation.x = lerp(c.rotation.x, Math.sin(t * 6) * .3, Math.min(1, dt * 6)));
+    if (BS.t > dur) { if (fast > 0) { BS.st = 'jump'; BS.t = 0; } else { BS.st = 'dizzy'; BS.t = 0; A.tone(900, .5, 'sine', .05, 0, 300); } } }
+  else if (BS.st === 'jump') { const h = Math.sin(Math.min(1, BS.t / .7) * Math.PI) * 2.2; g.position.y = BS.y + h; if (BS.t >= .7) { slam(); if (fast > 1) setTimeout(() => BS && BS.st !== 'dead' && BS.st !== 'gone' && slam(), 650); BS.st = 'dizzy'; BS.t = 0; A.tone(900, .5, 'sine', .05, .3, 300); } }
+  else if (BS.st === 'dizzy') { o.legs.forEach(l => l.rotation.x = .9); if (BS.t > 3.2 - fast * .3) { BS.st = 'attack'; BS.t = 0; BS.nt = .6; } }
+  else if (BS.st === 'hit') { BS.x = lerp(BS.x, 0, Math.min(1, dt * 3)); if (BS.t > 1.1) { BS.st = 'attack'; BS.t = 0; BS.nt = .8; } }
+  const dz = BS.st === 'dizzy' ? 1 : 0; BS.stars.visible = !!dz; BS.stars.rotation.y += dt * 5; const sq = dz ? .78 + Math.sin(t * 3) * .03 : 1;
+  if (BS.st !== 'jump') g.position.set(BS.x, BS.y, BS.z); else g.position.x = BS.x; g.scale.set(2.7 * (dz ? 1.08 : 1), 2.7 * sq, 2.7); g.rotation.z = dz ? Math.sin(t * 4) * .12 : 0;
+  BS.flash = Math.max(0, BS.flash - dt); g.visible = !(BS.flash > 0 && Math.sin(t * 50) > 0);
+  if (state === 'play' && BS.st !== 'hit') { const dx = P.x - BS.x, dzz = P.z - BS.z, d = Math.hypot(dx, dzz); const top = g.position.y + 1.6 * sq;
+    if (d < 1.9 && P.y > top - .9 && PL.v.y < -1 && BS.st === 'dizzy') bossHit();
+    else if (d < 2.0 && PL.spinT > 0 && BS.st === 'dizzy') bossHit();
+    else if (d < 1.45 && P.y < top - .5) { if (BS.st === 'dizzy') { PL.v.z = 6; } else hurt(); } }
+  // nuts
+  for (const n of nuts) { if (!n.alive) continue; n.z += n.v * dt; n.x = lerp(n.x, n.tx, Math.min(1, dt * 2.5)); n.m.position.set(n.x, n.y, n.z); n.m.rotation.x += n.v / .34 * dt;
+    if (state === 'play') { const d = Math.hypot(P.x - n.x, P.z - n.z); if (d < .75 && P.y < n.y + .3) { if (PL.spinT > 0) { n.alive = 0; lvG.remove(n.m); sfx.crate(); FX.burst(n.m.position, 18, [[.55, .35, .2], [.95, .9, .8]], 3, .1, .7, 10); collect(1); } else { hurt(); n.alive = 0; lvG.remove(n.m); } } }
+    if (n.z > BS.arenaZ + 3) { n.alive = 0; lvG.remove(n.m); } }
+  for (let i = nuts.length - 1; i >= 0; i--) if (!nuts[i].alive) nuts.splice(i, 1);
+  for (const r of rings) { if (!r.alive) continue; r.r += dt * 5.5; r.m.scale.setScalar(r.r); r.m.material.opacity = clamp(1 - r.r / 12, 0, .85); const d = Math.hypot(P.x - BS.x, P.z - BS.z); if (state === 'play' && PL.onG && Math.abs(d - r.r) < .45 && P.y < BS.y + .4) hurt(); if (r.r > 12) { r.alive = 0; lvG.remove(r.m); } }
+  for (let i = rings.length - 1; i >= 0; i--) if (!rings[i].alive) rings.splice(i, 1); }
 
 /* ================= STATE ================= */
 let state = 'title', lives = 3, fruitN = 0, crateN = 0, playT = 0, shake = 0, camH = 0, bz = 0, bH = 0, bSpd = 0, endT = 0, combo = 0, comboT = 0;
@@ -311,6 +358,7 @@ const camP = V3(0, 4, 8), camL = V3();
 function updCam(dt, snap) { const P = PL.p, port = innerWidth < innerHeight; camH = snap ? PL.supH : lerp(camH, Math.max(PL.supH, P.y - 2.2), Math.min(1, dt * 3)); let tp, tl;
   if (state === 'title') { const a = Math.sin(performance.now() / 4000) * .35; tp = V3(P.x + Math.sin(a) * 4.2, camH + 1.6, P.z + Math.cos(a) * 4.2 + .2); tl = V3(P.x, camH + (port ? .25 : .75), P.z); }
   else if (LV.chase) { tp = V3(P.x * .35, camH + (port ? 4.4 : 3.6), P.z - (port ? 9.8 : 8.2)); tl = V3(P.x * .45, camH + .9, P.z + 3); }
+  else if (BS && BS.on && BS.st !== 'gone') { tp = V3(P.x * .4, camH + (port ? 6.4 : 5.2), P.z + (port ? 9.6 : 8)); tl = V3(P.x * .5, camH + .8, (P.z + BS.z) / 2 - 1); }
   else { tp = V3(P.x * .55, camH + (port ? 4.9 : 4.0), P.z + (port ? 8.6 : 7.2)); tl = V3(P.x * .7, camH + .7, P.z - 4.4); }
   if (snap) { camP.copy(tp); camL.copy(tl); } else { camP.lerp(tp, Math.min(1, dt * 5)); camL.lerp(tl, Math.min(1, dt * 6)); }
   camera.position.copy(camP); if (shake > 0) { camera.position.add(V3(rnd(-1, 1), rnd(-1, 1), 0).multiplyScalar(shake * .25)); shake = Math.max(0, shake - dt * 1.6); } camera.lookAt(camL);
@@ -318,7 +366,7 @@ function updCam(dt, snap) { const P = PL.p, port = innerWidth < innerHeight; cam
   sun.position.set(P.x + 6, P.y + 14, P.z + 5); sun.target.position.set(P.x, P.y, P.z - 3); sky.position.copy(camera.position); }
 
 /* ================= FLOW ================= */
-function respawn() { const c = LV.cp; PL.p.set(c.x, c.y + .01, c.z); PL.v.set(0, 0, 0); PL.inv = 1.4; PL.deadT = 0; PL.onG = 1; PL.supH = c.y; PL.face = Math.PI; PL.spinT = 0; KB.root.scale.setScalar(1); KB.root.position.y = 0; KB.root.rotation.set(0, 0, 0); if (LV.chase) { bz = PL.p.z + 8; bH = c.y; } updCam(0, true); }
+function respawn() { for (const n of nuts) lvG && lvG.remove(n.m); nuts.length = 0; for (const r of rings) lvG && lvG.remove(r.m); rings.length = 0; if (BS && BS.on && BS.st !== 'dead' && BS.st !== 'gone') { BS.st = 'attack'; BS.t = -1.5; BS.nt = 1; } const c = LV.cp; PL.p.set(c.x, c.y + .01, c.z); PL.v.set(0, 0, 0); PL.inv = 1.4; PL.deadT = 0; PL.onG = 1; PL.supH = c.y; PL.face = Math.PI; PL.spinT = 0; KB.root.scale.setScalar(1); KB.root.position.y = 0; KB.root.rotation.set(0, 0, 0); if (LV.chase) { bz = PL.p.z + 8; bH = c.y; } updCam(0, true); }
 function startLevel(i) { S.sel = i; S.save(); buildLevel(i); lives = 3; fruitN = 0; crateN = 0; playT = 0; PL.buddy = 0; LV.cp = { x: 0, z: -1.5, y: LV.rows[1].h }; respawn(); state = 'play';
   $('title').hidden = true; $('hud').hidden = false; $('ctl').hidden = !isTouch; ['endS', 'pauseS', 'overS'].forEach(id => $(id).hidden = true); updHud();
   big(LEVELS[i].ic + ' ' + LEVELS[i].n, T('שלב ', 'Level ') + (i + 1), 1800); A.startMusic({ chords: [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 55, 59]], bpm: LV.chase ? 140 : 116, lead: true, vol: .38 }); }
@@ -363,11 +411,11 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.033, (n
     if (LV.goal && Math.abs(PL.p.z - LV.goal.z) < .6 && Math.abs(PL.p.x - LV.goal.x) < 1.3 && PL.p.y < LV.goal.y + 2.5) win(); }
   if (state === 'dead' && PL.deadT > 1.5) { lives--; updHud(); if (lives <= 0) { state = 'over'; gameOver(); } else { respawn(); state = 'play'; } }
   if (state === 'win') { endT += dt; PL.v.set(0, 0, 0); PL.face += dt * 6; if (endT > .2 && Math.random() < .3) confettiAt(PL.p); if (endT > 1.7) { state = 'end'; showEnd(); } }
-  if (LV) { stepWorld(dt, t); animKibo(dt, t); updCam(dt); }
+  if (LV) { stepWorld(dt, t); stepBoss(dt, t); animKibo(dt, t); updCam(dt); }
   if (tipT > 0) { tipT -= dt; if (tipT <= 0) $('tip').classList.remove('on'); }
   FX.update(dt, .02); GL.update(dt); E.render(); }
 
 hubButtons(['homeT'], A); $('homeT').innerHTML = ICO.home('#2a3a12'); qualityButton('qBtn', S);
 if (EN) { document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; }
 E.resize(); toTitle(); setTimeout(() => { $('loading').hidden = true; requestAnimationFrame(frame); window.__kbOK = true; }, 30);
-window.__kb = { respawn, stepWorld, PL, inp, get LV() { return LV; }, get state() { return state; }, startLevel, crates, enemies, fruits, plats, stepPlayer, updCam, buildLevel, toTitle, win, get lives() { return lives; }, get fruitN() { return fruitN; }, get crateN() { return crateN; }, set state(v) { state = v; } };
+window.__kb = { get BS() { return BS; }, nuts, stepBoss, set statePlay(v) { state = v; }, respawn, stepWorld, PL, inp, get LV() { return LV; }, get state() { return state; }, startLevel, crates, enemies, fruits, plats, stepPlayer, updCam, buildLevel, toTitle, win, get lives() { return lives; }, get fruitN() { return fruitN; }, get crateN() { return crateN; }, set state(v) { state = v; } };

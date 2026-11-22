@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>YaYa Land</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#7ec4f0;--accent:#ffcf3a;--deep:#1a5a2a;--btn:linear-gradient(180deg,#7ae05a,#2aa84a);--btnsh:#156a2a;--panel:rgba(16,30,40,.62);--scr:transparent}
+body{background:#7ec4f0;color:#fff;overflow:hidden}
+#hud{position:fixed;z-index:6;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;gap:6px;align-items:center;pointer-events:none;direction:ltr}
+#hud>*{pointer-events:auto}#hud .sp{flex:1}
+.ib{width:44px;height:44px;border-radius:15px;background:rgba(14,26,38,.55);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px);font-size:20px;color:#fff;display:grid;place-items:center;flex:none}
+.ib.on{background:rgba(255,207,58,.85);border-color:#fff}
+.ib:disabled{opacity:.4}
+#ctl{position:fixed;inset:0;z-index:4}
+#look{position:absolute;inset:0;touch-action:none}
+.joy{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 74px);width:124px;height:124px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);touch-action:none}
+.joy i{position:absolute;left:34px;top:34px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.7);box-shadow:0 4px 10px rgba(0,0,0,.3)}
+.rbt{position:absolute;border-radius:50%;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.55),rgba(255,255,255,.2));border:3px solid rgba(255,255,255,.7);font-weight:900;color:#fff;touch-action:none;display:grid;place-items:center;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.rbt.on{transform:scale(.93);background:rgba(255,255,255,.6)}
+#bJ{right:max(16px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 84px);width:84px;height:84px;font-size:30px}
+#bA{right:max(18px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 182px);width:78px;height:78px;font-size:34px;background:radial-gradient(circle at 40% 30%,#ffe27a,#ff9a1a);border-color:#fff}
+#aim{position:fixed;z-index:3;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:3px solid rgba(255,255,255,.75);box-shadow:0 0 0 2px rgba(0,0,0,.25);pointer-events:none;display:none}#aim::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:#fff}#aim.on{border-color:#ffcf3a}
+body.play #aim{display:block}
+#bD{right:max(108px,calc(env(safe-area-inset-right) + 108px));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 84px);width:62px;height:62px;font-size:24px}
+#modes{position:fixed;z-index:6;right:max(10px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + 122px);display:flex;flex-direction:column;gap:6px}
+#modes button{width:52px;height:52px;border-radius:16px;background:rgba(14,26,38,.55);border:2px solid rgba(255,255,255,.25);font-size:24px;display:grid;place-items:center;position:relative;backdrop-filter:blur(8px)}
+#modes button small{position:absolute;bottom:-1px;left:0;right:0;font-size:9.5px;font-weight:800;color:#fff}
+#modes button[aria-pressed=true]{background:rgba(255,207,58,.9);border-color:#fff}
+#bar{position:fixed;z-index:6;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:5px;padding:0 8px;direction:ltr;pointer-events:none}
+#bar button{pointer-events:auto;width:min(50px,12vw);height:min(50px,12vw);border-radius:13px;background:rgba(14,26,38,.55);border:2px solid rgba(255,255,255,.22);display:grid;place-items:center;padding:3px;flex:none;backdrop-filter:blur(6px)}
+#bar button canvas,#bar button img{width:100%;height:100%}
+#bar button.sel{border-color:#ffcf3a;background:rgba(255,207,58,.35);transform:translateY(-4px);box-shadow:0 6px 14px rgba(0,0,0,.3)}
+#bar .bag{background:linear-gradient(180deg,#ffcf3a,#ff9a1a);font-size:24px;border-color:#fff}
+#selName{position:fixed;z-index:6;left:0;right:0;bottom:calc(max(8px,env(safe-area-inset-bottom)) + min(50px,12vw) + 12px);text-align:center;pointer-events:none;font-weight:900;font-size:14px;text-shadow:0 2px 4px rgba(0,0,0,.6);opacity:0;transition:opacity .3s}
+#selName.on{opacity:1}
+#bagS{position:fixed;inset:0;z-index:12;background:rgba(6,14,24,.55);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+#bagS .pn{width:min(560px,100%);max-height:78vh;background:linear-gradient(180deg,#fdfbf2,#eef6ff);color:#1a2a3a;border-radius:24px 24px 0 0;padding:12px 12px max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;box-shadow:0 -10px 40px rgba(0,0,0,.3)}
+#bagS .hd{display:flex;align-items:center;gap:8px}
+#bagS .hd b{flex:1;font-size:19px;font-weight:900}
+#bagS .x{width:40px;height:40px;border-radius:14px;background:#e4ebf2;font-size:20px}
+#tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+#tabs button{flex:none;padding:7px 12px;border-radius:12px;background:#e4ebf2;font-weight:800;font-size:14px}
+#tabs button[aria-pressed=true]{background:#ffcf3a}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;overflow-y:auto;padding:2px}
+#grid button{border-radius:14px;background:#fff;border:2px solid #dde6ee;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:800;color:#2a3a4a;line-height:1.1}
+#grid button canvas,#grid button .em{width:44px;height:44px}
+#grid button .em{font-size:34px;display:grid;place-items:center}
+#grid button.sel{border-color:#ffb21a;background:#fff6d8}
+#tip{position:fixed;z-index:7;left:12px;right:12px;top:max(62px,calc(env(safe-area-inset-top) + 56px));text-align:center;pointer-events:none;opacity:0;transition:opacity .3s}
+#tip span{display:inline-block;background:rgba(255,255,255,.95);color:#1a3a2a;font-weight:900;font-size:15px;padding:9px 14px;border-radius:16px;box-shadow:0 6px 16px rgba(0,0,0,.25);max-width:420px}
+#tip.on{opacity:1}
+#title{justify-content:flex-start;background:linear-gradient(180deg,rgba(20,60,110,.35),rgba(20,60,110,0) 30%,rgba(20,60,110,0) 55%,rgba(10,40,30,.82) 74%)}
+#title .logo .a{color:#fff;letter-spacing:10px;font-size:clamp(22px,6vw,34px);text-shadow:0 3px 0 #1a5a2a}
+#title .logo .b{-webkit-text-stroke:3px #1a5a2a;color:#ffcf3a;text-shadow:0 6px 0 #1a5a2a,0 14px 24px rgba(0,0,0,.35)}
+.spc{flex:1;min-height:32vh}
+.rec{margin-top:8px;font-weight:800;color:#ffe9a8;font-size:14px}
+#pauseS .card{background:linear-gradient(180deg,#ffffff,#eefaf0)}
+@media (orientation:landscape) and (max-height:560px){.spc{min-height:0;flex:0}#title{background:linear-gradient(180deg,rgba(20,60,110,.3),rgba(10,40,30,.85) 70%)}.joy{bottom:max(14px,env(safe-area-inset-bottom))}#bJ{bottom:max(16px,env(safe-area-inset-bottom))}#bD{bottom:max(16px,env(safe-area-inset-bottom));right:max(196px,calc(env(safe-area-inset-right) + 196px))}#bA{bottom:max(16px,env(safe-area-inset-bottom));right:max(108px,calc(env(safe-area-inset-right) + 108px));width:76px;height:76px}#bar{left:150px;right:200px}#selName{display:none}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ctl" hidden><div id="look"></div><div class="joy" id="joy"><i></i></div><button class="rbt" id="bA">🧱</button><button class="rbt" id="bJ">⤒</button><button class="rbt" id="bD" hidden>⤓</button></div>
+<div id="aim"></div>
+<div id="hud" hidden><button class="ib" id="pBtn" aria-label="menu">⏸</button><button class="ib" id="uBtn" aria-label="undo">↶</button><div class="sp"></div><button class="ib" id="dBtn" aria-label="day night">🌙</button><button class="ib" id="fBtn" aria-label="fly">🕊️</button></div>
+<div id="modes" hidden><button data-m="build" aria-pressed="true">🧱<small></small></button><button data-m="break">⛏️<small></small></button><button data-m="paint">🖌️<small></small></button></div>
+<div id="bar" hidden></div>
+<div id="selName"></div>
+<div id="bagS" hidden><div class="pn"><div class="hd"><b id="bagT"></b><button class="x" id="bagX">✕</button></div><div id="tabs"></div><div id="grid"></div></div></div>
+<div id="tip"><span></span></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo" style="margin-top:3vh"><span class="a">YAYA</span><span class="b">LAND</span></h1>
+  <p class="sub" id="tSub"></p>
+  <div class="spc"></div>
+  <div class="rec" id="rec"></div>
+  <button class="big" id="goBtn"></button>
+  <div class="chips"><button class="chip" id="newBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndChip"></button></div>
+</section>
+<div class="sheet" id="pauseS" hidden><div class="card"><h3 id="pT"></h3><p id="pP"></p><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div class="sheet" id="newS" hidden><div class="card"><div style="font-size:50px">🌍</div><h3 id="nT"></h3><p id="nP"></p><div class="row"><button class="btn" id="nNo"></button><button class="btn pri" id="nYes"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="yaya/game.js"></script>
+</body>
+</html>

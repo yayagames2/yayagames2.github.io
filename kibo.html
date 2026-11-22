@@ -44,15 +44,17 @@ body{background:#123a1e;color:#fff;overflow:hidden}
 #endS .card,#pauseS .card,#overS .card{background:linear-gradient(180deg,#fffdf0,#f2ffe0)}
 .st{display:flex;justify-content:center;gap:14px;font-weight:900;font-size:20px;margin:6px 0 12px;direction:ltr;flex-wrap:wrap}
 .gem{font-size:36px;animation:pop .5s ease-out}
+#bossBar{position:fixed;z-index:6;left:50%;transform:translateX(-50%);top:max(112px,calc(env(safe-area-inset-top) + 108px));display:flex;align-items:center;gap:8px;direction:ltr;pointer-events:none}#bossBar b{font-size:26px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}#bossBar span{width:min(220px,50vw);height:16px;border-radius:9px;background:rgba(0,0,0,.45);border:2px solid #fff;overflow:hidden}#bossBar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff3a3a,#ffb21a);transition:width .4s}
 #flash{position:fixed;inset:0;z-index:7;pointer-events:none;background:#fff;opacity:0;transition:opacity .25s}
 #hurt{position:fixed;inset:0;z-index:7;pointer-events:none;box-shadow:inset 0 0 120px rgba(255,40,40,.7);opacity:0;transition:opacity .3s}
-@media (orientation:landscape) and (max-height:560px){.spc{min-height:0;flex:0}#title{background:linear-gradient(180deg,rgba(10,40,14,.35),rgba(6,24,8,.88) 62%)!important}.lvs{grid-template-columns:repeat(5,1fr);width:min(640px,100%)}#title .logo{margin-top:0!important}}
+@media (orientation:landscape) and (max-height:560px){.spc{min-height:0;flex:0}#title{background:linear-gradient(180deg,rgba(10,40,14,.35),rgba(6,24,8,.88) 62%)!important}.lvs{grid-template-columns:repeat(6,1fr);width:min(700px,100%)}#title .logo{margin-top:0!important}}
 </style>
 </head>
 <body>
 <div id="stage"></div>
 <div id="hud" hidden><button id="qBtnG" aria-label="pause">⏸</button><div class="hp" id="hF">🥭 <span id="nF">0</span></div><div class="hp" id="hC">📦 <span id="nC">0/0</span></div><div class="sp"></div><div class="hp" id="bud" hidden>✨</div><div class="hp" id="hL">❤️ <span id="nL">3</span></div></div>
 <div id="ctl" hidden><div class="joy" id="joy"><i></i></div><button class="ab" id="bS">🌀<small></small></button><button class="ab" id="bJ">⤒<small></small></button></div>
+<div id="bossBar" hidden><b>👑</b><span><i></i></span></div>
 <div id="tip"><span></span></div>
 <div id="big"></div>
 <div id="flash"></div><div id="hurt"></div>
