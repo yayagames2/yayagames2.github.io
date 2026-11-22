@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.yayagames.offlinearcade",
+      "sha256_cert_fingerprints": [
+        "EC:BB:CB:F9:2C:CE:AA:5F:22:F2:51:1A:33:3C:B4:94:80:02:80:D0:C3:52:D0:74:B2:51:A0:0C:5B:75:F9:0B",
+        "D5:FA:CA:E2:75:C0:36:15:0C:B0:E4:CD:F1:03:5E:94:08:91:FC:9C:30:C6:A4:8D:05:4C:D7:11:4B:52:9D:DC"
+      ]
+    }
+  }
+]
