@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
+<script src="lib/i18n.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0a0b24">
 <title>Offline Arcade</title>
@@ -32,8 +33,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 .mark{width:40px;height:40px;border-radius:12px;flex:none;box-shadow:0 6px 18px rgba(255,95,162,.35)}
 .top .sp{flex:1}
 .lang{display:flex;padding:3px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.lang button{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted);transition:.2s}
-.lang button[aria-pressed=true]{background:#fff;color:#1a1640}
+.lang{align-items:center;gap:4px;padding:7px 12px;font-size:14px;font-weight:800;color:#fff}.lang b{font-size:13px;letter-spacing:.5px}
+#langSheet{position:fixed;inset:0;z-index:61;background:rgba(5,8,25,.6);display:grid;place-items:center;padding:16px}#langSheet[hidden]{display:none}
+#langSheet .c{width:min(380px,100%);max-height:86vh;overflow:auto;background:#fff;color:#1c2240;border-radius:26px;padding:18px 14px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+#langSheet h3{margin:2px 0 12px;text-align:center;font-size:21px}#langSheet .g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#langSheet .g button{height:48px;border-radius:14px;background:#eef1fb;color:#1c2240;font:inherit;font-weight:800;font-size:15px;border:2px solid transparent}
+#langSheet .g button.on{background:#fff4e0;border-color:#ff9a3c}
 .ibtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:17px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 
 .brand{padding:26px 20px 6px;text-align:center}
@@ -344,6 +349,27 @@ body{background:#0b0b12}
 @media (min-width:900px){.nf-hart{width:min(48vw,620px,(100vh - 290px)*1.466)}.nf-hc{width:min(56vw,720px)!important}}
 @media (orientation:landscape) and (max-height:600px){.nf-hart{width:min(60vw,(100vh - 230px)*1.466)}}
 .nf-hart{cursor:pointer;overflow:hidden}.nf-hart .hvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;border-radius:inherit;pointer-events:none}.nf-hart .hvid.on{opacity:1}
+
+.nf-off{margin:14px 16px 0;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);font-size:13px;font-weight:700;color:#cfcde0;text-align:center;line-height:1.4}
+.nf-off b{color:#fff}.nf-off .ok{color:#5ae08a;white-space:nowrap}.nf-off .wait{color:#ffd23a;white-space:nowrap}
+.nf-filt{position:sticky;top:56px;z-index:5;margin:12px 0 0;padding:8px 16px;background:linear-gradient(180deg,rgba(11,11,18,.96),rgba(11,11,18,.86));backdrop-filter:blur(8px)}
+.srch{display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12)}
+.srch input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0;color:#fff;font:inherit;font-size:15px;font-weight:700}
+.srch input::placeholder{color:#8a88a0}.srch input::-webkit-search-cancel-button{display:none}
+.srch button{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:13px}
+.fchips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}.fchips::-webkit-scrollbar{display:none}
+.fchips button{flex:none;height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e8e6f4;font-weight:800;font-size:13.5px;white-space:nowrap}
+.fchips button.on{background:#fff;color:#0b0b12;border-color:#fff}
+#results{padding:6px 16px 20px}
+#results h2{margin:6px 0 10px;font-size:17px;font-weight:800}
+.nf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(44vw,200px),1fr));gap:10px}
+.nf-grid .nf-c{width:auto}
+.nf-empty{padding:30px 10px;text-align:center;color:#9a98b0;font-weight:700}
+.nf-c .fv{position:absolute;bottom:5px;right:5px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;background:rgba(0,0,0,.45);color:#fff;z-index:3;line-height:1}
+.nf-c .fv.on{background:rgba(229,9,20,.85)}
+.nf-top .nf-c .fv{display:none}
+.ib2{display:flex;gap:8px;align-items:stretch;width:100%}.ib2 .nf-play{flex:1}
+.nf-fav{flex:none;width:52px;border-radius:8px;background:rgba(255,255,255,.12);font-size:22px;color:#fff}
 </style>
 </head>
 <body>
@@ -362,12 +388,15 @@ body{background:#0b0b12}
     <div class="nf-logo"><span>OFFLINE</span><b>ARCADE</b></div>
     <div class="sp"></div>
     <button class="nf-ap" id="apmBtn"><i class="dot"></i><span id="netTxt"></span></button>
-    <div class="lang" role="group" aria-label="Language"><button data-lang="he">עב</button><button data-lang="en">EN</button></div>
+    <button class="lang" id="langBtn" aria-label="Language">🌐 <b id="langCode"></b></button>
     <button class="ibtn" id="muteBtn" aria-label="sound">🔊</button>
   </header>
   <div class="nf-hero" id="hero"><div class="nf-hbg" id="heroBg"></div><div class="nf-hshade"></div><div class="nf-hart" id="heroArt"></div>
     <div class="nf-hc"><div class="nf-badge" id="heroBadge"></div><h1 id="heroT"></h1><div class="nf-meta" id="heroMeta"></div><p id="heroD"></p>
       <div class="nf-hb"><button class="nf-play" id="heroPlay"></button><button class="nf-info" id="heroInfo"></button></div><div class="nf-hdots" id="heroDots"></div></div></div>
+  <div class="nf-off" id="offStrip"></div>
+  <div class="nf-filt" id="filt"><label class="srch"><span>🔍</span><input id="q" type="search" autocomplete="off"><button id="qx" hidden>✕</button></label><div class="fchips" id="fchips"></div></div>
+  <div id="results" hidden></div>
   <div id="rows"></div>
   <div class="nf-foot">
     <div class="nf-soon"><b id="soonT"></b><small id="soonP"></small></div>
@@ -375,7 +404,7 @@ body{background:#0b0b12}
     <div class="foot" id="foot"></div>
   </div>
 </section>
-<div class="nf-sheet" id="info" hidden><div class="nf-sc"><button class="nf-x" id="infoX">✕</button><div class="nf-sart" id="infoArt"></div><div class="nf-sb"><h2 id="infoT"></h2><div class="nf-meta" id="infoMeta"></div><p id="infoD"></p><button class="nf-play wide" id="infoPlay"></button></div></div></div>
+<div class="nf-sheet" id="info" hidden><div class="nf-sc"><button class="nf-x" id="infoX">✕</button><div class="nf-sart" id="infoArt"></div><div class="nf-sb"><h2 id="infoT"></h2><div class="nf-meta" id="infoMeta"></div><p id="infoD"></p><div class="ib2"><button class="nf-play wide" id="infoPlay"></button><button class="nf-fav" id="infoFav"></button></div></div></div></div>
 
 <section class="screen" id="game" hidden>
   <div class="gbar">
@@ -387,6 +416,7 @@ body{background:#0b0b12}
   <div id="gbody"></div>
 </section>
 
+<div id="langSheet" hidden><div class="c"><h3>🌐 Language · שפה</h3><div class="g" id="langGrid"></div></div></div>
 <div id="apSheet" hidden><div class="c"><h3 id="apT"></h3><p id="apP"></p><div class="st" id="apS"></div><button id="apGo" hidden></button><button id="apX"></button></div></div>
 <div id="jetiWrap" hidden><button id="jetiBack"></button></div>
 <div id="gLoad" hidden><div class="gl-in"><img alt=""><b></b><div class="gl-sp"></div></div></div>
@@ -399,10 +429,10 @@ const LS='skyplay-v1';
 let S={}; try{ S=JSON.parse(localStorage.getItem(LS)||'{}')||{}; }catch(e){ S={}; }
 function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){} }
 /* ---------- language ---------- */
-let LANG=null; try{ LANG=localStorage.getItem('oa-lang'); }catch(e){}
-if(LANG!=='he'&&LANG!=='en') LANG=/^he|^iw/i.test(navigator.language||'')?'he':'en';
-const EN=LANG==='en'; const L=(he,en)=>EN?en:he;
-document.documentElement.lang=LANG; document.documentElement.dir=EN?'ltr':'rtl';
+let LANG=window.OA_LANG||'en';
+const FRAME_LANGS=['en','es','pt','de','fr','it','tr','ru','id','pl','ar','hi'];
+const EN=LANG!=='he', RTL=LANG==='he'||LANG==='ar'; const L=(he,en)=>!EN?he:(window.OA_TR?OA_TR(en):en);
+document.documentElement.lang=LANG; document.documentElement.dir=RTL?'rtl':'ltr';
 function setLang(l){ try{ localStorage.setItem('oa-lang',l); }catch(e){} if(l!==LANG) location.reload(); }
 const best=(k,v,lower)=>{ if(v==null) return S['b_'+k]; const o=S['b_'+k]; if(o==null||(lower?v<o:v>o)){ S['b_'+k]=v; save(); return true; } return false; };
 
@@ -449,7 +479,7 @@ const HELP={
     ['🚩',L('דגל','Flag'),L('לחיצה ארוכה (או כפתור "מצב דגל") שמה דגל על משבצת שאתם בטוחים שיש בה מוקש.','Long-press (or the “Flag mode” button) to put a flag where you’re sure a mine is.')],
     ['💡',L('טיפ','Tip'),L('תתחילו מהמספר 1 – אם יש לידו רק משבצת סגורה אחת, שם המוקש.','Start with the 1s – if only one closed square touches it, that’s the mine.')]]]
 };
-function showHelp(id,first){ const H=HELP[id]; if(!H) return; const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox hb2" dir="${EN?'ltr':'rtl'}"><div style="font-size:46px;text-align:center;line-height:1">${H[0]}</div><h3>${H[1]}</h3>${H[2].map(r=>`<p><b>${r[0]} ${r[1]}:</b> ${r[2]}</p>`).join('')}<button class="btn pri" style="width:100%">${L('הבנתי, בוא נשחק!','Got it, let’s play!')}</button></div>`; o.onclick=e=>{ if(e.target===o||e.target.tagName==='BUTTON'){ o.remove(); S['help_'+id]=1; save(); } }; document.body.appendChild(o); }
+function showHelp(id,first){ const H=HELP[id]; if(!H) return; const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox hb2" dir="${RTL?'rtl':'ltr'}"><div style="font-size:46px;text-align:center;line-height:1">${H[0]}</div><h3>${H[1]}</h3>${H[2].map(r=>`<p><b>${r[0]} ${r[1]}:</b> ${r[2]}</p>`).join('')}<button class="btn pri" style="width:100%">${L('הבנתי, בוא נשחק!','Got it, let’s play!')}</button></div>`; o.onclick=e=>{ if(e.target===o||e.target.tagName==='BUTTON'){ o.remove(); S['help_'+id]=1; save(); } }; document.body.appendChild(o); }
 function pills(list){ $('gStats').innerHTML=list.map(p=>`<div class="pill"><small>${p[0]}</small><b id="${p[1]}">${p[2]??''}</b></div>`).join(''); }
 const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 
@@ -650,7 +680,7 @@ const GSOL={ id:'solitaire', name:L('סוליטר','Solitaire'), ic:'🂡', cls:
     let draw=S.solDraw||1;
     el.innerHTML=`<div class="seg" id="sd"><button data-d="1">${L('קלף אחד','Draw 1')}</button><button data-d="3">${L('שלושה קלפים','Draw 3')}</button></div>
       <div class="sol" id="sb"></div><div class="row"><button class="btn" id="su">↩️ ${L('בטל','Undo')}</button><button class="btn" id="sh">💡 ${L('רמז','Hint')}</button><button class="btn" id="sa" hidden>⚡ ${L('סיום אוטומטי','Auto finish')}</button><button class="btn" id="shelp">❓ ${L('איך משחקים','How to play')}</button><button class="btn pri" id="sn">${L('משחק חדש','New game')}</button></div>`;
-    const showHelp=()=>{ const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox" dir="${EN?'ltr':'rtl'}"><h3>🂡 ${L('איך משחקים סוליטר','How to play Solitaire')}</h3>
+    const showHelp=()=>{ const o=document.createElement('div'); o.className='solHelp'; o.innerHTML=`<div class="solHelpBox" dir="${RTL?'rtl':'ltr'}"><h3>🂡 ${L('איך משחקים סוליטר','How to play Solitaire')}</h3>
       <p><b>🎯 ${L('המטרה','Goal')}:</b> ${L('להעביר את כל הקלפים ל־4 הערימות למעלה – כל צורה בערימה משלה, מאס ועד מלך (A, 2, 3 … K).','Move all cards to the 4 piles at the top – one pile per suit, from Ace up to King (A, 2, 3 … K).')}</p>
       <p><b>🃏 ${L('בעמודות','In the columns')}:</b> ${L('מניחים קלף על קלף גבוה ממנו באחד ובצבע הפוך – למשל 7 אדום על 8 שחור.','Put a card on one that is one higher and the opposite colour – e.g. a red 7 on a black 8.')}</p>
       <p><b>👑 ${L('עמודה ריקה','Empty column')}:</b> ${L('רק מלך (K) יכול להיכנס לעמודה ריקה.','Only a King (K) can go into an empty column.')}</p>
@@ -764,7 +794,7 @@ const GMINE={ id:'mines', name:L('שולה המוקשים','Minesweeper'), ic:'�
   unmount(){ this.cleanup&&this.cleanup(); } };
 
 /* ---------- hub ---------- */
-const NEWEST=['yaya','rise','kibo','robo','drift'];
+const NEWEST=['ski','backgammon','checkers','snakes','dominoes','yaya','rise','kibo','robo','drift'];
 const mk=(id,name,art,kick,desc,best)=>({ id, name, sub:'', art:'art/'+art+'.jpg', kick, desc, get isNew(){ return NEWEST.includes(id) && !((S.recent||[]).some(r=>r.id===id)); }, bi:true, frame:id+'.html', ownBack:true, bestTxt:best });
 const GJAM=mk('jam','Jam Escape','jam',L('פאזל חניון','Parking puzzle'),L('מזיזים מכוניות בחניון הפקוק ומשחררים את המכונית האדומה – 40 שלבים','Slide cars around the jammed lot and free the red car – 40 levels'),()=>{ try{ const z=JSON.parse(localStorage.getItem('jam-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/120':''; }catch(e){ return ''; } } );
 const GSKY=mk('sky','Sky Dodge','sky',L('רפלקסים','Reflexes'),L('מטוס ניאון שטס בין מכשולים – כמה רחוק תגיעו?','A neon jet weaving through obstacles – how far can you fly?'),()=>{ try{ const z=JSON.parse(localStorage.getItem('sky-save')||'{}'); return z.best?'🏆 '+z.best+'m':''; }catch(e){ return ''; } });
@@ -790,6 +820,11 @@ const GSLIME=mk('slime','Slime Lab','slime',L('מעבדת סליים עם גלג
 const GCAKE=mk('cake','Surprise Cake','cake',L('אופים עוגה עם הפתעה בפנים','Bake a cake with a surprise inside'),L('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל וחותכים – מה מסתתר בפנים? נקודות? לב? קשת? פיניאטה של ממתקים?!','Pour colorful layers, bake, decorate, spin the wheel and slice – what’s inside? Dots? A heart? A rainbow? A candy piñata?!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('cake-save')||'{}'); const n=Object.keys(z.album||{}).length; return n?'📖 '+n+'/35':''; }catch(e){ return ''; } });
 const GNUMX=mk('numx','Find & Cross','numx',L('מצא את המספר וסמן איקסים – 1 נגד 1','Find the number & cross boxes – 1 vs 1'),L('משחק המחברת מהילדות! אחד מחפש מספר בדף מבולגן, השני ממלא איקסים הכי מהר שאפשר – וכשמוצאים, מתחלפים. מי שממלא ראשון את המחברת מנצח! שני שחקנים על אותו טלפון או נגד המחשב','The classic notebook game! One player hunts a number on a messy page while the other crosses boxes as fast as possible – find it and swap. First to fill the notebook wins! 2 players on one phone or vs the CPU'),()=>{ try{ const z=JSON.parse(localStorage.getItem('numx-save')||'{}'); const w=(z.cpuW||0)+((z.wins||[0,0])[0]||0); return w?'🏆 '+w:''; }catch(e){ return ''; } });
 const GGOAL=mk('goal','Goal Duel','goal',L('כדורגל 1 על 1 בתלת־ממד','1-on-1 3D football'),L('אצטדיון מואר, קהל שואג ושני שחקנים – כדררו, עקפו, תקלו ובעטו בעיטות חזקות לשער! נגד המחשב או שני שחקנים על אותו טלפון','A floodlit stadium, a roaring crowd and two players – dribble, dodge, tackle and fire power shots! vs the CPU or 2 players on one phone'),()=>{ try{ const z=JSON.parse(localStorage.getItem('goal-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GSKI=mk('ski','Powder Rush','ski',L('סקי וסנובורד בתלת־ממד','3D ski & snowboard'),L('גולשים במורד 4 הרים – סלטות, סיבובים וגראבים מעל רמפות, מסלול שערים, גלישה חופשית ואתגר בלי ליפול. בוחרים את KAI הפאנקיסט או את LUNA ומלבישים אותם!','Ride down 4 mountains – flips, spins and grabs off ramps, slalom gates, free ride and a no-fall challenge. Pick punk KAI or LUNA and dress them up!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('ski-save')||'{}'); const b=Math.max(0,...Object.entries(z.best||{}).filter(([k])=>/free|nofall/.test(k)).map(([,v])=>v)); return b?'🏂 '+b:''; }catch(e){ return ''; } });
+const GBG=mk('backgammon',L('Backgammon','Backgammon'),'backgammon',L('שש-בש – משחק הקופסה הקלאסי','Classic backgammon'),L('מגלגלים קוביות, אוכלים אבנים ומוציאים את כל ה-15 הביתה – נגד המחשב (3 רמות) או חבר על אותו מכשיר. כולל הוראות.','Roll the dice, hit checkers and bear all 15 home – vs the computer (3 levels) or a friend on one device. Rules included.'),()=>{ try{ const z=JSON.parse(localStorage.getItem('bg-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GCK=mk('checkers',L('Checkers','Checkers'),'checkers',L('דמקה – חוקים ישראליים או קלאסיים','Checkers – Israeli or classic rules'),L('קופצים, אוכלים ומגיעים לקצה כדי להפוך למלך 👑 – נגד המחשב או חבר. כולל הוראות.','Jump, capture and reach the far side to become a king 👑 – vs the computer or a friend. Rules included.'),()=>{ try{ const z=JSON.parse(localStorage.getItem('ck-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
+const GSL=mk('snakes',L('Snakes & Ladders','Snakes & Ladders'),'snakes',L('סולמות ונחשים – עד 4 שחקנים','Snakes & Ladders – up to 4 players'),L('מטפסים בסולמות, מחליקים בנחשים – מי מגיע ראשון ל-100? עד 4 שחקנים, אנשים או מחשב. כולל הוראות.','Climb ladders, slide down snakes – who reaches 100 first? Up to 4 players, people or computer. Rules included.'),()=>{ try{ const z=JSON.parse(localStorage.getItem('sl-save')||'{}'); return z.myW?'🏆 '+z.myW:''; }catch(e){ return ''; } });
+const GDOM=mk('dominoes',L('Dominoes','Dominoes'),'dominoes',L('דומינו – מחברים מספרים','Dominoes – match the dots'),L('מחברים אבנים עם אותו מספר, שולפים מהקופה ונפטרים מכל היד – עד 50 או 100 נקודות. כולל הוראות.','Match tiles with the same number, draw from the pile and empty your hand – play to 50 or 100 points. Rules included.'),()=>{ try{ const z=JSON.parse(localStorage.getItem('dm-save')||'{}'); return z.w?'🏆 '+z.w:''; }catch(e){ return ''; } });
 const GYAYA=mk('yaya','YaYa Land','yaya',L('עולם פתוח – בונים כל מה שרוצים!','Open world – build anything!'),L('העולם הפתוח של יאיא: יערות, אגמים, הרים וחיות חמודות. בונים בלוק אחרי בלוק מעשרות חומרים – עץ, זכוכית, לבנים, צבעים ומנורות זוהרות – או מציבים בית, מגדל, גשר וקשת בלחיצה. אפשר לעוף, להחליף ליום ולילה, וכל מה שבניתם נשמר!','YaYa’s open world: forests, lakes, mountains and cute animals. Build block by block from dozens of materials – wood, glass, bricks, colors and glowing lamps – or drop a house, tower, bridge or rainbow with one tap. Fly, switch day and night, and everything you build is saved!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('yaya-save')||'{}'); return z.builds?'🧱 '+z.builds:''; }catch(e){ return ''; } });
 const GRISE=mk('rise','Skyrise','rise',L('טיפוס לגובה – רק למעלה!','Vertical climb – only higher!'),L('מטפסים על צינורות, קורות, מכולות וסלעים מרחפים מעל עיר ענקית – קופצים, נתלים על קצוות ומטפסים עד לגביע בפסגה ב־120 מטר. רגיל עם נקודות שמירה, או אמיתי – נפילה מחזירה למטה!','Climb pipes, beams, containers and floating rocks above a giant city – jump, hang from ledges and climb to the trophy at 120 m. Normal with checkpoints, or hardcore – a fall sends you down!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('rise-save')||'{}'); return z.best?'📏 '+z.best+'m':''; }catch(e){ return ''; } });
 const GKIBO=mk('kibo','Kibo Jungle','kibo',L('הרפתקת קפיצות בג׳ונגל','Jungle platform adventure'),L('קיבו רץ, קופץ ומסתובב בג׳ונגל בתלת־ממד! שוברים ארגזים, אוספים מנגו, קופצים על סרטנים, בורחים מסלע ענק עוברים מקדש עתיק ונלחמים במלך הסרטנים בשלב הבוס – 6 שלבים, יהלום לכל מי ששובר את כל הארגזים','Kibo runs, jumps and spins through a 3D jungle! Smash crates, collect mangos, bop crabs, outrun a giant boulder, cross an ancient temple and battle the Crab King boss – 6 levels and a gem for breaking every crate'),()=>{ try{ const z=JSON.parse(localStorage.getItem('kibo-save')||'{}'); const n=Object.values(z.best||{}).filter(b=>b.gem).length; return n?'💎 '+n:''; }catch(e){ return ''; } });
@@ -797,27 +832,28 @@ const GROBO=mk('robo','Robo Siege','robo',L('קרבות רובוטים – קל�
 const GDRIFT=mk('drift','Drift King','drift',L('דריפטים אמיתיים בתלת־ממד','Real 3D drifting'),L('מחליקים בפניות, משאירים סימני צמיגים ועשן, בונים קומבו ×5 ואוספים מתנות! 3 מסלולים – נמל בשקיעה, הרים ועיר ניאון בלילה, 8 אירועים, מוסך עם 4 מכוניות, צבעים ועשן צבעוני','Slide through corners, leave tire marks and smoke, build ×5 combos and grab gifts! 3 tracks – sunset docks, mountains and a neon night city, 8 events, a garage with 4 cars, paints and colored smoke'),()=>{ try{ const z=JSON.parse(localStorage.getItem('drift-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/24':''; }catch(e){ return ''; } });
 const GPET=mk('pet','Pet Pals','pet',L('מגדלים חיית מחמד – או חייזר!','Raise a pet – or an alien!'),L('בוחרים כלבלב, חתלתולה, ארנבון, פנדה או חייזר ידידותי – מאכילים, מקלחים עם ספוג ומקלחת, משחקים בכדור ובבועות, מלטפים, משכיבים לישון ומלבישים כובעים ומשקפיים!','Pick a puppy, kitty, bunny, panda or a friendly alien – feed, scrub and shower, play ball and bubbles, cuddle, tuck into bed and dress up with hats and glasses!'),()=>{ try{ const z=JSON.parse(localStorage.getItem('pet-save')||'{}'); const p=(z.pets||{})[z.cur]; return p?'⭐ '+(EN?'Lv ':'רמה ')+p.lvl:''; }catch(e){ return ''; } });
 const GWAVE=mk('wave','Wave Rush','wave',L('מרוץ אופנועי ים בתלת־ממד','3D jet-ski racing'),L('דוהרים על גלים אמיתיים, אוספים כוכבים וטורבו, קופצים מרמפות ועושים סלטות! דולפינים קופצים לידכם, כרישים מסתובבים בשונית ו־4 מסלולים – עד לים הסוער','Race over real waves, grab stars and turbo, launch off ramps and pull flips! Dolphins leap beside you, sharks circle the reef, 4 courses – all the way to the storm sea'),()=>{ try{ const z=JSON.parse(localStorage.getItem('wave-save')||'{}'); const s=Object.values(z.stars||{}).reduce((a,b)=>a+b,0); return s?'⭐ '+s+'/12':''; }catch(e){ return ''; } });
-const NEW=[GYAYA,GRISE,GKIBO,GROBO,GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
+const NEW=[GSKI,GBG,GCK,GSL,GDOM,GYAYA,GRISE,GKIBO,GROBO,GDRIFT,GPET,GWAVE,GGOAL,GNUMX,GSLIME,GCAKE,GCHASE,GSQUISH,GTREAS,GDASH,GSUSHI,GMOMO,GPEEP,GMUD,GTIARA,GBRAWL,GCLAIM,GMOS,GCRAY,GGAR,GJAM,GSKY,GCLAW,GSPOT,GLIAR,GCHEF];
 const BIG=[GRON,GSALON,GZORI,GJETI,GNYC], SMALL=[GSOL,GMINE,G2048,GSUD,GMEM,GC4], GAMES=[...NEW,...BIG,...SMALL]; let active=null;
 const PLAY='<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>';
 function staticText(){ try{ net(); }catch(e){}
   $('soonT').textContent=L('עוד משחקים בדרך','More games are on the way'); $('soonP').textContent=L('משחקים חדשים יתווספו כאן בקרוב','New games will be added here soon');
   $('foot').innerHTML=[L('✈️ בלי אינטרנט','✈️ No internet'),L('🚫 בלי פרסומות','🚫 No ads'),L('💾 נשמר במכשיר','💾 Saved on device')].map(x=>`<span>${x}</span>`).join('')+`<a class="priv" href="privacy.html">${L('🔒 מדיניות פרטיות','🔒 Privacy policy')}</a>`;
-  $('installBtn').textContent=L('📲 התקן במכשיר','📲 Install on device'); $('backBtn').textContent=EN?'←':'→'; $('backBtn').setAttribute('aria-label',L('חזרה','Back'));
+  $('installBtn').textContent=L('📲 התקן במכשיר','📲 Install on device'); $('backBtn').textContent=RTL?'→':'←'; $('backBtn').setAttribute('aria-label',L('חזרה','Back'));
   $('jetiBack').textContent=L('🏠 תפריט','🏠 Menu');
   $('heroPlay').innerHTML=PLAY+L('שחקו','Play'); $('heroInfo').innerHTML='ⓘ '+L('מידע','Info'); $('infoPlay').innerHTML=PLAY+L('שחקו עכשיו','Play now');
-  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));
+  $('langCode').textContent=LANG.toUpperCase();
   $('muteBtn').textContent=S.mute?'🔇':'🔊';
 }
 const gOf=id=>GAMES.find(x=>x.id===id);
 const ROWS=()=>[
   {k:'top', t:L('🔥 הטופ 10 שלנו','🔥 Our Top 10'), ids:['jeti','goal','zori','squishy','tiara','mud','sushi','pet','salon','nyc','brawl','drift','wave','numx','slime','chase','cake','treasure','dash','momo','peep','garage','mosaic','claw','chef','crayon','sky']},
   {k:'new', t:L('✨ חדש באפליקציה','✨ New on the app'), ids:NEW.slice(0,8).map(g=>g.id)},
+  {t:L('משחקי קופסה 🎲','Board games 🎲'), ids:['backgammon','checkers','dominoes','snakes','four','memory','solitaire']},
   {t:L('הרפתקאות בתלת־ממד','3D adventures'), ids:BIG.map(g=>g.id)},
   {t:L('צביעה ויצירה 🎨','Coloring & creating 🎨'), ids:['yaya','pet','slime','cake','squishy','tiara','mosaic','crayon','salon','garage']},
   {t:L('חשיבה ופאזלים 🧠','Brain & puzzles 🧠'), ids:['numx','treasure','sushi','momo','peep','claim','jam','liar','mines','solitaire','spot','ron','sudoku','2048','memory','four']},
-  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['rise','kibo','robo','drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
-  {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['pet','numx','slime','cake','squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
+  {t:L('אקשן ומהירות ⚡','Action & speed ⚡'), ids:['ski','rise','kibo','robo','drift','wave','goal','chase','dash','mud','brawl','claim','sky','nyc','jeti','zori','chef','claw']},
+  {t:L('לכל המשפחה 👨‍👩‍👧','For the whole family 👨‍👩‍👧'), ids:['snakes','pet','numx','slime','cake','squishy','momo','sushi','peep','tiara','crayon','four','memory','salon','ron','claw','spot']},
   {t:L('קלאסיקות קצרות','Quick classics'), ids:SMALL.map(g=>g.id)},
 ];
 const progOf=g=>{ const m=(g.bestTxt()||'').match(/(\d+)\/(\d+)/); return m?Math.min(1,+m[1]/+m[2]):null; };
@@ -827,11 +863,13 @@ function cardHTML(g,o={}){ if(!g) return ''; const bt=g.bestTxt(); const art=`ba
   const cls=' post'; const inner='';
   const chips=(g.isNew&&!o.cont&&!bt?`<i class="new">${L('חדש','NEW')}</i>`:'')+(bt&&!o.top?`<i>${bt}</i>`:'')+(o.cont&&o.t?`<i>${ago(o.t)}</i>`:'');
   const p=o.cont?progOf(g):null;
-  const body=`${inner}<span class="sh"></span><span class="ch">${chips}</span>${o.cont?`<span class="pl">${PLAY}</span>`:''}<b aria-label="${g.name}">${g.name}</b>${o.cont?`<span class="pb"><i style="width:${p==null?18:Math.max(6,p*100)}%"></i></span>`:''}`;
+  const fav=(S.fav||[]).includes(g.id); const heart=`<span class="fv${fav?' on':''}" data-fav="${g.id}" aria-label="favorite">${fav?'❤️':'♡'}</span>`;
+  const body=`${inner}${heart}<span class="sh"></span><span class="ch">${chips}</span>${o.cont?`<span class="pl">${PLAY}</span>`:''}<b aria-label="${g.name}">${g.name}</b>${o.cont?`<span class="pb"><i style="width:${p==null?18:Math.max(6,p*100)}%"></i></span>`:''}`;
   if(o.top) return `<button class="nf-c" data-g="${g.id}"><span class="num">${o.n}</span><span class="pst${cls}" style="${art}">${body}</span></button>`;
   return `<button class="nf-c${o.cont?' cont':''}${cls}" data-g="${g.id}" style="${art}">${body}</button>`; }
 function renderHome(){ const rec=(S.recent||[]).filter(r=>gOf(r.id)).slice(0,10); let h='';
   if(rec.length) h+=`<section class="nf-row nf-mine"><h2>${L('🎮 המשחקים שלי','🎮 My games')}<small>${L('מאיפה שהפסקתם','pick up where you left off')}</small></h2><div class="nf-scr">${rec.map(r=>cardHTML(gOf(r.id),{cont:1,t:r.t})).join('')}</div></section>`;
+  const fv=(S.fav||[]).filter(id=>gOf(id)); if(fv.length) h+=`<section class="nf-row nf-mine"><h2>${L('❤️ המועדפים שלי','❤️ My favorites')}</h2><div class="nf-scr">${fv.map(id=>cardHTML(gOf(id))).join('')}</div></section>`;
   for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}${r.k==='new'?' nf-big':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
   $('rows').innerHTML=h; hero.show(hero.i); }
 const VIDS=['yaya','rise','kibo','robo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
@@ -842,9 +880,9 @@ function gc(path,title,ev){ try{ if(GC_CODE.startsWith('__')||location.hostname!
   const q=new URLSearchParams({p:(GC_APP?'/app':'')+path,t:title||path,e:ev?'true':'false',s:screen.width+','+screen.height+','+(devicePixelRatio||1),r:ev?'':document.referrer,rnd:Math.random().toString(36).slice(2)});
   const i=new Image(); i.referrerPolicy='no-referrer-when-downgrade'; i.src='https://'+GC_CODE+'.goatcounter.com/count?'+q; }catch(e){} }
 function heroVid(g){ const ha=$('heroArt'); let v=ha.querySelector('video'); if(v){ v.pause(); v.remove(); } if(!navigator.onLine||!VIDS.includes(g.id)) return; v=document.createElement('video'); v.muted=true; v.defaultMuted=true; v.playsInline=true; v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.loop=true; v.autoplay=true; v.preload='auto'; v.className='hvid'; v.src='vid/'+g.id+'.mp4'; v.addEventListener('playing',()=>v.classList.add('on'),{once:true}); v.addEventListener('error',()=>v.remove()); ha.appendChild(v); const pr=v.play(); if(pr&&pr.catch) pr.catch(()=>{}); }
-const hero={ i:0, list:()=>['yaya','rise','kibo','robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
+const hero={ i:0, list:()=>['ski','yaya','rise','kibo','robo','drift','pet','wave','goal','numx','slime','cake','chase','squishy','treasure','dash','sushi','momo','peep','mud','tiara','brawl','claim','mosaic','garage','crayon','nyc','claw','chef','jeti','salon'].map(gOf).filter(g=>g&&g.art), t:0,
   show(i){ const L2=this.list(); this.i=(i+L2.length)%L2.length; const g=L2[this.i]; this.g=g; const bg=$('heroBg'), ha=$('heroArt'); bg.style.opacity=0; ha.style.opacity=0; setTimeout(()=>{ bg.style.backgroundImage=ha.style.backgroundImage=`url('${g.art}')`; bg.style.opacity=1; ha.style.opacity=1; heroVid(g); },180);
-    $('heroBadge').textContent=g.isNew?L('✦ חדש באפליקציה','✦ NEW ON THE APP'):L('✦ משחק מומלץ','✦ FEATURED'); $('heroT').textContent=g.name; $('heroD').textContent=g.desc; const bt=g.bestTxt();
+    $('heroBadge').textContent=g.isNew?L('✦ חדש באפליקציה','✦ NEW ON THE APP'):L('✦ משחק מומלץ','✦ FEATURED'); $('heroT').textContent=g.name; $('heroD').textContent=shortD(g.desc); const bt=g.bestTxt();
     $('heroMeta').innerHTML=`<span>${g.kick}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span><span class="dt">•</span><span class="pg">${L('לכל הגילאים','All ages')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`;
     $('heroDots').innerHTML=L2.map((_,k)=>`<i class="${k===this.i?'on':''}"></i>`).join(''); },
   start(){ clearInterval(this.t); this.t=setInterval(()=>{ if(!$('home').hidden&&$('info').hidden) this.show(this.i+1); },7000); } };
@@ -852,17 +890,47 @@ $('heroPlay').onclick=()=>{ ac(); SND.whoosh(); open(hero.g.id); }; $('heroArt')
 $('heroInfo').onclick=()=>{ ac(); SND.tap(); showInfo(hero.g); };
 let hx=null; $('hero').addEventListener('touchstart',e=>{ hx=e.touches[0].clientX; },{passive:true}); $('hero').addEventListener('touchend',e=>{ if(hx==null) return; const d=e.changedTouches[0].clientX-hx; if(Math.abs(d)>50){ hero.show(hero.i+(d<0?1:-1)*(EN?1:-1)); hero.start(); } hx=null; },{passive:true});
 function showInfo(g){ $('infoArt').style.backgroundImage=g.art?`url('${g.art}')`:'linear-gradient(135deg,#2a2a40,#121220)'; $('infoT').textContent=g.name; $('infoD').textContent=g.desc; const bt=g.bestTxt();
-  $('infoMeta').innerHTML=`<span>${g.kick||''}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`; $('infoPlay').onclick=()=>{ $('info').hidden=true; ac(); SND.whoosh(); open(g.id); }; $('info').hidden=false; }
+  $('infoMeta').innerHTML=`<span>${g.kick||''}</span><span class="dt">•</span><span>✈️ ${L('אופליין','Offline')}</span>${bt?`<span class="dt">•</span><span>${bt}</span>`:''}`; $('infoPlay').onclick=()=>{ $('info').hidden=true; ac(); SND.whoosh(); open(g.id); }; const fb=$('infoFav'); const syncF=()=>fb.textContent=(S.fav||[]).includes(g.id)?'❤️':'♡'; syncF(); fb.onclick=()=>{ toggleFav(g.id); syncF(); }; $('info').hidden=false; }
 $('infoX').onclick=()=>$('info').hidden=true; $('info').onclick=e=>{ if(e.target.id==='info') $('info').hidden=true; };
 addEventListener('scroll',()=>$('nfNav').classList.toggle('solid',scrollY>40),{passive:true});
 let pressT=0, pressG=null; document.addEventListener('pointerdown',e=>{ const c=e.target.closest('.nf-c'); if(!c) return; pressG=c.dataset.g; clearTimeout(pressT); pressT=setTimeout(()=>{ const g=gOf(pressG); if(g){ showInfo(g); pressG='__lp'; } },550); },{passive:true});
 document.addEventListener('pointerup',()=>clearTimeout(pressT)); document.addEventListener('pointercancel',()=>clearTimeout(pressT)); document.addEventListener('scroll',()=>clearTimeout(pressT),{passive:true,capture:true});
-document.addEventListener('click',e=>{ const c=e.target.closest('[data-g]'); if(!c||!$('home').contains(c)) return; if(pressG==='__lp'){ pressG=null; return; } ac(); SND.whoosh(); open(c.dataset.g); });
-document.querySelector('.lang').onclick=e=>{ const b=e.target.closest('[data-lang]'); if(b) setLang(b.dataset.lang); };
+document.addEventListener('click',e=>{ const fv=e.target.closest('[data-fav]'); if(fv&&$('home').contains(fv)){ e.preventDefault(); toggleFav(fv.dataset.fav); pressG=null; return; } const c=e.target.closest('[data-g]'); if(!c||!$('home').contains(c)) return; if(pressG==='__lp'){ pressG=null; return; } ac(); SND.whoosh(); open(c.dataset.g); });
+$('langBtn').onclick=()=>{ SND.tap(); $('langGrid').innerHTML=(window.OA_LANGS||['he','en']).map(l=>`<button data-lang="${l}" class="${l===LANG?'on':''}" dir="auto">${(window.OA_NAMES||{})[l]||l}</button>`).join(''); $('langSheet').hidden=false; };
+$('langSheet').onclick=e=>{ const b=e.target.closest('[data-lang]'); if(b){ setLang(b.dataset.lang); return; } if(e.target.id==='langSheet') $('langSheet').hidden=true; };
 $('muteBtn').onclick=()=>{ S.mute=!S.mute; save(); staticText(); if(!S.mute){ ac(); SND.tap(); } };
 function open(id){ const g=GAMES.find(x=>x.id===id); if(!g) return; gc('/game/'+id,g.name,1); S.recent=[{id,t:Date.now()},...(S.recent||[]).filter(r=>r.id!==id)].slice(0,12); save();
-  if(g.frame){ const w=$('jetiWrap'); const old=w.querySelector('iframe'); if(old) old.remove(); const f=document.createElement('iframe'); showLoad(g); f.addEventListener('load',()=>setTimeout(hideLoad,650),{once:true}); clearTimeout(showLoad.t); showLoad.t=setTimeout(hideLoad,9000); f.src=EN&&!g.bi?g.frame.replace('.html','.en.html'):g.frame; f.allow='autoplay; fullscreen'; w.appendChild(f); $('jetiBack').hidden=!!g.ownBack; w.hidden=false; sky.pause(); history.pushState({g:id},''); return; }
+  if(g.frame){ const w=$('jetiWrap'); const old=w.querySelector('iframe'); if(old) old.remove(); const f=document.createElement('iframe'); showLoad(g); f.addEventListener('load',()=>setTimeout(hideLoad,650),{once:true}); clearTimeout(showLoad.t); showLoad.t=setTimeout(hideLoad,9000); f.src=EN&&!g.bi?g.frame.replace('.html','.'+(FRAME_LANGS.includes(LANG)?LANG:'en')+'.html'):g.frame; f.allow='autoplay; fullscreen'; w.appendChild(f); $('jetiBack').hidden=!!g.ownBack; w.hidden=false; sky.pause(); history.pushState({g:id},''); return; }
   active=g; $('home').hidden=true; $('game').hidden=false; $('gTitle').textContent=g.ic+' '+g.name; const body=$('gbody'); body.innerHTML=''; scrollTo(0,0); g.mount(body); history.pushState({g:id},''); $('helpBtn').hidden=!HELP[id]; if(HELP[id]&&!S['help_'+id]) setTimeout(()=>{ if(active===g) showHelp(id,1); },350); }
+
+/* ---- favourites, search & age filter ---- */
+function toggleFav(id){ S.fav=S.fav||[]; const i=S.fav.indexOf(id); if(i>=0) S.fav.splice(i,1); else S.fav.unshift(id); save(); try{ SND.tap(); }catch(e){} if(fState.on()) renderResults(); renderHome(); }
+const shortD=d=>{ d=String(d||''); let k=d.search(/[.!?](\s|$)/); let t=k>0&&k<110?d.slice(0,k+1):d; if(t.length>100){ t=t.slice(0,100); t=t.slice(0,t.lastIndexOf(' '))+'…'; } return t; };
+const AGE={ little:['crayon','mosaic','pet','slime','cake','squishy','peep','momo','tiara','salon','memory','snakes','claw','spot','sushi','yaya','four'],
+  kids:['yaya','kibo','jeti','ski','pet','slime','cake','squishy','numx','treasure','sushi','momo','peep','jam','claw','chef','garage','dash','wave','mud','goal','drift','tiara','salon','ron','spot','liar','four','memory','snakes','checkers','dominoes','2048','sky','claim','chase','crayon','mosaic','zori','rise'],
+  big:['ski','robo','rise','brawl','drift','backgammon','checkers','dominoes','solitaire','sudoku','mines','2048','liar','nyc','zori','chase','goal','mud','wave','jam','claim','sky','numx','garage','kibo','yaya'] };
+const fState={ age:'all', q:'', on(){ return this.age!=='all'||this.q.trim()!==''; } };
+function renderChips(){ const F=[['all',L('הכל','All')],['little',L('🧒 קטנטנים 3–6','🧒 Little kids 3–6')],['kids',L('🧑 ילדים 7–12','🧑 Kids 7–12')],['big',L('🧔 נוער ומבוגרים','🧔 Teens & adults')],['fav',L('❤️ מועדפים','❤️ Favorites')],['board',L('🎲 משחקי קופסה','🎲 Board games')]];
+  $('fchips').innerHTML=F.map(f=>`<button data-age="${f[0]}" class="${fState.age===f[0]?'on':''}">${f[1]}</button>`).join(''); $('q').placeholder=L(`חיפוש בין ${NG()} משחקים…`,`Search ${NG()} games…`); }
+function gameText(g){ const n=typeof g.name==='string'?g.name:''; return (n+' '+(g.sub||'')+' '+(g.kick||'')+' '+(g.desc||'')+' '+g.id).toLowerCase(); }
+function renderResults(){ const q=fState.q.trim().toLowerCase(); let list=GAMES.slice();
+  if(fState.age==='fav') list=(S.fav||[]).map(gOf).filter(Boolean); else if(fState.age==='board') list=['backgammon','checkers','dominoes','snakes','four','memory','solitaire','sudoku'].map(gOf).filter(Boolean); else if(fState.age!=='all') list=AGE[fState.age].map(gOf).filter(Boolean);
+  if(q) list=list.filter(g=>gameText(g).includes(q));
+  const ttl=fState.age==='fav'?L('❤️ המועדפים שלי','❤️ My favorites'):q?L(`תוצאות עבור "${fState.q.trim()}"`,`Results for "${fState.q.trim()}"`):($('fchips').querySelector('.on')||{}).textContent||'';
+  $('results').innerHTML=`<h2>${ttl} <small style="color:#9a98b0;font-size:13px">(${list.length})</small></h2>`+(list.length?`<div class="nf-grid">${list.map(g=>cardHTML(g)).join('')}</div>`:`<div class="nf-empty">${fState.age==='fav'?L('עוד אין מועדפים – לחצו על ♡ בפינה של משחק שאתם אוהבים','No favorites yet – tap ♡ on a game you love'):L('לא מצאנו משחק כזה 🤔 נסו מילה אחרת','No game found 🤔 try another word')}</div>`); }
+function applyFilter(){ const on=fState.on(); $('results').hidden=!on; $('rows').hidden=on; $('qx').hidden=!fState.q; renderChips(); if(on) renderResults(); }
+$('fchips').addEventListener('click',e=>{ const b=e.target.closest('[data-age]'); if(!b) return; fState.age=b.dataset.age; try{ SND.tap(); }catch(err){} applyFilter(); const r=$('filt').getBoundingClientRect(); if(r.top>80) scrollTo({top:scrollY+r.top-60,behavior:'smooth'}); });
+$('q').addEventListener('input',()=>{ fState.q=$('q').value; if(fState.q) fState.age='all'; applyFilter(); });
+$('qx').onclick=()=>{ $('q').value=''; fState.q=''; applyFilter(); };
+let offTries=0;
+const NG=()=>{const n=GAMES.length,r=Math.round(n/10)*10;return r===n?String(n):L('כ-'+r,'~'+r);};
+async function offReady(){ const el=$('offStrip'); const n=NG(); let ok=false, sw=false;
+  try{ sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller); if('caches' in window){ const ks=(await caches.keys()).filter(k=>/^offline-arcade-v\d+$/.test(k)).sort((a,b)=>+a.split('-v')[1]-+b.split('-v')[1]); const k=ks.pop(); if(k){ const c=await caches.open(k); ok=(await c.keys()).length>150; } } }catch(e){}
+  const can='serviceWorker' in navigator&&location.protocol.startsWith('http')&&!/claude/.test(location.hostname);
+  el.innerHTML=ok?`✈️ <b>${n}</b> ${L('משחקים','games')} · <span class="ok">✓ ${L('כולם שמורים במכשיר – מוכן לטיסה','all saved on this device – ready for takeoff')}</span>`
+    : can&&navigator.onLine?`✈️ <b>${n}</b> ${L('משחקים','games')} · <span class="wait">⏳ ${L('שומרים את המשחקים במכשיר…','saving the games to this device…')}</span>`
+    : `🎮 <b>${n}</b> ${L('משחקים בחינם · בלי פרסומות · בלי אינטרנט','free games · no ads · no internet needed')}`;
+  if(!ok&&can&&offTries++<40) setTimeout(offReady,3000); }
 function showLoad(g){ const l=$('gLoad'); l.querySelector('img').src=POSTER(g.id); l.querySelector('b').textContent=g.name; l.hidden=false; l.classList.remove('out'); }
 function hideLoad(){ const l=$('gLoad'); if(l.hidden) return; l.classList.add('out'); setTimeout(()=>{ l.hidden=true; },350); }
 function closeGame(){ hideLoad(); if(!$('jetiWrap').hidden){ $('jetiWrap').hidden=true; const f=$('jetiWrap').querySelector('iframe'); f&&f.remove(); }
@@ -895,7 +963,7 @@ const sky=(()=>{ const c=$('sky'), x=c.getContext('2d'); let W=0,H=0,DPR=1,stars
 })();
 document.addEventListener('visibilitychange',()=>{ document.hidden?sky.pause():($('jetiWrap').hidden&&sky.resume()); });
 
-staticText(); renderHome(); hero.start();
+staticText(); renderHome(); hero.start(); renderChips(); offReady();
 /* ---------- intro: Ya Ya Games → Offline Arcade (once per app launch) ---------- */
 (()=>{ const el=$('intro'); let seen=false; try{ seen=sessionStorage.getItem('oa-intro')==='1'; sessionStorage.setItem('oa-intro','1'); }catch(e){}
   if(seen||new URLSearchParams(location.search).has('nointro')) return; el.hidden=false;

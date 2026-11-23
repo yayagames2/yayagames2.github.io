@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script src="lib/i18n.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Checkers</title>
+<link rel="stylesheet" href="lib/kit.css">
+<link rel="stylesheet" href="lib/board.css">
+<style>
+:root{--bg:#2a1a10;--accent:#ff6a5a;--deep:#4a1a10;--btn:linear-gradient(180deg,#ff6a4a,#c8281a);--btnsh:#7a140a;--scr:radial-gradient(circle at 50% 15%,#6a3a22,#24140a 75%);--table:radial-gradient(circle at 50% 40%,#5a3a22,#24140a);--subc:#ffe2d0}
+#cwrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:4px 10px max(10px,env(safe-area-inset-bottom))}
+.side{display:flex;align-items:center;gap:8px;font-weight:900;color:#fff;font-size:15px;text-shadow:0 2px 3px rgba(0,0,0,.5)}
+.side .caps{display:flex;gap:2px}
+.side .caps i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}
+#cb{position:relative;border-radius:14px;padding:10px;background:linear-gradient(135deg,#8a5a30,#5a3418);box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.12)}
+#grid{position:relative;display:grid;grid-template:repeat(8,1fr)/repeat(8,1fr);width:100%;height:100%;border-radius:6px;overflow:hidden;direction:ltr}
+#grid .sq{position:relative}
+#grid .l{background:#f3dfb8}#grid .d{background:#9a5a32}
+#grid .sq.tg::after{content:"";position:absolute;inset:30%;border-radius:50%;background:rgba(90,255,140,.75);box-shadow:0 0 0 4px rgba(90,255,140,.35);animation:hl 1s ease-in-out infinite}
+#grid .sq.last{box-shadow:inset 0 0 0 4px rgba(255,226,74,.55)}
+@keyframes hl{50%{opacity:.5}}
+#pcs{position:absolute;inset:10px;pointer-events:none;direction:ltr}
+.pc{position:absolute;width:12.5%;height:12.5%;transition:left .22s ease,top .22s ease,transform .22s,opacity .3s;display:grid;place-items:center}
+.pc b{width:80%;height:80%;border-radius:50%;display:grid;place-items:center;font-size:clamp(14px,4.4vw,26px);box-shadow:0 4px 0 rgba(0,0,0,.35),0 6px 10px rgba(0,0,0,.35)}
+.pc.p0 b{background:radial-gradient(circle at 38% 32%,#ff8a7a,#d0202a 60%,#8a0a12);box-shadow:0 4px 0 #6a060c,0 6px 10px rgba(0,0,0,.35),inset 0 0 0 5px rgba(255,255,255,.18)}
+.pc.p1 b{background:radial-gradient(circle at 38% 32%,#6a6a78,#2a2a33 60%,#0a0a10);box-shadow:0 4px 0 #000,0 6px 10px rgba(0,0,0,.35),inset 0 0 0 5px rgba(255,255,255,.12)}
+.pc.can b{outline:3px solid rgba(255,226,74,.85);outline-offset:2px}
+.pc.sel{transform:translateY(-6%) scale(1.08)}.pc.sel b{outline:4px solid #ffe24a;outline-offset:2px}
+.pc.gone{opacity:0;transform:scale(.3)}
+.pc.jump{transform:scale(1.18)}
+</style>
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="checkers/game.js"></script>
+</body>
+</html>

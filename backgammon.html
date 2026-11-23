@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script src="lib/i18n.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Backgammon</title>
+<link rel="stylesheet" href="lib/kit.css">
+<link rel="stylesheet" href="lib/board.css">
+<style>
+:root{--bg:#3a2414;--accent:#ffcf6a;--deep:#5a2e12;--btn:linear-gradient(180deg,#e0903a,#b55a1a);--btnsh:#7a3a0e;--scr:radial-gradient(circle at 50% 20%,#7a4a26,#3a2414 75%);--table:radial-gradient(circle at 50% 40%,#2f6a3e,#173a22);--subc:#ffe9c8}
+#bwrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:0 8px}
+#bsvg{flex:1;min-height:0;width:100%;display:block;touch-action:manipulation}
+#panel{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;min-height:76px;padding:6px 0 max(10px,env(safe-area-inset-bottom));width:100%}
+#panel .sbtn{height:46px;min-width:46px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.92);color:#5a2e12;font-weight:900;font-size:16px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+#panel .sbtn:disabled{opacity:.35}
+.pt{cursor:pointer}
+.hl{animation:hl 1s ease-in-out infinite}@keyframes hl{50%{opacity:.45}}
+#stagebox #hint{bottom:auto;top:4px}
+</style>
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="backgammon/game.js"></script>
+</body>
+</html>

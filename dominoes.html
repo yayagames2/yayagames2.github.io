@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script src="lib/i18n.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Dominoes</title>
+<link rel="stylesheet" href="lib/kit.css">
+<link rel="stylesheet" href="lib/board.css">
+<style>
+:root{--bg:#0e3a5a;--accent:#ffd23f;--deep:#0e2a4a;--btn:linear-gradient(180deg,#4aa8ff,#1a6ad0);--btnsh:#0e3a8a;--scr:radial-gradient(circle at 50% 15%,#3a8ad0,#0e2a4a 75%);--table:radial-gradient(circle at 50% 45%,#1f7a52,#0c3a26);--subc:#e6f2ff}
+#dwrap{position:absolute;inset:0;display:flex;flex-direction:column;padding:0 6px max(8px,env(safe-area-inset-bottom))}
+.hand{flex:none;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:4px 0;min-height:52px;direction:ltr}
+.hinfo{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;color:#fff;font-size:14px;text-shadow:0 2px 3px rgba(0,0,0,.4);min-height:26px}
+.hinfo .sc{background:rgba(0,0,0,.25);padding:2px 10px;border-radius:999px}
+#table{position:relative;flex:1;min-height:0;margin:4px 0;border-radius:18px;background:rgba(0,0,0,.12);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08);overflow:hidden}
+#chain{position:absolute;inset:0;direction:ltr}
+.tile{position:absolute;display:flex;background:linear-gradient(145deg,#fffdf6,#ece3cf);border-radius:16%/16%;box-shadow:0 2px 0 #b8aa8a,0 4px 8px rgba(0,0,0,.35);transition:left .3s,top .3s,transform .25s,opacity .25s}
+.tile.v{flex-direction:column;border-radius:16%/8%}
+.tile.h{border-radius:8%/16%}
+.tile .hf{position:relative;flex:1;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:11%}
+.tile.h .hf+.hf{border-left:2px solid rgba(0,0,0,.25)}
+.tile.v .hf+.hf{border-top:2px solid rgba(0,0,0,.25)}
+.tile .hf s{width:70%;height:70%;margin:auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a4a5a,#0a0a14)}
+.tile.back{background:linear-gradient(145deg,#2a6ad0,#123a8a);box-shadow:0 2px 0 #0a2a6a,0 4px 8px rgba(0,0,0,.35)}
+.tile.back .hf{display:none}
+.tile.back::after{content:"";position:absolute;inset:18%;border-radius:30%;border:2px solid rgba(255,255,255,.35)}
+.hand .tile{position:relative;cursor:pointer}
+.hand .tile.ok{transform:translateY(-6px);box-shadow:0 0 0 3px #ffe24a,0 6px 12px rgba(0,0,0,.4)}
+.hand .tile.dim{opacity:.55;filter:saturate(.6)}
+.hand .tile.sel{transform:translateY(-12px) scale(1.06);box-shadow:0 0 0 4px #5aff8c,0 8px 16px rgba(0,0,0,.45)}
+.endmark{position:absolute;border-radius:12px;background:rgba(90,255,140,.45);box-shadow:0 0 0 3px #5aff8c;animation:hl 1s ease-in-out infinite;cursor:pointer;z-index:3}
+@keyframes hl{50%{opacity:.45}}
+#tbar{position:absolute;left:8px;bottom:8px;right:8px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:4}
+#tbar>*{pointer-events:auto}
+#pile{font-weight:900;color:#fff;font-size:13px;background:rgba(0,0,0,.3);padding:6px 10px;border-radius:999px}
+#drawBtn{height:44px;padding:0 16px;font-size:16px}
+#passS .card .emo,#roundS .card .emo{font-size:52px;line-height:1}
+#roundS table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-weight:800}
+#roundS td{padding:6px;border-bottom:1px solid #eee}
+#stagebox #hint{bottom:auto;top:104px}
+</style>
+</head>
+<body>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="dominoes/game.js"></script>
+</body>
+</html>
