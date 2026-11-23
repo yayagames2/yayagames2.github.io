@@ -303,7 +303,7 @@ function buildLevel(idx) {
   fruitCands.sort((a, b) => a.z - b.z);
   const want = 4; for (let i = 0; i < want; i++) { const c = fruitCands[Math.min(fruitCands.length - 1, Math.round((i + .5) / want * fruitCands.length - .5))]; if (c) W.letters.push({ ch: 'ZORI'[i], x: c.x, y: c.y + .6, z: c.z, got: false }); }
   W.fruitTotal = W.fruits.length;
-  buildVisuals();
+  buildVisuals(); lushDecor(); buildBoss();
 }
 
 /* ================= visuals ================= */
@@ -539,6 +539,57 @@ function updateParticles(dt, t) {
   F.pts.geometry.attributes.position.needsUpdate = true;
 }
 
+/* ================= lush decoration (grass, flowers, bushes, light shafts) ================= */
+function lushDecor() { const T = W.T, G = W.group, r = rng(W.L.seed * 31 + 7); const grounds = W.plats.filter(p => p.kind === 'ground' || p.kind === 'check'); if (!grounds.length) return;
+  const lava = T.hazard === 'lava', stony = T.plat === 'stone' || T.plat === 'basalt'; const leafC = T.leaf.map(c => C(c));
+  const tuft = new THREE.ConeGeometry(.05, .45, 3); tuft.translate(0, .22, 0); const bush = new THREE.IcosahedronGeometry(.42, 0), flower = new THREE.SphereGeometry(.08, 6, 5), fern = new THREE.ConeGeometry(.28, .9, 5); fern.translate(0, .45, 0);
+  const N = { t: 0, b: 0, f: 0, n: 0 }; const T1 = [], B1 = [], F1 = [], N1 = [];
+  for (const p of grounds) { const area = p.w * p.d; const edge = () => { const sd = r() < .5 ? -1 : 1; return [p.x + sd * (p.w * .28 + r() * p.w * .2), p.z + (r() - .5) * p.d * .92]; };
+    if (!lava) for (let i = 0; i < area * 1.6; i++) { const [x, z] = r() < .7 ? edge() : [p.x + (r() - .5) * p.w * .9, p.z + (r() - .5) * p.d * .92]; T1.push([x, p.y, z, .6 + r() * .9, r() * 6]); }
+    for (let i = 0; i < area * .05 + 1; i++) { const [x, z] = edge(); B1.push([x, p.y, z, .7 + r() * .9, r() * 6]); }
+    if (!lava && !T.night) for (let i = 0; i < area * .18; i++) { const [x, z] = edge(); F1.push([x, p.y + .12, z, 1, 0]); }
+    if (!stony && !lava) for (let i = 0; i < area * .05; i++) { const [x, z] = edge(); N1.push([x, p.y, z, .8 + r() * .7, r() * 6]); } }
+  const inst = (geo, mat, L, cols) => { if (!L.length) return; const im = new THREE.InstancedMesh(geo, mat, L.length); const o = new THREE.Object3D(); L.forEach((q, i) => { o.position.set(q[0], q[1], q[2]); o.scale.set(q[3], q[3] * (.8 + (i % 5) * .1), q[3]); o.rotation.set(((i % 7) - 3) * .06, q[4], ((i % 5) - 2) * .07); o.updateMatrix(); im.setMatrixAt(i, o.matrix); if (cols) im.setColorAt(i, cols(i)); }); im.receiveShadow = true; im.castShadow = geo === bush || geo === fern; G.add(im); };
+  const gm = new THREE.MeshStandardMaterial({ roughness: .9, color: '#ffffff' }); inst(tuft, gm, T1, i => leafC[i % leafC.length].clone().multiplyScalar(T.night ? .7 : 1.15));
+  inst(bush, new THREE.MeshStandardMaterial({ roughness: .85, flatShading: true }), B1, i => (lava ? C('#3a2a24') : leafC[(i + 1) % leafC.length].clone().multiplyScalar(.9)));
+  const FC = ['#ff5a7a', '#ffd23a', '#ffffff', '#c07aff', '#ff8a3a'].map(c => C(c)); inst(flower, new THREE.MeshStandardMaterial({ roughness: .5, emissive: C('#331a00'), emissiveIntensity: .2 }), F1, i => FC[i % FC.length]);
+  inst(fern, new THREE.MeshStandardMaterial({ roughness: .8, flatShading: true }), N1, i => leafC[(i + 2) % leafC.length]);
+  // sun shafts through the canopy
+  if (!T.night && T.extra !== 'storm') { const c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d'); const gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(255,240,200,0)'); gr.addColorStop(.3, 'rgba(255,240,200,.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 256); const hg = x.createLinearGradient(0, 0, 64, 0); hg.addColorStop(0, 'rgba(0,0,0,1)'); hg.addColorStop(.5, 'rgba(0,0,0,0)'); hg.addColorStop(1, 'rgba(0,0,0,1)'); x.globalCompositeOperation = 'destination-out'; x.fillStyle = hg; x.fillRect(0, 0, 64, 256);
+    const tx = new THREE.CanvasTexture(c); const sm = new THREE.MeshBasicMaterial({ map: tx, color: C(T.sun), transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }); const sd = new THREE.Vector3(...T.sunDir).normalize();
+    for (let z = 10; z < W.len; z += 14 + r() * 10) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(2 + r() * 2.5, 30), sm); const x0 = W.xAt(z) + (r() - .5) * 14; sh.position.set(x0, 8, z); sh.lookAt(x0 + sd.x * 10, 8 + sd.y * 10, z + sd.z * 10); sh.rotateX(Math.PI / 2); sh.rotation.y += r(); G.add(sh); } } }
+
+/* ================= boss (end of every 4th level) ================= */
+let BOSS = null;
+function buildBoss() { BOSS = null; if ((W.idx + 1) % 4 !== 0 || !W.end) return; const lava = W.T.hazard === 'lava', night = W.T.night; const g = new THREE.Group();
+  const fur = new THREE.MeshStandardMaterial({ color: lava ? '#5a2a1a' : night ? '#2a2a4a' : '#4a3a2e', roughness: .9 }), skin = new THREE.MeshStandardMaterial({ color: lava ? '#ff7a3a' : '#9a7a66', roughness: .8, emissive: lava ? C('#ff3a00') : C('#000000'), emissiveIntensity: lava ? .6 : 0 }), eye = new THREE.MeshBasicMaterial({ color: '#ffdd33' });
+  const S2 = (r2, m, x, y, z, sx = 1, sy = 1, sz = 1) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r2, 18, 14), m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.castShadow = true; g.add(o); return o; };
+  S2(1.5, fur, 0, 2.2, 0, 1.2, 1.1, .95); S2(1.0, skin, 0, 2.1, .9, 1, 1.1, .5); const head = S2(.95, fur, 0, 3.75, .3); S2(.6, skin, 0, 3.55, 1.0, 1.1, .8, .7); S2(.14, eye, -.32, 3.95, 1.05); S2(.14, eye, .32, 3.95, 1.05);
+  const brow = new THREE.Mesh(new THREE.BoxGeometry(1.0, .16, .3), fur); brow.position.set(0, 4.15, .95); g.add(brow); const crown = new THREE.Mesh(new THREE.CylinderGeometry(.55, .65, .45, 8, 1, true), new THREE.MeshStandardMaterial({ color: '#ffcf3a', metalness: .9, roughness: .25, side: THREE.DoubleSide })); crown.position.set(0, 4.75, .2); g.add(crown);
+  const arms = []; for (const sd of [-1, 1]) { const a = new THREE.Group(); a.position.set(sd * 1.7, 3.0, 0); g.add(a); const up = new THREE.Mesh(new THREE.CapsuleGeometry(.45, 1.4, 6, 10), fur); up.position.y = -1.0; up.castShadow = true; a.add(up); const fist = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 10), skin); fist.position.y = -1.9; a.add(fist); arms.push(a); }
+  for (const sd of [-1, 1]) S2(.6, fur, sd * .8, .6, 0, 1, 1.2, 1);
+  const rockM = new THREE.MeshStandardMaterial({ color: '#6a6058', roughness: .95 }); const rock = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 3, 1.2, 9), rockM); rock.position.y = -.6; rock.receiveShadow = true; g.add(rock);
+  const pos = W.end.clone().add(new THREE.Vector3(-7.5, 3.2, 12)); g.position.copy(pos); g.scale.setScalar(1.35); g.rotation.y = Math.atan2(W.end.x - pos.x, W.end.z - pos.z); W.group.add(g);
+  const pil = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 1.6, pos.y - W.hazY, 9), rockM); pil.position.set(pos.x, (pos.y + W.hazY) / 2 - 1.2, pos.z); W.group.add(pil);
+  const d = D(); BOSS = { g, arms, head, hp: Math.round(6 + d.enemy * 2), max: 0, awake: false, t: 1.5, nuts: [], hitT: 0, dead: false, pos, hit: pos.clone().add(new THREE.Vector3(0, 3.4, 0)) }; BOSS.max = BOSS.hp; }
+const nutM = new THREE.MeshStandardMaterial({ color: '#6a4424', roughness: .8 });
+function bossBar() { let el = document.getElementById('bossBar'); if (!el) { el = document.createElement('div'); el.id = 'bossBar'; el.style.cssText = 'position:fixed;z-index:30;top:calc(env(safe-area-inset-top) + 56px);left:50%;transform:translateX(-50%);width:min(70vw,340px);height:18px;border-radius:10px;background:rgba(0,0,0,.55);border:2px solid #ffcf3a;overflow:hidden;direction:ltr;pointer-events:none'; el.innerHTML = '<i style="position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ff3a3a,#ffb21a);transition:width .25s"></i><span style="position:absolute;inset:0;display:grid;place-items:center;font-weight:900;font-size:12px;color:#fff;text-shadow:0 1px 2px #000">🦍👑</span>'; document.body.appendChild(el); }
+  el.hidden = !(BOSS && BOSS.awake && !BOSS.dead && state === 'play'); if (BOSS) el.querySelector('i').style.width = (BOSS.hp / BOSS.max * 100) + '%'; }
+function updateBoss(dt, t) { if (!BOSS) { bossBar(); return; } const B2 = BOSS;
+  if (B2.dead) { B2.g.scale.multiplyScalar(Math.max(0, 1 - dt * 1.5)); if (B2.g.scale.x < .05) B2.g.visible = false; bossBar(); return; }
+  if (!B2.awake && P.pos.z > W.end.z - 16 && state === 'play') { B2.awake = true; toast('🦍👑 !!!', 1500); sfx.stomp(); }
+  B2.arms.forEach((a, i) => a.rotation.x = Math.sin(t * 2 + i * 3) * .25 - (B2.throwA > 0 && i === 1 ? 2.2 * B2.throwA : 0)); B2.head.rotation.y = Math.sin(t * .8) * .2; B2.g.position.y = B2.pos.y + Math.abs(Math.sin(t * 2)) * .1;
+  B2.hitT = Math.max(0, B2.hitT - dt); B2.g.children.forEach(c => { if (c.material && c.material.emissive && !c.material.userData.keep) c.material.emissiveIntensity = B2.hitT > 0 ? 1.5 : (W.T.hazard === 'lava' ? .6 : 0); });
+  if (B2.awake && state === 'play' && !P.dead) { B2.t -= dt; B2.throwA = Math.max(0, (B2.throwA || 0) - dt * 2); if (B2.t <= 0) { const d = D(); B2.t = (2.6 - Math.min(1, d.enemy - .7)) * (.8 + Math.random() * .4); B2.throwA = 1;
+      const from = B2.pos.clone().add(new THREE.Vector3(-1.5, 5.2, -1.5)); const to = P.pos.clone().add(new THREE.Vector3(P.vel.x * .5, .6, P.vel.z * .5)); const ft = 1.2; const v = to.clone().sub(from).divideScalar(ft); v.y += 9 * ft / 2;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(.32, 10, 8), nutM); m.position.copy(from); m.castShadow = true; W.group.add(m); B2.nuts.push({ m, v, life: 3 }); sfx.throw(); } }
+  for (let i = B2.nuts.length - 1; i >= 0; i--) { const n = B2.nuts[i]; n.v.y -= 9 * dt; n.m.position.addScaledVector(n.v, dt); n.m.rotation.x += dt * 8; n.life -= dt; const dd = n.m.position.distanceTo(V1.set(P.pos.x, P.pos.y + .9, P.pos.z));
+    if (dd < .9 && !P.dead) { hurt(V1.set(n.v.x * .2, 5, n.v.z * .2)); n.life = 0; burst(n.m.position.x, n.m.position.y, n.m.position.z, '#c8a070', 10, 4); }
+    if (n.life <= 0 || n.m.position.y < W.hazY) { W.group.remove(n.m); B2.nuts.splice(i, 1); } }
+  for (let i = stones.length - 1; i >= 0; i--) { const s2 = stones[i]; if (s2.m.position.distanceTo(B2.hit) < 2.2) { W.group.remove(s2.m); stones.splice(i, 1); B2.hp--; B2.hitT = .18; burst(B2.hit.x, B2.hit.y + 1, B2.hit.z, '#ffffff', 14, 5); sfx.hit();
+      if (B2.hp <= 0) { B2.dead = true; burst(B2.hit.x, B2.hit.y + 1, B2.hit.z, '#ffd21f', 60, 8); sfx.pop(); P.fruit += 10; toast('🏆 🦍💥 +10 🥭', 2200); updateHud(); for (const n of B2.nuts) W.group.remove(n.m); B2.nuts.length = 0; } } }
+  bossBar(); }
+
 /* ================= vines simulation ================= */
 function updateVineShape(v, t) {
   // free vine sways; held vine stretches to hero hand
@@ -608,7 +659,17 @@ function zoriRun(am) { const ph = P.phase; // realistic run cycle
     const ar = -.75 * sn * am; const cr = s > 0 ? ARM_LC : ARM_RC; zSet(sd + 'Arm', ar, s * .12, cr); zSet(sd + 'ForeArm', ar + 1.35 * am + .15, s * .12, cr); zSet(sd + 'Hand', ar + 1.35 * am + .15, s * .12, cr); });
   ZMX.hips(_z0.set(0, -.03 * am + Math.abs(Math.cos(ph)) * .035 * am, 0)); ZMX.apply(); _z0.set(0, 0, 0); }
 const ARM_LC = new THREE.Quaternion().setFromAxisAngle(_zz, -Math.PI / 2 + .12), ARM_RC = new THREE.Quaternion().setFromAxisAngle(_zz, Math.PI / 2 - .12);
-function driveZori() { if (!ZMX) return; const sp = Math.hypot(P.vel.x, P.vel.z); ZRUN.a += ((P.ground && !P.vine && !P.zip && sp > .5 ? Math.min(1, sp / RUN) : 0) - ZRUN.a) * .25;
+function zoriAir() { const up = P.vel.y > 0, C2 = [ARM_LC, ARM_RC];
+  if (P.vine || P.zip) { const sw = clamp(P.vel.z * .05, -.5, .5); ZMX.set('Spine', _za.setFromAxisAngle(_zx, -sw * .4).clone().multiply(ZMX.restW.Spine));
+    [['Left', 1], ['Right', -1]].forEach(([sd, s2], i) => { zSet(sd + 'Arm', 2.95, s2 * .12, C2[i]); zSet(sd + 'ForeArm', 3.05, s2 * .08, C2[i]); zSet(sd + 'Hand', 3.05, s2 * .08, C2[i]); const th = P.zip ? 1.1 : .25 + sw + (i ? .15 : 0), kn = P.zip ? 1.5 : .5 + (i ? .2 : 0); zSet(sd + 'UpLeg', th, 0); zSet(sd + 'Leg', th - kn, 0); zSet(sd + 'Foot', th - kn + .3, 0); });
+    ZMX.hips(_z0.set(0, 0, 0)); ZMX.apply(); return; }
+  ZMX.set('Spine', _za.setFromAxisAngle(_zx, up ? .05 : .15).clone().multiply(ZMX.restW.Spine));
+  [['Left', 1], ['Right', -1]].forEach(([sd, s2], i) => { const lead = i === 0;
+    if (up) { zSet(sd + 'Arm', lead ? 2.3 : .9, s2 * .35, C2[i]); zSet(sd + 'ForeArm', lead ? 2.6 : 1.9, s2 * .3, C2[i]); zSet(sd + 'Hand', lead ? 2.6 : 1.9, s2 * .3, C2[i]); const th = lead ? 1.15 : -.25, kn = lead ? 1.5 : .7; zSet(sd + 'UpLeg', th, 0); zSet(sd + 'Leg', th - kn, 0); zSet(sd + 'Foot', th - kn + .4, 0); }
+    else { zSet(sd + 'Arm', .7, s2 * 1.0, C2[i]); zSet(sd + 'ForeArm', 1.2, s2 * 1.0, C2[i]); zSet(sd + 'Hand', 1.2, s2 * 1.0, C2[i]); const th = lead ? .65 : .1, kn = lead ? .9 : .5; zSet(sd + 'UpLeg', th, 0); zSet(sd + 'Leg', th - kn, 0); zSet(sd + 'Foot', th - kn + .35, 0); } });
+  ZMX.hips(_z0.set(0, 0, 0)); ZMX.apply(); }
+function driveZori() { if (!ZMX) return; const sp = Math.hypot(P.vel.x, P.vel.z); ZMX.k = Math.min(1, (1 / 60) * 16); ZRUN.a += ((P.ground && !P.vine && !P.zip && sp > .5 ? Math.min(1, sp / RUN) : 0) - ZRUN.a) * .25;
+  if (P.vine || P.zip || (!P.ground && !P.dead)) { zoriAir(); return; }
   if (ZRUN.a > .05) { zoriRun(ZRUN.a); return; }
   HERO.root.getWorldQuaternion(_zq).invert(); for (const [j, b] of ZMAP) ZMX.from(b, HERO[j], _zq); ZMX.hips(_z0); ZMX.apply(); }
 const heroLight = new THREE.PointLight(0xbfe8ff, 0, 14, 1.6); scene.add(heroLight);
@@ -779,6 +840,7 @@ function throwStone() {
   const dir = new THREE.Vector3(Math.sin(P.face), .12, Math.cos(P.face)).normalize();
   // aim assist toward nearest enemy in front
   let best = null, bd = 18; for (const e of W.enemies) { if (!e.alive) continue; V2.copy(e.g.position).sub(V1); const dd = V2.length(); if (dd < bd && V2.normalize().dot(dir) > .6) { bd = dd; best = V2.clone(); } }
+  if (!best && BOSS && !BOSS.dead && BOSS.awake) { V2.copy(BOSS.hit).add(V3.set(0, .8, 0)).sub(V1); if (V2.length() < 26) best = V2.clone(); }
   if (best) dir.copy(best).add(V3.set(0, .1, 0)).normalize();
   stones.push({ m, v: dir.multiplyScalar(24), life: 1.3 }); sfx.throw();
 }
@@ -833,7 +895,7 @@ function updateCollect(dt, t) {
     c.gem.rotation.y += dt * 2;
   }
   if (W.portal) { W.portal.ring.rotation.z += dt * .4; W.portal.core.material.opacity = .45 + Math.sin(t * 3) * .12;
-    if (P.pos.distanceTo(W.end) < 3.2 && state === 'play') levelDone(); }
+    if (P.pos.distanceTo(W.end) < 3.2 && state === 'play') { if (BOSS && !BOSS.dead) { if (!W.lockT || W.lockT < t) { W.lockT = t + 2; toast('🔒 🦍👑 → 🪨🪨🪨', 1500); } } else levelDone(); } }
   for (const tip of W.tips) if (!tip.shown && P.pos.z > tip.z) { tip.shown = true; toast(tip.txt, 3200); }
 }
 
@@ -996,7 +1058,7 @@ function frame(now) {
   if (W) {
     W.t = (W.t || 0) + dt;
     skyMat.uniforms.time.value = W.t;
-    if (state === 'play') { const sub = 3; for (let i = 0; i < sub; i++) step(dt / sub); updateEnemies(dt); updateCollect(dt, W.t); }
+    if (state === 'play') { const sub = 3; for (let i = 0; i < sub; i++) step(dt / sub); updateEnemies(dt); updateCollect(dt, W.t); updateBoss(dt, W.t); } else bossBar();
     for (const v of W.vines) { v.cool = Math.max(0, v.cool - dt); updateVineShape(v, W.t); }
     for (const p of W.plats) if (p.cap && p.squish > 0) { p.squish -= dt; p.cap.scale.y = .55 * (1 - Math.sin(p.squish / .3 * Math.PI) * .35); }
     if (W.waterU) W.waterU.value = W.t; if (W.lavaTex) W.lavaTex.offset.y -= dt * .02; if (W.fallTex) W.fallTex.offset.y += dt * 1.4;
