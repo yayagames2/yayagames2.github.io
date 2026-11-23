@@ -1,0 +1,55 @@
+/* shared styles for the classic board games (backgammon, checkers, snakes & ladders, dominoes) */
+body{overflow:hidden;-webkit-user-select:none;user-select:none;background:var(--bg)}
+#title{justify-content:flex-start;background:var(--scr)}
+#title .logo{margin-top:46px}
+#title .logo .a{color:var(--accent)}
+#title .logo .b{color:#fff;-webkit-text-stroke:3px var(--deep);text-shadow:0 6px 0 var(--deep),0 14px 24px rgba(0,0,0,.35)}
+#title .sub{color:var(--subc,#fff3df)}
+.box{position:relative;width:min(420px,100%);background:rgba(255,255,255,.96);border-radius:22px;padding:12px 12px 13px;margin-top:12px;box-shadow:0 8px 22px rgba(0,0,0,.22);text-align:start;color:#2a1c10}
+.box h4{margin:0 0 8px;font-size:15px;color:var(--deep)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:10px 4px;border-radius:14px;background:#f3ece2;font-weight:800;font-size:14px;color:#2a1c10;line-height:1.15}
+.seg button[aria-pressed=true]{background:var(--btn);color:#fff;box-shadow:0 3px 0 var(--btnsh)}
+.seg button small{display:block;font-size:11px;opacity:.8;font-weight:700}
+.tbtns{display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap;justify-content:center}
+#playBtn{height:62px;font-size:22px;padding:0 40px;margin:0}
+#rulesBtn{height:50px;padding:0 18px;border-radius:999px;background:#fff;color:var(--deep);font-weight:900;font-size:16px;box-shadow:0 5px 0 rgba(0,0,0,.18)}
+#score{margin-top:12px;font-weight:800;color:var(--subc,#fff3df);font-size:14px;opacity:.95}
+/* game screen */
+#game{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--table)}
+#gbar{flex:none;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) 10px 6px;z-index:5}
+#gbar .rb{width:42px;height:42px;border-radius:14px;font-size:19px;color:var(--deep);font-weight:900}
+#turn{flex:1;min-width:0;text-align:center;font-weight:900;font-size:16px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#turn .chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.28);box-shadow:none;color:#fff;font-size:15px}
+#turn .dot{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 2px rgba(255,255,255,.7)}
+#stagebox{position:relative;flex:1;min-height:0}
+#hint{position:absolute;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;background:rgba(0,0,0,.55);color:#fff;font-weight:800;font-size:14px;padding:8px 14px;border-radius:999px;white-space:nowrap;pointer-events:none;transition:opacity .25s;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#hint:empty{opacity:0}
+/* rules */
+.rules{position:fixed;inset:0;z-index:40;background:rgba(10,8,4,.55);display:grid;place-items:center;padding:14px}
+.rules .rbx{width:min(440px,100%);max-height:88vh;overflow:auto;background:#fffaf2;color:#2a1c10;border-radius:26px;padding:18px 16px 14px;box-shadow:0 24px 60px rgba(0,0,0,.4);animation:pop .3s ease-out}
+.rules .ic{font-size:48px;text-align:center;line-height:1}
+.rules h3{margin:4px 0 10px;text-align:center;font-size:23px;color:var(--deep)}
+.rules .r{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:14px;background:#fff;margin-bottom:7px;box-shadow:0 2px 8px rgba(60,40,10,.08)}
+.rules .r i{font-style:normal;font-size:24px;flex:none;line-height:1.1}
+.rules .r b{display:block;font-size:15px;color:var(--deep)}
+.rules .r span{font-size:14px;line-height:1.45;color:#4a3a2a;font-weight:600}
+.rules .btn{width:100%;margin-top:6px}
+/* win */
+#winS .card .emo{font-size:64px;line-height:1}
+.conf{position:fixed;inset:0;pointer-events:none;z-index:39;overflow:hidden}
+.conf i{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:cf linear forwards}
+@keyframes cf{to{transform:translateY(110vh) rotate(720deg)}}
+/* dice */
+.dice{display:flex;gap:12px;align-items:center;justify-content:center}
+.die{--s:46px;width:var(--s);height:var(--s);position:relative;transform-style:preserve-3d;transition:transform .2s;perspective:none}
+.die .cube{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.2,1.25,.4,1)}
+.die .f{position:absolute;inset:0;border-radius:22%;background:linear-gradient(145deg,#fff,#ece6da);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),inset 0 0 0 1px rgba(0,0,0,.08);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:16%;backface-visibility:hidden}
+.die .f s{width:72%;height:72%;margin:auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#111);grid-area:var(--a)}
+.die .f.red s{background:radial-gradient(circle at 35% 30%,#ff6a5a,#b0101a)}
+.die.used{opacity:.35;filter:grayscale(1)}
+.die.dbl::after{content:"×2";position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-weight:900;font-size:12px;color:#fff;text-shadow:0 1px 2px #000}
+.rollBtn{height:52px;padding:0 22px;border-radius:999px;background:var(--btn);color:#fff;font-weight:900;font-size:18px;box-shadow:0 5px 0 var(--btnsh),0 10px 20px rgba(0,0,0,.3);animation:pulse 1.2s ease-in-out infinite}
+.rollBtn:disabled{animation:none;opacity:.5}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@media (orientation:landscape) and (max-height:560px){#title .logo{margin-top:8px}#title .logo .b{font-size:46px}.box{padding:8px 10px;margin-top:8px}}

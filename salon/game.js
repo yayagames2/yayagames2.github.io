@@ -10,10 +10,9 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const isTouch = matchMedia('(pointer:coarse)').matches;
-let LANG = null; try { LANG = localStorage.getItem('oa-lang'); } catch (e) { }
-if (LANG !== 'he' && LANG !== 'en') LANG = /^he|^iw/i.test(navigator.language || '') ? 'he' : 'en';
-const EN = LANG === 'en'; document.documentElement.lang = LANG; document.documentElement.dir = EN ? 'ltr' : 'rtl';
-const T = (he, en) => EN ? en : he;
+let LANG = window.OA_LANG; if (!LANG) { try { LANG = localStorage.getItem('oa-lang'); } catch (e) { } if (LANG !== 'he' && LANG !== 'en') LANG = /^he|^iw/i.test(navigator.language || '') ? 'he' : 'en'; }
+const EN = LANG !== 'he'; document.documentElement.lang = LANG; document.documentElement.dir = (LANG === 'he' || LANG === 'ar') ? 'rtl' : 'ltr';
+const T = (he, en) => !EN ? he : (window.OA_TR ? window.OA_TR(en) : en);
 let SAVE = { q: isTouch ? 'high' : 'ultra', mute: false, music: true, seen: {} };
 try { Object.assign(SAVE, JSON.parse(localStorage.getItem('salon-save') || '{}')); } catch (e) { }
 const store = () => { try { localStorage.setItem('salon-save', JSON.stringify(SAVE)); } catch (e) { } };
