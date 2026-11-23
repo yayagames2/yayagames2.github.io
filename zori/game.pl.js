@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { EffectComposer, RenderPass, UnrealBloomPass, OutputPass, ShaderPass, FXAAShader } from '../lib/postfx.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { loadMix, MixRig } from '../lib/mixchar.js';
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -593,6 +594,23 @@ const HERO = (() => {
   return { root, body, head, armL, armR, foreL, foreR, legL, legR, shinL, shinR, handL, handR, tail };
 })();
 scene.add(HERO.root);
+// real (Mixamo) Zori driven by the procedural rig; the cartoon body stays until the model has loaded
+let ZMX = null; const _zq = new THREE.Quaternion(), _z0 = new THREE.Vector3();
+const ZMAP = [['body', 'Hips'], ['head', 'Head'], ['armL', 'LeftArm'], ['foreL', 'LeftForeArm'], ['handL', 'LeftHand'], ['armR', 'RightArm'], ['foreR', 'RightForeArm'], ['handR', 'RightHand'], ['legL', 'LeftUpLeg'], ['shinL', 'LeftLeg'], ['legR', 'RightUpLeg'], ['shinR', 'RightLeg']];
+loadMix('lib/chars/zori.glb').then(src => { if (!src) return; ZMX = new MixRig(src, 1.72); HERO.root.add(ZMX.holder); HERO.root.traverse(o => { if (o.isMesh && !ZMX.meshes.includes(o)) o.visible = false; }); });
+const _zx = new THREE.Vector3(1, 0, 0), _zz = new THREE.Vector3(0, 0, 1), _za = new THREE.Quaternion(), _zb = new THREE.Quaternion(), ZRUN = { a: 0 };
+// fwd: swing forward (radians), side: outward tilt; built in character space on top of the rest pose (arms first hang down)
+function zSet(b, fwd, side, corr) { _za.setFromAxisAngle(_zx, -fwd); if (side) _za.multiply(_zb.setFromAxisAngle(_zz, side)); if (corr) _za.multiply(corr); ZMX.set(b, _za.clone().multiply(ZMX.restW[b])); }
+function zoriRun(am) { const ph = P.phase; // realistic run cycle
+  const lean = .16 * am; ZMX.set('Spine', _za.setFromAxisAngle(_zx, lean).clone().multiply(ZMX.restW.Spine)); ZMX.set('Head', _za.setFromAxisAngle(_zx, -lean * .6).clone().multiply(ZMX.restW.Head));
+  [['Left', 0, 1], ['Right', Math.PI, -1]].forEach(([sd, o, s]) => { const a = ph + o, sn = Math.sin(a), cs = Math.cos(a);
+    const th = (.62 * sn + .12) * am, kn = (.35 + 1.25 * Math.max(0, cs)) * am; zSet(sd + 'UpLeg', th, 0); zSet(sd + 'Leg', th - kn, 0); zSet(sd + 'Foot', th - kn + .25 * am * Math.max(0, -sn), 0);
+    const ar = -.75 * sn * am; const cr = s > 0 ? ARM_LC : ARM_RC; zSet(sd + 'Arm', ar, s * .12, cr); zSet(sd + 'ForeArm', ar + 1.35 * am + .15, s * .12, cr); zSet(sd + 'Hand', ar + 1.35 * am + .15, s * .12, cr); });
+  ZMX.hips(_z0.set(0, -.03 * am + Math.abs(Math.cos(ph)) * .035 * am, 0)); ZMX.apply(); _z0.set(0, 0, 0); }
+const ARM_LC = new THREE.Quaternion().setFromAxisAngle(_zz, -Math.PI / 2 + .12), ARM_RC = new THREE.Quaternion().setFromAxisAngle(_zz, Math.PI / 2 - .12);
+function driveZori() { if (!ZMX) return; const sp = Math.hypot(P.vel.x, P.vel.z); ZRUN.a += ((P.ground && !P.vine && !P.zip && sp > .5 ? Math.min(1, sp / RUN) : 0) - ZRUN.a) * .25;
+  if (ZRUN.a > .05) { zoriRun(ZRUN.a); return; }
+  HERO.root.getWorldQuaternion(_zq).invert(); for (const [j, b] of ZMAP) ZMX.from(b, HERO[j], _zq); ZMX.hips(_z0); ZMX.apply(); }
 const heroLight = new THREE.PointLight(0xbfe8ff, 0, 14, 1.6); scene.add(heroLight);
 const pose = { al: 0, ar: 0, alz: .15, arz: .15, el: -.3, er: -.3, ll: 0, lr: 0, sl: 0, sr: 0, lean: 0 };
 function handPos(out) { HERO.root.updateMatrixWorld(true); HERO.handL.getWorldPosition(V1); HERO.handR.getWorldPosition(V2); return out.copy(V1).add(V2).multiplyScalar(.5); }
@@ -851,7 +869,7 @@ function animateHero(dt, t) {
   h.body.rotation.x = pose.lean; h.tail.rotation.x = .5 + Math.min(1, sp / 6) * .6 + Math.sin(t * 9) * .08 * Math.min(1, sp / 4);
   P.squash = Math.max(0, P.squash - dt); const sq = 1 - P.squash * .6; h.body.scale.set(1 / Math.sqrt(sq), sq, 1 / Math.sqrt(sq));
   h.root.position.copy(P.pos); let fy = P.face; if (P.vine || P.zip) fy = 0;
-  const df = Math.atan2(Math.sin(fy - h.root.rotation.y), Math.cos(fy - h.root.rotation.y)); h.root.rotation.y += df * Math.min(1, dt * 12);
+  const df = Math.atan2(Math.sin(fy - h.root.rotation.y), Math.cos(fy - h.root.rotation.y)); h.root.rotation.y += df * Math.min(1, dt * 12); driveZori();
   h.root.visible = !(P.inv > 0 && Math.floor(t * 16) % 2 === 0);
 }
 
@@ -986,6 +1004,7 @@ function frame(now) {
     if (W.T.extra === 'storm') { nextBolt -= dt; if (nextBolt <= 0) { nextBolt = 5 + Math.random() * 7; flashK = 1; setTimeout(() => sfx.thunder(), 300 + Math.random() * 900); } }
     flashK = Math.max(0, flashK - dt * 3); grade.uniforms.uFlash.value = flashK * .35;
   }
+  if (window.__artCam) window.__artCam(camera);
   composer.render();
 }
 

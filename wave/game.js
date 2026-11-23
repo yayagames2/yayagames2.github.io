@@ -1,3 +1,4 @@
+import { loadMix, MixRig } from '../lib/mixchar.js';
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, EN, store, engine, studioEnv, std, particles, audio, toast, ICO, hubButtons, qualityButton, isTouch } from '../lib/kit.js';
 const S = store('wave-save', { stars: {}, best: {}, track: 0, tut: 0, q: 'high' });
 const E = engine(S, { fov: 62, far: 900, bloom: [.22, .45, 1.15], exposure: 1.05, vignette: .22, sat: 1.12 });
@@ -118,12 +119,24 @@ function buildRider(vest, helm, skin) { const g = new THREE.Group(); const V = s
     const th = new THREE.Mesh(new THREE.CapsuleGeometry(.085, .42, 4, 8), Su); th.position.set(s * .17, .78, -.25); th.rotation.x = 1.2; g.add(th); const sh2 = new THREE.Mesh(new THREE.CapsuleGeometry(.07, .4, 4, 8), Su); sh2.position.set(s * .22, .5, .02); sh2.rotation.x = -.25; g.add(sh2); }
   g.traverse(m => { if (m.isMesh) m.castShadow = true; }); return g; }
 
+/* ================= REAL RIDERS (Mixamo) ================= */
+const RIDERS = ['lib/chars/remy.glb', 'lib/chars/kai.glb', 'lib/chars/zori.glb', 'lib/chars/rio.glb'], RSRC = {};
+const _rq = new THREE.Quaternion(), AX = new THREE.Vector3(1, 0, 0);
+function seatPose(M) { // static seated pose on the jet ski (faces +z)
+  M.hips(V3(0, .8, -.42).sub(M.restP.Hips)); M.set('Hips', _rq.setFromAxisAngle(AX, .1).clone().multiply(M.restW.Hips)); M.set('Spine', _rq.setFromAxisAngle(AX, .42).clone().multiply(M.restW.Spine));
+  M.set('Head', _rq.setFromAxisAngle(AX, .05).clone().multiply(M.restW.Head)); M.apply();
+  for (const [sd, s] of [['Left', 1], ['Right', -1]]) { M.limbIK(sd + 'Arm', sd + 'ForeArm', sd + 'Hand', M.pos(sd + 'Arm'), V3(s * .36, .98, .3), V3(s, -.6, 0).normalize());
+    M.limbIK(sd + 'UpLeg', sd + 'Leg', sd + 'Foot', M.pos(sd + 'UpLeg'), V3(s * .24, .3 + M.ankleH * .6, -.02), V3(0, 0, 1)); M.set(sd + 'Foot', M.restW[sd + 'Foot']); }
+  M.apply(['LeftArm', 'LeftForeArm', 'LeftHand', 'RightArm', 'RightForeArm', 'RightHand', 'LeftUpLeg', 'LeftLeg', 'LeftFoot', 'RightUpLeg', 'RightLeg', 'RightFoot']); }
+function dressRider(r) { const src = RSRC[RIDERS[r.k]]; if (!src || r.mx) return; const M = new MixRig(src, 1.74); seatPose(M); r.rd.traverse(o => { if (o.isMesh) o.visible = false; }); r.rd.add(M.holder); r.mx = M; }
+RIDERS.forEach(u => loadMix(u).then(src => { if (!src) return; RSRC[u] = src; racers.forEach(dressRider); }));
+
 /* ================= RACERS ================= */
 const RCOL = [['#ff3a2a', '#ffffff', '#ffd21a'], ['#2a8aff', '#ffd21a', '#ffffff'], ['#22c86a', '#1a1a22', '#ff8a1a'], ['#b04aff', '#ffffff', '#2ad8ff']];
 const ANAMES = ['Kai', 'Luna', 'Rio'];
 const racers = []; let me = null; const sunDir = V3();
 function mkRacer(k) { const [c, c2, h] = RCOL[k]; const g = new THREE.Group(); const ski = buildSki(c, c2); g.add(ski); const rd = buildRider(k ? c : '#ff8a1a', h, ['#f2c3a0', '#c98a5a', '#8a5a3a', '#f2d0b0'][k]); g.add(rd); world.add(g);
-  const r = { k, g, ski, rd, pos: V3(), vel: V3(), yaw: 0, sp: 0, vy: 0, air: false, pitch: 0, roll: 0, spin: 0, flip: 0, idx: 0, lap: 0, cp: 0, prog: 0, fin: 0, turbo: 0, boost: 0, crash: 0, spinT: 0, name: k ? ANAMES[k - 1] : T('אתה', 'You'), ai: k > 0, stars: 0, tricks: 0, last: 0, lean: 0 }; racers.push(r); return r; }
+  const r = { k, g, ski, rd, pos: V3(), vel: V3(), yaw: 0, sp: 0, vy: 0, air: false, pitch: 0, roll: 0, spin: 0, flip: 0, idx: 0, lap: 0, cp: 0, prog: 0, fin: 0, turbo: 0, boost: 0, crash: 0, spinT: 0, name: k ? ANAMES[k - 1] : T('אתה', 'You'), ai: k > 0, stars: 0, tricks: 0, last: 0, lean: 0 }; racers.push(r); dressRider(r); return r; }
 function placeAt(r, i, off) { const { P, tan, N } = PATH; i = ((i % N) + N) % N; const p = P[i], t = tan[i]; r.pos.set(p.x + t.z * off, 0, p.z - t.x * off); r.yaw = Math.atan2(t.x, t.z); r.sp = 0; r.vy = 0; r.air = false; r.pitch = r.roll = r.flip = r.spin = 0; r.idx = i; }
 function nearestIdx(r) { const { P, N } = PATH; let best = r.idx, bd = 1e9; for (let k = -12; k <= 40; k++) { const i = (r.idx + k + N) % N; const d = (P[i].x - r.pos.x) ** 2 + (P[i].z - r.pos.z) ** 2; if (d < bd) { bd = d; best = i; } }
   if (bd > 400) { for (let k = -Math.floor(N / 4); k <= Math.floor(N / 4); k++) { const i = (r.idx + k + N) % N; const d = (P[i].x - r.pos.x) ** 2 + (P[i].z - r.pos.z) ** 2; if (d < bd) { bd = d; best = i; } } } return [best, Math.sqrt(bd)]; }

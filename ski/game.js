@@ -1,5 +1,6 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, EN, store, engine, std, particles, audio, toast, ICO, hubButtons, qualityButton, isTouch } from '../lib/kit.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { loadMix, MixRig } from '../lib/mixchar.js';
 
 const TAU = Math.PI * 2;
 const DEF_OUT = [{ jacket: 0, pants: 4, head: 0, eyes: 1, hair: 0, gear: 0 }, { jacket: 4, pants: 2, head: 1, eyes: 3, hair: 0, gear: 5 }];
@@ -114,7 +115,7 @@ const HEADS = [['none', '', T('בלי כובע', 'No hat'), '💇'], ['beanie', 
 const EYES = [['none', '', T('בלי', 'None'), '👀'], ['gog', '#ff8a1a', T('כתום', 'Orange'), '🥽'], ['gog', '#2a8aff', T('כחול', 'Blue'), '🥽'], ['gog', '#b03aff', T('סגול', 'Purple'), '🥽'], ['gog', '#2ad870', T('ירוק', 'Green'), '🥽'], ['gog', '#ffd21a', T('זהב', 'Gold'), '🥽'], ['sun', '#16161e', T('משקפי שמש', 'Sunglasses'), '🕶️'], ['heart', '#ff3a8a', T('לבבות', 'Hearts'), '💖']];
 const HAIRS = [[['#ff3aa8', '#ffe14a'], T('ורוד / בלונד', 'Pink / Blonde')], [['#3aff8a', '#2a1a12'], T('ירוק / שחור', 'Green / Black')], [['#3ab8ff', '#b8541a'], T('כחול / ג׳ינג׳י', 'Blue / Auburn')], [['#ffffff', '#b07aff'], T('לבן / סגול', 'White / Purple')], [['#ff3a2a', '#ff8ac8'], T('אדום / ורוד', 'Red / Pink')], [['#1a1a22', '#f0e0c0'], T('שחור / פלטינה', 'Black / Platinum')]];
 const GEARS = [['#16161e', '#9aff2a', T('ניאון', 'Neon')], ['#1a4ae8', '#9ae8ff', T('קרח', 'Ice')], ['#e0202a', '#ffb21a', T('אש', 'Fire')], ['#2a1a5a', '#ff3ad8', T('גלקסיה', 'Galaxy')], ['rainbow', '', T('קשת', 'Rainbow')], ['#ffffff', '#ff5ab0', T('ורוד', 'Pink')], ['#16161e', '#ffc21a', T('זהב', 'Gold')]];
-const CHARS = [{ n: 'KAI', skin: '#e8b08a', girl: false }, { n: 'LUNA', skin: '#f6d2b8', girl: true }];
+const CHARS = [{ n: 'REMY', skin: '#e8b08a', girl: false, mix: 'lib/chars/remy.glb', h: 1.76 }, { n: 'LUNA', skin: '#f6d2b8', girl: true, mix: 'lib/chars/luna.glb', h: 1.68 }];
 const texCache = {};
 function patTex(kind, a, b) { const k = kind + a + b; if (texCache[k]) return texCache[k]; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   if (kind === 'tartan') { x.fillStyle = '#b8101a'; x.fillRect(0, 0, 64, 64); x.fillStyle = 'rgba(0,0,0,.45)'; for (let i = 0; i < 64; i += 16) { x.fillRect(i, 0, 6, 64); x.fillRect(0, i, 64, 6); } x.fillStyle = 'rgba(255,220,60,.6)'; for (let i = 8; i < 64; i += 16) { x.fillRect(i, 0, 1.5, 64); x.fillRect(0, i, 64, 1.5); } }
@@ -183,7 +184,8 @@ function buildRider(ci, o, gear) {
   else { for (const s of [-1, 1]) { const sk = new THREE.Group(); const b = new THREE.Mesh(new THREE.BoxGeometry(.11, .03, 1.65), GM); b.position.z = .05; sk.add(b); const tip = new THREE.Mesh(new THREE.BoxGeometry(.11, .03, .22), GM); tip.position.set(0, .05, .93); tip.rotation.x = -.45; sk.add(tip); const bi = new THREE.Mesh(new THREE.BoxGeometry(.13, .06, .28), BASE); bi.position.y = .04; sk.add(bi); sk.position.set(s * .13, .02, 0); sk.traverse(m => m.castShadow = true); gearG.add(sk); }
     for (const a of arms) { const pole = new THREE.Group(); const sh2 = new THREE.Mesh(new THREE.CylinderGeometry(.014, .014, 1.15, 6), std('#c8c8d8', { metalness: .8, roughness: .3 })); sh2.position.y = -.5; pole.add(sh2); const bk = new THREE.Mesh(new THREE.TorusGeometry(.05, .01, 4, 10), BASE); bk.rotation.x = Math.PI / 2; bk.position.y = -.98; pole.add(bk); pole.position.y = -.52; pole.rotation.x = .5; a.add(pole); poles.push(pole); } }
   root.traverse(m => { if (m.isMesh) m.castShadow = true; });
-  return { root, body, hips, torso, head, neck, arms, legs, gear: gearG, poles, board: gear === 'board', girl: ch.girl };
+  let mx = null; if (ch.mix && MIXSRC[ch.mix]) { mx = new MixRig(MIXSRC[ch.mix], ch.h); body.add(mx.holder); const keep = new Set(); gearG.traverse(m => keep.add(m)); poles.forEach(pl => pl.traverse(m => keep.add(m))); body.traverse(m => { if (m.isMesh && !keep.has(m) && !mx.meshes.includes(m)) m.visible = false; }); }
+  return { root, body, hips, torso, head, neck, arms, legs, gear: gearG, poles, board: gear === 'board', girl: ch.girl, mx };
 }
 function poseRider(R, st, dt) { const k = Math.min(1, dt * 12); const bd = R.board;
   const crouch = st.crouch || 0, grab = st.grab ? 1 : 0, fall = st.fall || 0, t = st.t || 0;
@@ -195,8 +197,23 @@ function poseRider(R, st, dt) { const k = Math.min(1, dt * 12); const bd = R.boa
   else { R.torso.rotation.x = lerp(R.torso.rotation.x, .35 + crouch * .3 + grab * .5, k); R.torso.rotation.z = lerp(R.torso.rotation.z, 0, k); R.neck.rotation.y = 0; R.neck.rotation.x = lerp(R.neck.rotation.x, -.3 - crouch * .2, k);
     R.arms.forEach((a, i) => { const s = i ? 1 : -1; a.rotation.x = lerp(a.rotation.x, fall ? -2.6 + Math.sin(t * 16 + i) * .8 : grab && i === 1 ? .9 : -.55 - crouch * .2, k); a.rotation.z = lerp(a.rotation.z, s * (fall ? 1.2 : .28 + Math.abs(st.lean) * .1), k); });
     R.legs.forEach((l, i) => { l.rotation.x = lerp(l.rotation.x, -.28 - crouch * .25 - grab * .7, k); l.rotation.z = lerp(l.rotation.z, (i ? -1 : 1) * (st.air ? .06 : .02), k); }); }
+  if (R.mx) driveMix(R, st);
   if (R.root.userData.pony) R.root.userData.pony.rotation.x = .5 + Math.sin(t * 7) * .15 + (st.speed || 0) * .02;
 }
+
+// Mixamo rider (Remy): follows the procedural rig; knees solved with IK so the boots stay on the skis/board
+const MIXSRC = {}; CHARS.forEach((c, k) => loadMix(c.mix).then(src => { if (!src) return; MIXSRC[c.mix] = src; if (rider && S.who === k) { if (state === 'title') previewRider(); else makeRider(); } }));
+const _mq = new THREE.Quaternion(), _mv = V3(), _mh = V3(), _mf = V3(), FWD = V3(0, 0, 1);
+function driveMix(R, st) { const M2 = R.mx; R.body.updateMatrixWorld(true); R.body.getWorldQuaternion(_mq).invert();
+  M2.from('Hips', R.hips, _mq); M2.from('Spine', R.torso, _mq); M2.from('Neck', R.neck, _mq); M2.from('Head', R.head, _mq);
+  [['Right', R.arms[0]], ['Left', R.arms[1]]].forEach(([sd, a]) => { M2.from(sd + 'Arm', a, _mq); M2.from(sd + 'ForeArm', a, _mq); M2.from(sd + 'Hand', a, _mq); });
+  const lift = .07; M2.hips(_mv.set(0, R.hips.position.y - .86 + lift, 0)); M2.apply(); M2.holder.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(R.body.matrixWorld).invert();
+  [['Right', R.legs[0]], ['Left', R.legs[1]]].forEach(([sd, l]) => { M2.B[sd + 'UpLeg'].getWorldPosition(_mh).applyMatrix4(inv);
+    _mf.set(0, -.75, .04).applyMatrix4(l.matrixWorld).applyMatrix4(inv); const ground = M2.ankleH + lift; if (!st.fall) _mf.y = Math.max(_mf.y, ground); _mf.x = lerp(_mf.x, _mh.x, .35); if (!st.fall) _mf.z = R.board ? _mf.z : lerp(_mf.z, .02, .85);
+    M2.legIK(sd, _mh, _mf, FWD); M2.set(sd + 'Foot', M2.restW[sd + 'Foot']); });
+  M2.apply(LEGB); }
+const LEGB = ['LeftUpLeg', 'LeftLeg', 'LeftFoot', 'RightUpLeg', 'RightLeg', 'RightFoot'];
 
 /* ================= WORLD BUILD + SPAWNER ================= */
 const MODES = { slalom: { n: T('מסלול שערים', 'Slalom'), ic: '🚩', sub: T('עוברים בין הדגלים', 'Pass the flags'), len: 1050 }, free: { n: T('גלישה חופשית', 'Free ride'), ic: '🏂', sub: T('בלי לחץ – רק כיף', 'No pressure – just fun') }, nofall: { n: T('אתגר: בלי ליפול', 'No-fall challenge'), ic: '💪', sub: T('נפילה אחת וזהו', 'One fall and you’re out') } };

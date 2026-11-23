@@ -2,6 +2,7 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, EN, store, engine, studioEnv, std, particles, audio, toast, ICO, hubButtons, qualityButton, isTouch, CONFETTI } from '../lib/kit.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { loadMix, MixRig } from '../lib/mixchar.js';
 const S = store('rise-save', { mode: 'easy', best: 0, cp: -1, wins: 0, bestT: 0, tut: 0 });
 const E = engine(S, { fov: 55, far: 600, bloom: [.18, .5, .92], exposure: 1.0, vignette: .22, sat: 1.06, bg: '#a8c8e8' });
 const { scene, camera, renderer } = E; studioEnv(E, '#dfeeff', '#6a7080', .55);
@@ -141,6 +142,11 @@ function makeHuman() {
     const an = grp('an' + k, kn, 0, -.41, 0); ms(new RoundedBoxGeometry(.108, .085, .27, 3, .035), shoe, an, 0, -.025, .045); ms(new THREE.BoxGeometry(.112, .026, .275), sole, an, 0, -.06, .045); ms(new THREE.BoxGeometry(.08, .01, .05), std('#d83a2a'), an, 0, .016, .13); }
   return { root, J }; }
 const HU = makeHuman(); scene.add(HU.root); const J = HU.J; const JN = Object.keys(J); const ROT = {}; JN.forEach(n => ROT[n] = [0, 0, 0]);
+// Mixamo character (Remy) driven by the procedural rig; the procedural body stays as a fallback until it loads
+let MX = null; const MXMAP = [['hips', 'Hips'], ['spine', 'Spine'], ['chest', 'Spine2'], ['neck', 'Neck'], ['head', 'Head'], ['shL', 'RightArm'], ['elL', 'RightForeArm'], ['haL', 'RightHand'], ['shR', 'LeftArm'], ['elR', 'LeftForeArm'], ['haR', 'LeftHand'], ['thL', 'RightUpLeg'], ['knL', 'RightLeg'], ['anL', 'RightFoot'], ['thR', 'LeftUpLeg'], ['knR', 'LeftLeg'], ['anR', 'LeftFoot']];
+const _mxQ = new THREE.Quaternion(), _mxD = V3(), HIP0 = J.hips.userData.base.clone();
+loadMix().then(src => { if (!src) return; MX = new MixRig(src, 1.78); HU.root.add(MX.holder); HU.root.traverse(o => { if (o.isMesh && !MX.meshes.includes(o)) o.visible = false; }); });
+function driveMix() { if (!MX) return; HU.root.getWorldQuaternion(_mxQ).invert(); for (const [j, b] of MXMAP) MX.from(b, J[j], _mxQ); MX.hips(_mxD.copy(J.hips.position).sub(HIP0)); MX.apply(); }
 const blob = new THREE.Mesh(new THREE.PlaneGeometry(.9, .9).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: TX.blob, transparent: true, depthWrite: false })); scene.add(blob);
 
 /* ================= PLAYER ================= */
@@ -205,7 +211,7 @@ function animHuman(dt, t) { const P = PL; JN.forEach(n => sT(n)); hipY = .96; le
   if (P.land > 0) { const la = P.land * (P.land > .05 ? 1 : 0); hipY -= .26 * la; L.forEach(k => { addT('th' + k, -.95 * la); addT('kn' + k, 1.75 * la); addT('an' + k, -.75 * la); addT('sh' + k, -.35 * la); addT('el' + k, -.4 * la); }); addT('spine', .45 * la); P.land = Math.max(0, P.land - dt * (P.stun > 0 ? .9 : 2.6)); }
   const f = 1 - Math.exp(-dt * kS); for (const n of JN) { const r = ROT[n], tg = TG[n]; for (let a = 0; a < 3; a++) r[a] += (tg[a] - r[a]) * f; J[n].rotation.set(r[0], r[1], r[2]); }
   hipYc += (hipY - hipYc) * (1 - Math.exp(-dt * 16)); J.hips.position.y = hipYc;
-  HU.root.position.copy(P.p); let d = P.face - HU.root.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); HU.root.rotation.y += d * Math.min(1, dt * 18);
+  HU.root.position.copy(P.p); let d = P.face - HU.root.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); HU.root.rotation.y += d * Math.min(1, dt * 18); driveMix();
   blob.position.set(P.p.x, P.gH + .02, P.p.z); const hh = clamp((P.p.y - P.gH) * .25, 0, .8); blob.scale.setScalar(1 - hh * .5); blob.material.opacity = 1 - hh; blob.visible = P.st !== 'hang' && P.st !== 'climb'; }
 
 /* ================= CAMERA ================= */
