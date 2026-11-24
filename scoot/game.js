@@ -1,7 +1,7 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, store, engine, studioEnv, cnv, ctex, particles, CONFETTI, audio, toast, ICO, hubButtons, soundButton, qualityButton } from '../lib/kit.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-const S = store('scoot-save', { coins: 0, best: {}, goals: {}, park: 0, ctl: 'touch', skin: 0, owned: [0], tut: 0, mode: 'comp', wins: 0 });
+const S = store('scoot-save', { coins: 0, best: {}, goals: {}, park: 0, ctl: 'touch', skin: 0, owned: [0], tut: 0, mode: 'comp', wins: 0, diff: 1, wd: [0, 0, 0, 0] });
 const E = engine(S, { fov: 60, far: 420, bloom: [.28, .4, .92], exposure: 1.02, vignette: .3, sat: 1.12 });
 const { scene, camera, renderer } = E; studioEnv(E, '#fff4e4', '#6a7a5a', .55);
 const A = audio(S); const FX = particles(E, 900); const GLOW = particles(E, 700, true);
@@ -366,7 +366,7 @@ function makeRiderBody(d) { const g = new THREE.Group(); const sk = new THREE.Me
   const neck = limb(V3(0, 1.28, .05), V3(0, 1.36, .03), .045, sk, g);
   const head = new THREE.Mesh(new THREE.SphereGeometry(.1, 16, 12), sk); head.position.set(0, 1.44, .02); head.castShadow = true; g.add(head);
   const helm = new THREE.Mesh(new THREE.SphereGeometry(.118, 18, 12, 0, TAU, 0, Math.PI * .55), he); helm.position.set(0, 1.46, .025); helm.rotation.x = -.15; helm.castShadow = true; g.add(helm);
-  return g; }
+  g.userData.m = { sk, sh, he }; return g; }
 function drawLabel(b, sub) { const x = b.lc.getContext('2d'); x.clearRect(0, 0, 256, 96); x.textAlign = 'center'; x.lineJoin = 'round'; x.font = '900 36px Arial'; x.lineWidth = 8; x.strokeStyle = 'rgba(10,14,40,.9)'; x.strokeText(b.d.n, 128, 38); x.fillStyle = b.d.shirt; x.fillText(b.d.n, 128, 38);
   if (sub) { x.font = '900 24px Arial'; x.lineWidth = 6; x.strokeText(sub, 128, 76); x.fillStyle = sub === 'BAIL!' ? '#ff5a6a' : '#ffd23a'; x.fillText(sub, 128, 76); } b.lt.needsUpdate = true; }
 function makeRival(d) { const root = new THREE.Group(); scene.add(root); const rG = new THREE.Group(); rG.position.y = RIDE_H; root.add(rG); const rO = new THREE.Group(); rO.position.y = -RIDE_H; rG.add(rO);
@@ -376,8 +376,16 @@ function makeRival(d) { const root = new THREE.Group(); scene.add(root); const r
   pv.traverse(o => { if (o.isMesh && mm.has(o.material)) o.material = mm.get(o.material); });
   const body = makeRiderBody(d); yG.add(body);
   const lc = cnv(256, 96), lt = ctex(lc); const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: lt, depthWrite: false, transparent: true, fog: false })); spr.scale.set(1.6, .6, 1); spr.position.y = 2.05; rO.add(spr);
-  const b = { d, root, rG, yG, tG, body, deck: pv.children[0], bars: pv.children[1], lc, lt, spr }; drawLabel(b); return b; }
-function resetBots() { for (const b of bots) { const d = b.d; Object.assign(b, { x: d.at[0], z: d.at[1], psi: d.at[2], y: H(d.at[0], d.at[1]) ?? 0, u: d.sp, air: false, vx: 0, vy: 0, vz: 0, airT: 0, ps: 0, pitch: 0, auto: 0, autoT: 0, wp: d.wp, plan: [], animT: 1, bailP: false, crash: 0, score: 0, cp: 0, cm: 0, ct: 0, subT: 0, ollT: 0 }); drawLabel(b); } }
+  const b = { d, root, rG, yG, tG, body, deck: pv.children[0], bars: pv.children[1], lc, lt, spr, mm }; drawLabel(b); return b; }
+const RNAMES = [T('מאיה', 'Maya'), T('רון', 'Ron'), T('ליאו', 'Leo'), T('נועה', 'Noa'), T('איתי', 'Itay'), T('עומר', 'Omer'), T('שירה', 'Shira'), T('אלה', 'Ella'), T('גיא', 'Guy'), T('דניאל', 'Daniel'), T('יואב', 'Yoav'), T('ליה', 'Lia')];
+const RCOL = [['#ff4a8a', '#ffd23a', '#ff4a8a'], ['#3a9aff', '#f4f4f4', '#7aff3a'], ['#ffb02a', '#ff3a3a', '#9a5aff'], ['#7aff3a', '#1a1a24', '#3ae8ff'], ['#b05aff', '#ffffff', '#ffd23a'], ['#ff6a3a', '#2a2a3a', '#ff6a3a'], ['#3ae8c8', '#ff4a8a', '#ffffff']], RSKIN = ['#f0c098', '#c89068', '#e8b088', '#8a5a3a', '#f6d0b0'];
+const LSTART = [{ at: [3, 8, Math.PI], wp: 2 }, { at: [-14, 11, 0], wp: 0 }, { at: [16, -6, 0], wp: 0 }];
+const DIFF = [{ n: T('קל', 'Easy'), m: 1, sk: 0 }, { n: T('בינוני', 'Medium'), m: 2.6, sk: .08 }, { n: T('קשה', 'Hard'), m: 4.3, sk: .14 }, { n: T('אגדי', 'Legend'), m: 6.2, sk: .2 }];
+const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function rollRoster() { const D = DIFF[S.diff ?? 1], nm = shuf(RNAMES), col = shuf(RCOL), lp = shuf([0, 1, 2]), sk = shuf([.5, .68, .82]);
+  bots.forEach((b, i) => { const c = col[i], skill = clamp(sk[i] + rnd(-.06, .06) + D.sk, .3, .97); b.d = { n: nm[i], shirt: c[0], helm: c[1], bars: c[2], skin: RSKIN[Math.floor(Math.random() * RSKIN.length)], skill, sp: 8.1 + skill * 1.1, loop: lp[i], wp: LSTART[lp[i]].wp, at: LSTART[lp[i]].at, sc: rnd(.85, 1.15) * D.m };
+    const m = b.body.userData.m; m.sh.color.set(c[0]); m.he.color.set(c[1]); m.sk.color.set(b.d.skin); for (const [k, v] of b.mm) if (k === scM.bars) v.color.set(c[2]); }); }
+function resetBots() { rollRoster(); for (const b of bots) { const d = b.d; Object.assign(b, { x: d.at[0], z: d.at[1], psi: d.at[2], y: H(d.at[0], d.at[1]) ?? 0, u: d.sp, air: false, vx: 0, vy: 0, vz: 0, airT: 0, ps: 0, pitch: 0, auto: 0, autoT: 0, wp: d.wp, plan: [], animT: 1, bailP: false, crash: 0, score: 0, cp: 0, cm: 0, ct: 0, subT: 0, ollT: 0 }); drawLabel(b); } }
 function botPlan(b, Tf) { b.plan = []; b.animT = Math.max(.25, Tf * .78); b.bailP = false; if (Tf < .32) return; const sk = b.d.skill, avail = BOT_TR.filter(t => t[2] <= Tf * (.85 + sk * .25)); if (!avail.length) return;
   b.plan.push(avail[Math.min(avail.length - 1, Math.floor(Math.pow(Math.random(), 1.5 - sk) * avail.length))]);
   const p0 = b.plan[0][3]; if (Tf > .85 && Math.random() < sk * .55 && !p0.rb && !p0.rf && !p0.rs) { const p2 = BOT_TR[Math.floor(Math.random() * 4)]; if (!(p2[3].bar && p0.bar) && !(p2[3].whip && p0.whip)) b.plan.push(p2); }
@@ -388,7 +396,7 @@ function botLand(b) { const sc = RSCALE[park] || 1;
   const names = []; if (b.auto) { b.cp += 300 + b.airT * 300; b.cm = Math.min(10, b.cm + 1); }
   for (const t of b.plan) { b.cp += t[1]; b.cm = Math.min(10, b.cm + 1); names.push(t[0]); } if (!b.plan.length && b.airT > .3) { b.cp += 100; b.cm = Math.min(10, b.cm + 1); }
   b.ct = 1.6; if (names.length) { drawLabel(b, names.join(' + ')); b.subT = 1.6; } b.plan = []; b.auto = 0; b.sc = sc; }
-function botBank(b) { if (b.cp > 0) b.score += Math.round(b.cp * Math.max(1, b.cm) * (RSCALE[park] || 1)); b.cp = 0; b.cm = 0; }
+function botBank(b) { if (b.cp > 0) b.score += Math.round(b.cp * Math.max(1, b.cm) * (RSCALE[park] || 1) * (b.d.sc || 1)); b.cp = 0; b.cm = 0; }
 function botStep(b, dt) {
   if (b.subT > 0) { b.subT -= dt; if (b.subT <= 0) drawLabel(b); }
   if (b.crash > 0) { b.crash -= dt; if (b.crash <= 0) b.u = 3; return; }
@@ -521,14 +529,14 @@ function finish() { if (state !== 'play') return; if (P.grind) endGrind(false); 
   const comp = S.mode !== 'free', L = comp ? standings() : null, place = comp ? L.findIndex(r => r.me) + 1 : 0;
   const R = PARKS[park], st = R.stars.filter(x => score >= x).length, key = 'p' + park, nb = score > (S.best[key] || 0); if (nb) S.best[key] = score;
   const g = S.goals[key] || [0, 0, 0]; R.goals.forEach(([k, v], i) => { const ok = k === 'score' ? score >= v : k === 'grind' ? (runStats.grind || 0) >= v : k === 'mult' ? (runStats.mult || 0) >= v : !!runStats[k]; if (ok) g[i] = 1; }); S.goals[key] = g;
-  const bonus = comp ? [0, 150, 80, 40, 0][place] : 0, coins = Math.round(score / 500) + st * 30 + bonus; S.coins += coins; if (comp && place === 1) S.wins = (S.wins || 0) + 1; S.save();
+  const bonus = comp ? Math.round([0, 150, 80, 40, 0][place] * [1, 1.5, 2.2, 3][S.diff ?? 1]) : 0, coins = Math.round(score / 500) + st * 30 + bonus; S.coins += coins; if (comp && place === 1) { S.wins = (S.wins || 0) + 1; S.wd = S.wd || [0, 0, 0, 0]; S.wd[S.diff ?? 1]++; } S.save();
   A.voice(comp && place > 1 ? 'aww' : 'yay', 1.2);
   for (let i = 0; i < 120; i++) GLOW.emit(V3(P.x + rnd(-3, 3), P.y + rnd(1, 4), P.z + rnd(-3, 3)), V3(rnd(-2, 2), rnd(1, 5), rnd(-2, 2)), CONFETTI[i % 5], rnd(.04, .08), rnd(1, 2), 4, 1, .98);
   $('eS').textContent = comp ? ['', '🥇', '🥈', '🥉', '4️⃣'][place] : '⭐'.repeat(st) + '☆'.repeat(3 - st);
   $('eT').textContent = comp ? (place === 1 ? T('ניצחת בתחרות! 🏆', 'You won the contest! 🏆') : T('מקום ' + place, 'Place ' + place)) : (nb ? T('שיא חדש! 🔥', 'New best! 🔥') : T('הסשן הסתיים!', 'Session over!'));
   $('eRes').textContent = score.toLocaleString('en-US');
   $('eRank').innerHTML = comp ? L.map((r, i) => `<div class="${r.me ? 'me' : ''}"><b>${['🥇', '🥈', '🥉', '4'][i]}</b><span>${r.n}</span><em>${r.s.toLocaleString('en-US')}</em></div>`).join('') : ''; $('eRank').hidden = !comp;
-  $('eP').textContent = `🪙 +${coins} · ⭐ ${st}/3 · ${T('יעדים', 'Goals')} ${g.filter(Boolean).length}/3`; setTimeout(() => $('endSheet').hidden = false, 900); }
+  $('eP').textContent = (comp ? DIFF[S.diff ?? 1].n + ' · ' : '') + `🪙 +${coins} · ⭐ ${st}/3 · ${T('יעדים', 'Goals')} ${g.filter(Boolean).length}/3`; setTimeout(() => $('endSheet').hidden = false, 900); }
 const totStars = () => Object.values(S.goals).reduce((a, g) => a + g.filter(Boolean).length, 0);
 // ---- park map ----
 const PINS = [[25, 70], [54, 44], [82, 70]], SOON = [12, 40];
@@ -544,8 +552,10 @@ function renderMap() { const ts = totStars(); $('map').innerHTML = mapSVG() + PA
 function renderTitle() { const ts = totStars(); $('tStars').textContent = ts; $('tCoins').textContent = S.coins; renderMap();
   const R = PARKS[S.park], g = S.goals['p' + S.park] || [0, 0, 0]; $('goals').innerHTML = `<b class="gt">📍 ${R.n}</b>` + R.goals.map((x, i) => `<span class="${g[i] ? 'ok' : ''}">${g[i] ? '✅' : '⬜'} ${x[2]}</span>`).join('') + `<span>🏆 ${T('שיא', 'Best')}: ${(S.best['p' + S.park] || 0).toLocaleString('en-US')}${S.wins ? ' · 🥇 ' + S.wins : ''}</span>`;
   $('modeRow').innerHTML = `<button data-m="comp" class="${S.mode !== 'free' ? 'on' : ''}">🏆 ${T('תחרות מול רוכבים', 'Contest vs riders')}</button><button data-m="free" class="${S.mode === 'free' ? 'on' : ''}">🛴 ${T('סשן חופשי', 'Free session')}</button>`;
+  const wd = S.wd || [0, 0, 0, 0]; $('diffRow').hidden = S.mode === 'free'; $('diffRow').innerHTML = DIFF.map((d, i) => `<button data-d="${i}" class="${(S.diff ?? 1) === i ? 'on' : ''}">${['🙂', '😎', '🔥', '👑'][i]} ${d.n}${wd[i] ? ' 🏆' + wd[i] : ''}</button>`).join('');
   $('ctlRow').innerHTML = `<button data-c="touch" class="${S.ctl === 'touch' ? 'on' : ''}">✌️ ${T('אצבעות על הקורקינט', 'Fingers on scooter')}</button><button data-c="btn" class="${S.ctl === 'btn' ? 'on' : ''}">🎮 ${T('כפתורים', 'Buttons')}</button>`; $('goBtn').textContent = T('צא לרכיבה! 🛴', 'Ride! 🛴'); }
 $('map').onclick = e => { const b = e.target.closest('.pin'); if (!b) return; if (b.dataset.soon) { toast(T('פארק החוף יגיע בקרוב! 🏖️', 'Beach Park is coming soon! 🏖️')); return; } const i = +b.dataset.r; if (totStars() < PARKS[i].need) { toast(T('צריך עוד כוכבים ⭐', 'Need more stars ⭐') + ' (' + PARKS[i].need + ')'); return; } if (S.park === i) return; S.park = i; S.save(); A.tone(700, .05, 'triangle', .04); buildPark(i); applyTime(i); parkG.userData.p = i; renderTitle(); };
+$('diffRow').onclick = e => { const b = e.target.closest('[data-d]'); if (!b) return; S.diff = +b.dataset.d; S.save(); A.tone(560 + S.diff * 120, .05, 'triangle', .04); renderTitle(); };
 $('modeRow').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; S.mode = b.dataset.m; S.save(); A.tone(620, .04, 'triangle', .04); renderTitle(); };
 $('ctlRow').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; S.ctl = b.dataset.c; S.save(); renderTitle(); };
 function showTitle() { state = 'title'; A.stopMusic(); A.loopOff('roll'); A.loopOff('grind'); $('title').hidden = false; for (const id of ['hud', 'score', 'timeT', 'endSheet', 'pauseSheet', 'cue', 'lb', 'bL', 'bR', 'bJ', 'bP', 'airB']) $(id).hidden = true; $('combo').innerHTML = ''; $('big').innerHTML = ''; resetQ(); P.crash = 0; P.rf = null; renderTitle(); }

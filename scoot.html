@@ -69,7 +69,7 @@ body{background:#0e1430;color:#fff;touch-action:none}
 .goals span.ok{color:#7aff8a}
 .opt{display:flex;gap:6px;justify-content:center}
 .opt button{height:36px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:900;font-size:13px;color:#fff;border:2px solid transparent}
-.opt button.on{border-color:#3ae8ff;background:rgba(58,232,255,.2)}
+.opt.diff button{padding:0 9px;font-size:12px}.opt.diff button.on{border-color:#ffd23a;background:rgba(255,210,58,.22)}.opt button.on{border-color:#3ae8ff;background:rgba(58,232,255,.2)}
 .stat{display:flex;gap:10px;justify-content:center;color:#fff;font-weight:900;font-size:16px}
 .stat span{background:rgba(10,14,40,.6);border-radius:999px;padding:5px 14px}
 .go2{height:60px;border-radius:999px;background:linear-gradient(180deg,#7aff5a,#22b81a);color:#fff;font-weight:900;font-size:24px;box-shadow:0 7px 0 #0f6a0a,0 14px 26px rgba(0,0,0,.35);text-shadow:0 2px 0 rgba(0,0,0,.25)}
@@ -82,7 +82,7 @@ body{background:#0e1430;color:#fff;touch-action:none}
 .card{background:#fff;color:#1a2a4a}
 .res{font-size:40px;font-weight:900;direction:ltr;margin:2px 0;color:#1a2a4a}
 .stars{font-size:34px;letter-spacing:4px}
-@media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(8,10,30,0) 30%,rgba(8,10,30,.84) 52%,rgba(8,10,30,.96))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto}.tpan{width:min(460px,58vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.map{height:150px}.go2{height:46px}#combo{top:30%}.map{height:120px}.goals{display:grid;grid-template-columns:1fr 1fr;padding:5px 8px;font-size:11.5px;gap:1px 8px}.goals .gt{display:none}.opt button{height:31px;font-size:12px}.stat{display:none}}
+@media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(8,10,30,0) 30%,rgba(8,10,30,.84) 52%,rgba(8,10,30,.96))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto}.tpan{width:min(460px,58vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.map{height:150px}.go2{height:46px}#combo{top:30%}.map{height:100px}.goals{display:grid;grid-template-columns:1fr 1fr;padding:5px 8px;font-size:11.5px;gap:1px 8px}.goals .gt{display:none}.opt button{height:31px;font-size:12px}.stat{display:none}}
 </style>
 </head>
 <body>
@@ -108,6 +108,7 @@ body{background:#0e1430;color:#fff;touch-action:none}
     <div class="map" id="map"></div>
     <div class="goals" id="goals"></div>
     <div class="opt" id="modeRow"></div>
+    <div class="opt diff" id="diffRow"></div>
     <div class="opt" id="ctlRow"></div>
     <button class="go2" id="goBtn"></button>
     <div class="trow"><button class="chip" id="shopBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndBtn"></button></div>
