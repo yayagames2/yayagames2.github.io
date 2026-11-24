@@ -1,5 +1,6 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, EN, store, engine, studioEnv, std, shadowAll, cnv, ctex, particles, CONFETTI, audio, toast, ICO, hubButtons, soundButton, qualityButton, cutie } from '../lib/kit.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { carShape, BS, BT, pillarMesh } from '../lib/carkit.js';
 
 const S = store('flip-save', { money: 15000, rep: 0, sales: 0, car: null, lot: null, li: 0, req: null, total: 0, best: 0, tut: 0 });
 const E = engine(S, { fov: 36, bloom: [.42, .5, 1.05], exposure: 1.05, bg: '#1a1d28', vignette: .32 });
@@ -147,31 +148,7 @@ function decalCanvas(type, flip, col, num) {
 }
 
 /* ================= CAR BUILDER ================= */
-const BS = .06, BT = .1;
-function geomOf(M) {
-  if (M._g) return M._g;
-  const F = M.L / 2, R = -M.L / 2, fy = M.wr * 2.18 + .03 - BS;
-  let base = [[F - .06, M.noseY], [F - .34, M.noseY + (M.hoodY - M.noseY) * .5], [M.ws, M.hoodY], [M.rb, M.belt], [R + M.deckEnd, lerp(M.belt, M.tailY, .3)], [R + .05, M.tailY]];
-  const interp = xx => { for (let i = 0; i < base.length - 1; i++) { const a = base[i], b = base[i + 1]; if (xx <= a[0] && xx >= b[0]) return lerp(a[1], b[1], (a[0] - xx) / (a[0] - b[0] || 1)); } return base[base.length - 1][1]; };
-  for (const ax of [M.fa, M.ra]) { const y = interp(ax); if (y < fy) { const near = base.find(p => Math.abs(p[0] - ax) < .2); if (near) near[1] = Math.max(near[1], fy); else base.push([ax, fy]); } }
-  base.sort((a, b) => b[0] - a[0]); const clean = []; for (const p of base) if (!clean.length || clean[clean.length - 1][0] - p[0] > .1) clean.push(p);
-  const top = [[F - .03, M.bot + .03], [F, (M.bot + M.noseY) / 2], ...clean, [R, (M.tailY + M.bot) / 2], [R + .04, M.bot + .03]].map(([a, b]) => V2(a, b));
-  const s = new THREE.Shape(); s.moveTo(R + .07, M.bot);
-  for (const ax of [M.ra, M.fa]) { const ar = M.wr * 1.18 + BS, cy = M.wr, d = Math.asin(clamp((cy - M.bot) / ar, -1, 1)); s.lineTo(ax - ar * Math.cos(d), M.bot); s.absarc(ax, cy, ar, Math.PI + d, -d, true); }
-  s.lineTo(F - .07, M.bot); s.splineThru(top); s.closePath();
-  const dep = M.W - 2 * BT; const body = new THREE.ExtrudeGeometry(s, { depth: dep, bevelEnabled: true, bevelThickness: BT, bevelSize: BS, bevelSegments: 5, curveSegments: 30 }); body.translate(0, 0, -dep / 2);
-  const topPts = new THREE.SplineCurve(top).getPoints(140);
-  const cb = Math.min(M.hoodY, M.belt) - .14; const cabTop = [V2(M.ws + .03, M.hoodY - .02), V2(lerp(M.ws, M.rf, .55), lerp(M.hoodY, M.roofY, .8)), V2(M.rf, M.roofY), V2((M.rf + M.rr) / 2, M.roofY + .025), V2(M.rr, M.roofY - .01), V2(lerp(M.rr, M.rb, .5), lerp(M.roofY, M.belt, .58)), V2(M.rb - .03, M.belt - .02)];
-  const cs = new THREE.Shape(); cs.moveTo(M.ws + .03, cb); cs.lineTo(cabTop[0].x, cabTop[0].y); cs.splineThru(cabTop.slice(1)); cs.lineTo(M.rb - .03, cb); cs.closePath();
-  const CW = M.W * .76, cd = CW - .16; const cab = new THREE.ExtrudeGeometry(cs, { depth: cd, bevelEnabled: true, bevelThickness: .08, bevelSize: .04, bevelSegments: 4, curveSegments: 24 }); cab.translate(0, 0, -cd / 2);
-  const cabPts = new THREE.SplineCurve(cabTop).getPoints(80);
-  const roofPts = cabPts.filter(p => p.x <= M.rf + .06 && p.x >= M.rr - .04);
-  const rs = new THREE.Shape(); const up = roofPts.map(p => V2(p.x, p.y + .015)), dn = roofPts.map(p => V2(p.x, p.y - .06)).reverse(); rs.moveTo(up[0].x, up[0].y); up.slice(1).forEach(p => rs.lineTo(p.x, p.y)); dn.forEach(p => rs.lineTo(p.x, p.y)); rs.closePath();
-  const roof = new THREE.ExtrudeGeometry(rs, { depth: cd + .02, bevelEnabled: true, bevelThickness: .085, bevelSize: .045, bevelSegments: 4, curveSegments: 4 }); roof.translate(0, 0, -(cd + .02) / 2);
-  const topAt = xx => { for (let i = 0; i < topPts.length - 1; i++) { const a = topPts[i], b = topPts[i + 1]; if (xx <= a.x && xx >= b.x) return lerp(a.y, b.y, (a.x - xx) / (a.x - b.x || 1)); } return M.belt; };
-  M._g = { F, R, body, cab, roof, topPts, cabPts, roofPts, topAt, CW };
-  return M._g;
-}
+const geomOf = M => carShape(M);
 function ribbon(pts, z0, w, off) {
   const pos = [], idx = [], n = pts.length;
   for (let i = 0; i < n; i++) { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)]; let tx = b.x - a.x, ty = b.y - a.y; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l; const x = pts[i].x + ty * off, y = pts[i].y - tx * off; pos.push(x, y, z0 - w / 2, x, y, z0 + w / 2); if (i < n - 1) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } }
@@ -221,6 +198,7 @@ function buildCar(car, p) {
   body.add(new THREE.Mesh(G.cab, glass));
   const roofM = p.roof === 'black' ? M_BLACK : p.roof === 'white' ? own(paintMat('solid', '#f4f4f4')) : p.roof === 'carbon' ? M_CARBON : paint;
   body.add(new THREE.Mesh(G.roof, roofM));
+  body.add(pillarMesh(M, G, roofM));
   const F = G.F + BS, R = G.R - BS, hw = M.W / 2, yb = M.bot - BS;
   // lights, grille, mirrors
   const hlc = C(optOf('hl', p.hl).ic); const hlM = own(new THREE.MeshStandardMaterial({ color: hlc.clone().multiplyScalar(.6), emissive: hlc, emissiveIntensity: 1.5, roughness: .2 }));
@@ -233,11 +211,11 @@ function buildCar(car, p) {
   if (p.stripe === 'twin' || p.stripe === 'wide') {
     const hood = G.topPts.filter(q => q.x > M.ws + .02 && q.y > M.noseY - .14), deck = G.topPts.filter(q => q.x < M.rb - .02 && q.y > M.tailY - .16);
     const lanes = p.stripe === 'twin' ? [[-.17, .17], [.17, .17]] : [[0, .42]];
-    for (const [z, w] of lanes) { if (hood.length > 1) body.add(new THREE.Mesh(ribbon(hood, z, w, BS + .006), scM)); if (deck.length > 1) body.add(new THREE.Mesh(ribbon(deck, z, w, BS + .006), scM)); if (G.roofPts.length > 1) body.add(new THREE.Mesh(ribbon(G.roofPts, z, w, .072), scM)); }
+    for (const [z, w] of lanes) { if (hood.length > 1) body.add(new THREE.Mesh(G.deform(ribbon(hood, z, w, BS + .006)), scM)); if (deck.length > 1) body.add(new THREE.Mesh(G.deform(ribbon(deck, z, w, BS + .006)), scM)); if (G.roofPts.length > 1) body.add(new THREE.Mesh(G.deform(ribbon(G.roofPts, z, w, .072)), scM)); }
   }
   if (p.stripe === 'side') { const ar = M.wr * 1.18 + .05; let seg = []; const segs = [];
     for (const q of G.topPts) { if (q.x > G.F - .2 || q.x < G.R + .2) continue; const y = Math.min(q.y, M.belt) - .14; const nearA = [M.fa, M.ra].some(ax => Math.abs(q.x - ax) < ar && y - .03 < M.wr + ar); if (nearA || y < M.bot + .1) { if (seg.length > 1) segs.push(seg); seg = []; continue; } seg.push(V2(q.x, y)); }
-    if (seg.length > 1) segs.push(seg); for (const sg of segs) for (const s of [-1, 1]) body.add(new THREE.Mesh(vribbon(sg, s * (hw + .004), .055), scM)); }
+    if (seg.length > 1) segs.push(seg); for (const sg of segs) for (const s of [-1, 1]) body.add(new THREE.Mesh(G.deform(vribbon(sg, s * (hw + .004), .055)), scM)); }
   scM.side = THREE.DoubleSide;
   // decals
   if (p.decal !== 'none') { const ar = M.wr * 1.18; const x0 = M.ra + ar + .06, x1 = M.fa - ar - .06; const wdt = Math.min(1.75, x1 - x0); const cx = (x0 + x1) / 2; const yTop = Math.min(G.topAt(cx), M.belt) - .1; const hgt = Math.min(wdt / 3, yTop - M.bot - .02); const cy = M.bot + .02 + hgt / 2 + Math.max(0, (yTop - M.bot - .02 - hgt) * .35);

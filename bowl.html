@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script src="lib/i18n.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Strike Night</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#0a0620;--accent:#ff3ad8;--deep:#3a0a6a;--btn:linear-gradient(180deg,#ff6ae0,#b81aa8);--btnsh:#5a0a4a;--panel:rgba(16,8,40,.6);--scr:transparent}
+body{background:#0a0620;color:#fff}
+.rb,.pill{color:#fff;background:rgba(16,8,40,.55);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px)}
+#card{position:fixed;z-index:5;top:max(64px,calc(env(safe-area-inset-top) + 60px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:3px;pointer-events:none;direction:ltr;max-width:98vw}
+.prow{display:flex;align-items:stretch;gap:2px;background:rgba(10,6,30,.62);border-radius:10px;padding:3px;border:1px solid rgba(255,255,255,.12)}
+.prow.on{border-color:#ff5ae0;box-shadow:0 0 12px rgba(255,90,224,.6)}
+.prow .nm{min-width:54px;max-width:70px;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 4px;border-radius:7px;overflow:hidden;white-space:nowrap}
+.fr{width:30px;background:rgba(255,255,255,.08);border-radius:6px;display:flex;flex-direction:column;align-items:stretch}
+.fr.cur{background:rgba(255,90,224,.28)}
+.fr.t{width:42px}
+.fr .rl{display:flex;justify-content:flex-end;height:14px;font-size:10.5px;font-weight:900}
+.fr .rl i{font-style:normal;width:13px;text-align:center;border-left:1px solid rgba(255,255,255,.15)}
+.fr .tot{font-size:12px;font-weight:900;text-align:center;height:15px;line-height:15px}
+.prow .sum{min-width:34px;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;color:#ffe24a}
+#big{position:fixed;z-index:7;left:0;right:0;top:30%;text-align:center;pointer-events:none;font-weight:900;direction:ltr}
+#big div{font-size:clamp(46px,13vw,90px);font-style:italic;color:#fff;-webkit-text-stroke:3px #a81a9a;text-shadow:0 6px 0 #5a0a4a,0 0 40px rgba(255,80,220,.9);animation:bp 1.8s ease-out forwards}
+#big div.s{font-size:clamp(36px,10vw,64px);-webkit-text-stroke-color:#1a6aa8;text-shadow:0 5px 0 #0a3a6a,0 0 30px rgba(80,200,255,.9)}
+#big div.g{font-size:clamp(28px,8vw,46px);-webkit-text-stroke-color:#5a5a6a;text-shadow:0 4px 0 #2a2a3a}
+#big small{display:block;font-size:22px;-webkit-text-stroke:0;color:#ffe24a;text-shadow:0 2px 6px #000}
+@keyframes bp{0%{transform:scale(.2) rotate(-8deg);opacity:0}15%{transform:scale(1.15) rotate(2deg);opacity:1}28%{transform:scale(1) rotate(0)}80%{opacity:1}100%{transform:scale(1.05);opacity:0}}
+#turn{position:fixed;z-index:6;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;pointer-events:none;font-weight:900;font-size:17px;text-shadow:0 2px 8px #000}
+#turn b{display:inline-block;padding:6px 16px;border-radius:999px;background:rgba(10,6,30,.6);border:1px solid rgba(255,255,255,.2)}
+.mv{position:fixed;z-index:6;bottom:max(64px,calc(env(safe-area-inset-bottom) + 60px));width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.4);font-size:24px;font-weight:900;color:#fff;touch-action:none}
+#mvL{left:max(16px,env(safe-area-inset-left))}#mvR{right:max(16px,env(safe-area-inset-right))}
+#title{justify-content:flex-end;background:linear-gradient(180deg,rgba(8,4,24,0) 35%,rgba(8,4,24,.85))}
+#title .homeT{z-index:3}
+#title .logo{pointer-events:none;position:absolute;top:max(14px,env(safe-area-inset-top));left:0;right:0;margin:0}
+.logo .a{color:#5ae8ff;letter-spacing:8px;text-shadow:0 3px 0 #1a3a8a,0 0 18px rgba(90,230,255,.8)}.logo .b{color:#fff;-webkit-text-stroke:3px #a81a9a;text-shadow:0 6px 0 #5a0a4a,0 0 34px rgba(255,80,220,.8);font-style:italic}
+.tpan{width:min(520px,100%);display:flex;flex-direction:column;gap:9px;align-items:stretch}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{min-height:56px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid transparent;padding:4px}
+.seg button span{font-size:22px;line-height:1}.seg button small{font-size:11px;opacity:.85;font-weight:700}
+.seg button.on{background:linear-gradient(180deg,#ff6ae0,#b81aa8);border-color:#ffd0f8;box-shadow:0 4px 0 #5a0a4a}
+.opt{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.opt button{height:38px;padding:0 14px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:900;font-size:14px;color:#fff;border:2px solid transparent}
+.opt button.on{border-color:#5ae8ff;background:rgba(90,232,255,.2)}
+.stat{display:flex;gap:10px;justify-content:center;color:#fff;font-weight:900;font-size:16px}
+.stat span{background:rgba(16,8,40,.55);border-radius:999px;padding:5px 14px}
+.go2{height:62px;border-radius:999px;background:linear-gradient(180deg,#7aff5a,#22b81a);color:#fff;font-weight:900;font-size:24px;box-shadow:0 7px 0 #0f6a0a,0 14px 26px rgba(0,0,0,.35);text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.trow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.chip svg{width:22px;height:22px;display:block}
+.shop{max-height:82vh;overflow-y:auto;width:min(460px,94vw)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:10px 0 14px}
+.sk{border-radius:16px;background:#f4f0fb;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;border:3px solid transparent;font-weight:800;color:#2a1a4a;font-size:12px}
+.sk canvas{width:56px;height:56px}.sk.on{border-color:#ff3ad8;background:#fff0fc}.sk small{font-size:11px;opacity:.8}
+.card{background:#fff;color:#2a1a4a}
+.res{list-style:none;padding:0;margin:8px 0;text-align:start}.res li{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:12px;font-weight:800;background:#f6f0fc;margin-bottom:5px}
+.res li.w{background:#fff4c8}
+@media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(8,4,24,0) 30%,rgba(8,4,24,.82) 52%,rgba(8,4,24,.95))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto}.tpan{width:min(430px,56vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.go2{height:52px}.seg button{min-height:46px}#card{top:max(8px,env(safe-area-inset-top));transform:translateX(-50%) scale(.85);transform-origin:top center}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="sp"></div>
+  <div class="pill"><b id="coinTxt" style="direction:ltr">0</b><small>🪙</small></div>
+</div>
+<div id="card" hidden></div>
+<div id="big"></div>
+<div id="turn" hidden><b id="turnT"></b></div>
+<button class="mv" id="mvL" hidden>◀</button><button class="mv" id="mvR" hidden>▶</button>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo"><span class="a">STRIKE</span><span class="b">NIGHT</span></h1>
+  <div class="tpan">
+    <div class="stat"><span>🏆 <b id="tBest">0</b></span><span>🪙 <b id="tCoins">0</b></span></div>
+    <div class="seg" id="modeSeg"></div>
+    <div class="opt" id="optRow"></div>
+    <button class="go2" id="goBtn"></button>
+    <div class="trow"><button class="chip" id="shopBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndBtn"></button></div>
+  </div>
+</section>
+<div class="sheet" id="shopSheet" hidden><div class="card shop"><h3><span id="shopT"></span> · 🪙 <span id="shopCoins"></span></h3><div class="grid3" id="skins"></div><div class="row"><button class="btn pri" id="shopClose"></button></div></div></div>
+<div class="sheet" id="endSheet" hidden><div class="card"><div id="eE" style="font-size:54px;line-height:1"></div><h3 id="eT"></h3><ul class="res" id="eRes"></ul><p id="eP" style="font-weight:700;margin:4px 0"></p><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="bowl/game.js"></script>
+</body>
+</html>

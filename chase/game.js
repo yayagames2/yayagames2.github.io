@@ -1,6 +1,7 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, rng, T, EN, isTouch, store, engine, studioEnv, std, cnv, ctex, particles, audio, toast, ICO, hubButtons, soundButton, qualityButton } from '../lib/kit.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { carMerged } from '../lib/carkit.js';
 
 const S = store('chase-save', { stars: {}, side: 'rob', lvl: { rob: 0, cop: 0 }, car: { rob: 0, cop: 0 }, tut: 0 });
 const E = engine(S, { fov: 62, far: 560, bloom: [.62, .55, .78], exposure: 1.25, vignette: .38, sat: 1.18 });
@@ -138,7 +139,8 @@ function carGeo(k) { const B = [], L = []; const H = (w, l, x, z, y = .62) => L.
   else { const pol = k === 'police'; B.push(geoBox(2.0, .68, 4.5, 0, .6, 0, pol ? DK : WH, .22), geoBox(1.75, .56, 2.25, 0, 1.18, -.2, GL, .18), geoBox(1.77, .07, 1.95, 0, 1.47, -.25, WH)); if (pol) B.push(geoBox(2.04, .42, 2.0, 0, .66, -.15, WH, .1), geoBox(2.05, .2, .3, 0, .45, 2.28, DK)); H(.42, 0, -.65, 2.26); H(.42, 0, .65, 2.26); Tl(.45, -.65, -2.26); Tl(.45, .65, -2.26); if (k === 'taxi') L.push(geoBox(.8, .3, .4, 0, 1.68, -.2, '#ffd23a')); }
   const len = k === 'van' ? 1.65 : 1.45; for (const x of [-.9, .9]) for (const z of [-len, len]) B.push(wheelG(x * (k === 'van' || k.includes('V') || k === 'suv' ? 1.05 : 1), z, k === 'suv' || k === 'policeV' ? .45 : .38));
   return { body: mergeGeometries(B), lights: mergeGeometries(L) }; }
-const GEO = {}; for (const k of ['sport', 'muscle', 'sedan', 'taxi', 'van', 'suv', 'police', 'policeS', 'policeV']) GEO[k] = carGeo(k);
+const POLO = { body: '#16161a', doors: '#ffffff', roofC: '#ffffff' };
+const GEO = { sport: carMerged('corsa'), muscle: carMerged('hammer'), sedan: carMerged('sedan'), taxi: carMerged('sedan', { taxi: 1 }), van: carMerged('van'), suv: carMerged('suv'), police: carMerged('sedan', POLO), policeS: carMerged('corsa', POLO), policeV: carMerged('suv', POLO) };
 const LIGHTM = new THREE.MeshBasicMaterial({ vertexColors: true }); LIGHTM.color.setScalar(3);
 const matCache = {}; const bodyMat = c => matCache[c] || (matCache[c] = new THREE.MeshStandardMaterial({ color: C(c), vertexColors: true, roughness: .28, metalness: .55, envMapIntensity: 1.3 }));
 const BEAMG = new THREE.PlaneGeometry(6, 14); BEAMG.rotateX(-Math.PI / 2); BEAMG.translate(0, .06, 9.2);
@@ -149,7 +151,7 @@ const poolG = new THREE.PlaneGeometry(13, 13); poolG.rotateX(-Math.PI / 2); pool
 const poolM = new THREE.MeshBasicMaterial({ map: null, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .5 });
 const cars = [];
 function makeCar(kind, color, role, st) { const g = new THREE.Group(); const body = new THREE.Mesh(GEO[kind].body, bodyMat(color)); body.castShadow = !LOW; g.add(body); g.add(new THREE.Mesh(GEO[kind].lights, LIGHTM)); const beam = new THREE.Mesh(BEAMG, BEAMM); g.add(beam);
-  const pol = kind.startsWith('police'); if (pol) { const y = kind === 'policeV' ? 2.18 : kind === 'policeS' ? 1.4 : 1.62; const r = new THREE.Mesh(new THREE.BoxGeometry(.55, .2, .32), barR), b = new THREE.Mesh(new THREE.BoxGeometry(.55, .2, .32), barB); r.position.set(-.33, y, -.2); b.position.set(.33, y, -.2); g.add(r, b); g.add(new THREE.Mesh(new THREE.BoxGeometry(1.3, .1, .4), new THREE.MeshStandardMaterial({ color: '#222' }))).position.set(0, y - .1, -.2);
+  const pol = kind.startsWith('police'); if (pol) { const y = GEO[kind].H + .16; const r = new THREE.Mesh(new THREE.BoxGeometry(.55, .2, .32), barR), b = new THREE.Mesh(new THREE.BoxGeometry(.55, .2, .32), barB); r.position.set(-.33, y, -.2); b.position.set(.33, y, -.2); g.add(r, b); g.add(new THREE.Mesh(new THREE.BoxGeometry(1.3, .1, .4), new THREE.MeshStandardMaterial({ color: '#222' }))).position.set(0, y - .1, -.2);
     if (!poolM.map) poolM.map = E.glowTex; const pl = new THREE.Mesh(poolG, poolM.clone()); g.add(pl); g.userData.pool = pl; }
   scene.add(g); const c = { g, kind, role, st: { ...st }, x: 0, z: 0, a: 0, vx: 0, vz: 0, vf: 0, vs: 0, hp: st.hp, maxHp: st.hp, flat: 0, nitro: 1, loose: 0, roll: 0, pol, dead: 0, ctl: { gas: 0, brk: 0, steer: 0, hb: 0, nit: 0 }, siren: pol };
   cars.push(c); return c; }
