@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<script src="lib/i18n.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Puck Arena</title>
+<link rel="stylesheet" href="lib/kit.css">
+<style>
+:root{--bg:#07061a;--accent:#2ae8ff;--deep:#0a2a6a;--btn:linear-gradient(180deg,#3ae8ff,#1a8ad8);--btnsh:#0a3a6a;--panel:rgba(8,10,36,.6);--scr:transparent}
+body{background:#07061a;color:#fff}
+.rb,.pill{color:#fff;background:rgba(8,10,36,.55);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px)}
+#sb{position:fixed;z-index:5;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:stretch;gap:0;direction:ltr;pointer-events:none;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.18)}
+#sb .s{display:flex;align-items:center;gap:8px;padding:6px 12px;font-weight:900;font-size:14px;min-width:92px}
+#sb .s b{font-size:26px;line-height:1;min-width:20px;text-align:center}
+#sb .a{background:linear-gradient(180deg,#ff3a5a,#b8102e);justify-content:flex-end}
+#sb .b{background:linear-gradient(180deg,#2a8aff,#1040b8)}
+#sb .m{background:#0a0a1a;color:#ffe24a;font-size:12px;font-weight:900;display:flex;align-items:center;padding:0 8px;letter-spacing:.5px}
+#sb .nm{max-width:86px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#big{position:fixed;z-index:7;left:0;right:0;top:34%;text-align:center;pointer-events:none;font-weight:900;direction:ltr}
+#big div{font-size:clamp(54px,15vw,110px);font-style:italic;color:#fff;-webkit-text-stroke:3px #1a3aa8;text-shadow:0 6px 0 #0a1a5a,0 0 40px rgba(60,200,255,.95);animation:bp 1.7s ease-out forwards}
+#big div.r{-webkit-text-stroke-color:#a8102e;text-shadow:0 6px 0 #5a0a1a,0 0 40px rgba(255,60,90,.95)}
+#big div.s{font-size:clamp(30px,9vw,54px)}
+#big small{display:block;font-size:20px;-webkit-text-stroke:0;color:#ffe24a;text-shadow:0 2px 6px #000;font-style:normal}
+@keyframes bp{0%{transform:scale(.2) rotate(-8deg);opacity:0}15%{transform:scale(1.15) rotate(2deg);opacity:1}28%{transform:scale(1) rotate(0)}80%{opacity:1}100%{transform:scale(1.05);opacity:0}}
+#hint{position:fixed;z-index:6;left:0;right:0;bottom:max(26px,env(safe-area-inset-bottom));text-align:center;font-weight:900;font-size:18px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.7);animation:hb 1.4s ease-in-out infinite}
+@keyframes hb{50%{transform:translateY(-8px)}}
+#title{justify-content:flex-end;background:linear-gradient(180deg,rgba(5,4,20,0) 35%,rgba(5,4,20,.88))}
+#title .homeT{z-index:3}
+#title .logo{pointer-events:none;position:absolute;top:max(14px,env(safe-area-inset-top));left:0;right:0;margin:0}
+.logo .a{color:#ffe24a;letter-spacing:9px;text-shadow:0 3px 0 #7a3a00,0 0 18px rgba(255,210,80,.7)}.logo .b{color:#fff;-webkit-text-stroke:3px #1a5ad8;text-shadow:0 6px 0 #0a2a6a,0 0 34px rgba(60,200,255,.85);font-style:italic}
+.tpan{width:min(520px,100%);display:flex;flex-direction:column;gap:9px;align-items:stretch}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{min-height:58px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px solid transparent;padding:4px}
+.seg button span{font-size:22px;line-height:1}.seg button small{font-size:11px;opacity:.85;font-weight:700}
+.seg button.on{background:linear-gradient(180deg,#3ae8ff,#1a7ad8);border-color:#c8f8ff;box-shadow:0 4px 0 #0a3a6a}
+.opt{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.opt button{height:36px;padding:0 13px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:900;font-size:13px;color:#fff;border:2px solid transparent}
+.opt button.on{border-color:#ffe24a;background:rgba(255,226,74,.2)}
+.opt button.lk{opacity:.45}
+.tbls{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}
+.tbls::-webkit-scrollbar{display:none}
+.tbl{flex:0 0 auto;width:92px;border-radius:14px;padding:6px 4px;background:rgba(255,255,255,.08);border:2px solid transparent;color:#fff;font-weight:900;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tbl i{display:block;width:54px;height:30px;border-radius:7px;border:3px solid var(--r);background:var(--s);position:relative}
+.tbl i::after{content:'';position:absolute;left:50%;top:2px;bottom:2px;width:2px;margin-left:-1px;background:var(--l)}
+.tbl.on{border-color:#ffe24a;background:rgba(255,226,74,.16)}
+.tbl.lk{opacity:.5}
+.car{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border-radius:16px;padding:8px 12px;font-weight:800;font-size:13px}
+.car .av{font-size:34px;line-height:1;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,#3a2a7a,#1a1040);border:3px solid #ffe24a;flex:0 0 auto}
+.car b{font-size:17px;display:block}
+.ladder{display:flex;gap:3px;justify-content:center;direction:ltr}
+.ladder span{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:14px;background:rgba(255,255,255,.08)}
+.ladder span.d{background:rgba(90,232,120,.3)}.ladder span.c{background:#ffe24a;box-shadow:0 0 10px #ffe24a}
+.stat{display:flex;gap:10px;justify-content:center;color:#fff;font-weight:900;font-size:16px}
+.stat span{background:rgba(8,10,36,.6);border-radius:999px;padding:5px 14px}
+.go2{height:60px;border-radius:999px;background:linear-gradient(180deg,#7aff5a,#22b81a);color:#fff;font-weight:900;font-size:24px;box-shadow:0 7px 0 #0f6a0a,0 14px 26px rgba(0,0,0,.35);text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.trow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.chip svg{width:22px;height:22px;display:block}
+.shop{max-height:82vh;overflow-y:auto;width:min(460px,94vw)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:10px 0 14px}
+.sk{border-radius:16px;background:#f2f4fb;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;border:3px solid transparent;font-weight:800;color:#1a2a4a;font-size:12px}
+.sk canvas{width:56px;height:56px}.sk.on{border-color:#1a8ad8;background:#e8f6ff}.sk small{font-size:11px;opacity:.8}
+.card{background:#fff;color:#1a2a4a}
+.res{font-size:44px;font-weight:900;direction:ltr;margin:4px 0}
+.res .x{color:#e8202a}.res .y{color:#1a5ad8}
+@media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(5,4,20,0) 30%,rgba(5,4,20,.84) 52%,rgba(5,4,20,.96))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto}.tpan{width:min(440px,56vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.go2{height:50px}.seg button{min-height:46px}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top" id="hud" hidden>
+  <button class="rb" id="pauseBtn"></button>
+  <div class="sp"></div>
+  <div class="pill"><b id="coinTxt" style="direction:ltr">0</b><small>🪙</small></div>
+</div>
+<div id="sb" hidden><div class="s a"><span class="nm" id="nA"></span><b id="sA">0</b></div><div class="m" id="sM">7</div><div class="s b"><b id="sB">0</b><span class="nm" id="nB"></span></div></div>
+<div id="big"></div>
+<div id="hint" hidden></div>
+<div id="toast"></div>
+<section class="scr" id="title" hidden>
+  <button class="rb homeT" id="homeT" hidden></button>
+  <h1 class="logo"><span class="a">PUCK</span><span class="b">ARENA</span></h1>
+  <div class="tpan">
+    <div class="stat"><span>🏆 <b id="tWins">0</b></span><span>🪙 <b id="tCoins">0</b></span></div>
+    <div class="seg" id="modeSeg"></div>
+    <div id="optBox"></div>
+    <button class="go2" id="goBtn"></button>
+    <div class="trow"><button class="chip" id="shopBtn"></button><button class="chip" id="qBtn"></button><button class="chip" id="sndBtn"></button></div>
+  </div>
+</section>
+<div class="sheet" id="shopSheet" hidden><div class="card shop"><h3><span id="shopT"></span> · 🪙 <span id="shopCoins"></span></h3><div class="grid3" id="skins"></div><div class="row"><button class="btn pri" id="shopClose"></button></div></div></div>
+<div class="sheet" id="endSheet" hidden><div class="card"><div id="eE" style="font-size:54px;line-height:1"></div><h3 id="eT"></h3><div class="res" id="eRes"></div><p id="eP" style="font-weight:700;margin:4px 0"></p><div class="row"><button class="btn" id="eMenu"></button><button class="btn pri" id="eAgain"></button></div></div></div>
+<div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMenu"></button><button class="btn pri" id="pGo"></button></div></div></div>
+<div id="loading"><div><div class="sp"></div>…</div></div>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
+<script type="module" src="puck/game.js"></script>
+</body>
+</html>
