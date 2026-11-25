@@ -243,18 +243,21 @@ function regTrick(k, delta) { const h = Math.round(Math.abs(delta) / Math.PI); i
 const nearestT = p => Math.round(p.a / p.step) * p.step;
 function catchPart(k) { const p = Q[k], t = nearestT(p); p.a = t; p.w = 0; p.free = false; p.auto = null; if (Math.abs(t - p.a0) > .1) { regTrick(k, t - p.a0); p.a0 = t; } }
 function timeToLand() { const h = H(P.x, P.z) ?? 0, d = P.y - h; if (P.vy > 0 && d < 0) return 9; return (P.vy + Math.sqrt(Math.max(0, P.vy * P.vy + 2 * G * Math.max(0, d)))) / G; }
-function updParts(dt) { const ttl = P.air ? timeToLand() : 9, autoC = ttl < .32;
-  if (P.rf && ttl < .3 && P.rf.a < TAU) P.rf.w = Math.max(P.rf.w, (TAU - P.rf.a) / Math.max(.05, ttl - .03)); // help the rider flip finish
+// assists per difficulty: Easy/Medium help a lot, Hard a little, Legend is pure skill
+const ASSIST = [0, 1, 2, 3].map(() => ({ slow: .72, autoC: 1, pull: 1, tol: .95, rf: .72, rfHelp: 1 }));
+let AST = ASSIST[0];
+function updParts(dt) { const ttl = P.air ? timeToLand() : 9, autoC = AST.autoC && ttl < .32;
+  if (AST.rfHelp && P.rf && ttl < .3 && P.rf.a < TAU) P.rf.w = Math.max(P.rf.w, (TAU - P.rf.a) / Math.max(.05, ttl - .03)); // help the rider flip finish
   for (const k in Q) { const p = Q[k];
   if (p.auto !== null) { const d = p.auto - p.a, s = Math.sign(d) * Math.min(Math.abs(d), (k === 'flip' || k === 'roll' ? 9 : 12) * dt); p.a += s; p.w = s / dt; if (Math.abs(p.auto - p.a) < 1e-3) { p.a = p.auto; catchPart(k); } continue; }
   p.a += p.w * dt; p.w *= 1 - .22 * dt;
   const lockT = (k === 'flip' || k === 'roll') && (autoC || Math.abs(p.w) > 2) ? TAU : p.step;
-  if (autoC && Math.abs(p.w) > 2) { // landing soon: if it can't come around in time, the rider grabs it to the closest straight position
+  if (autoC && AST.pull && Math.abs(p.w) > 2) { // landing soon: if it can't come around in time, the rider grabs it to the closest straight position
     const nxt = (p.w > 0 ? Math.ceil(p.a / lockT - 1e-6) : Math.floor(p.a / lockT + 1e-6)) * lockT; if (Math.abs(nxt - p.a) > Math.abs(p.w) * Math.max(0, ttl - .05)) { p.w = 0; p.free = false; } }
   if (p.catching || (autoC && Math.abs(p.a - Math.round(p.a / lockT) * lockT) > .02)) { const t = Math.round(p.a / lockT) * lockT, d = t - p.a;
     if (Math.abs(p.w) > 2) { if (Math.abs(d) < .7) { p.w = 0; p.free = false; } }
     else if (autoC || Math.abs(d) < 2.4) { p.w = 0; p.a += d * Math.min(1, dt * (autoC ? 24 : 18)); if (Math.abs(d) < .02) catchPart(k); } } } }
-function partsOK() { for (const k in Q) { const p = Q[k], st = k === 'spin' ? Math.PI : TAU; if (Math.abs(p.a - Math.round(p.a / st) * st) > .95) return false; } return !(P.rf && P.rf.a < TAU * .72); }
+function partsOK() { for (const k in Q) { const p = Q[k], st = k === 'spin' ? Math.PI : TAU; if (Math.abs(p.a - Math.round(p.a / st) * st) > AST.tol) return false; } return !(P.rf && P.rf.a < TAU * AST.rf); }
 function settleTricks() { for (const k of ['flip', 'roll', 'spin', 'bar', 'whip']) { const p = Q[k], st = k === 'spin' ? Math.PI : TAU, t = Math.round(p.a / st) * st; if (Math.abs(t - p.a0) > .1) regTrick(k, t - p.a0); }
   if (odd(Q.spin.a)) { P.fakie = !P.fakie; P.fy = P.fakie ? Math.PI : 0; P.done.push({ name: P.fakie ? 'Fakie Landing' : 'Revert Landing', pts: 300 }); }
   if (P.rf) { const r = P.rf; P.done.push({ name: (r.rev ? 'Reverse ' : '') + (r.k === 'side' && r.dir < 0 ? 'Opposite ' : '') + { front: 'Front', back: 'Back', side: 'Side' }[r.k] + ' Rider Flip', pts: Math.round({ front: 1500, back: 1400, side: 1700 }[r.k] * (r.rev ? 1.3 : 1)) }); runStats.flip = 1; }
@@ -380,10 +383,12 @@ function makeRival(d) { const root = new THREE.Group(); scene.add(root); const r
 const RNAMES = [T('מאיה', 'Maya'), T('רון', 'Ron'), T('ליאו', 'Leo'), T('נועה', 'Noa'), T('איתי', 'Itay'), T('עומר', 'Omer'), T('שירה', 'Shira'), T('אלה', 'Ella'), T('גיא', 'Guy'), T('דניאל', 'Daniel'), T('יואב', 'Yoav'), T('ליה', 'Lia')];
 const RCOL = [['#ff4a8a', '#ffd23a', '#ff4a8a'], ['#3a9aff', '#f4f4f4', '#7aff3a'], ['#ffb02a', '#ff3a3a', '#9a5aff'], ['#7aff3a', '#1a1a24', '#3ae8ff'], ['#b05aff', '#ffffff', '#ffd23a'], ['#ff6a3a', '#2a2a3a', '#ff6a3a'], ['#3ae8c8', '#ff4a8a', '#ffffff']], RSKIN = ['#f0c098', '#c89068', '#e8b088', '#8a5a3a', '#f6d0b0'];
 const LSTART = [{ at: [3, 8, Math.PI], wp: 2 }, { at: [-14, 11, 0], wp: 0 }, { at: [16, -6, 0], wp: 0 }];
-const DIFF = [{ n: T('קל', 'Easy'), m: 1, sk: 0 }, { n: T('בינוני', 'Medium'), m: 2.6, sk: .08 }, { n: T('קשה', 'Hard'), m: 4.3, sk: .14 }, { n: T('אגדי', 'Legend'), m: 6.2, sk: .2 }];
+const DIFF = [{ n: T('קל', 'Easy'), m: 1, sk: 0 }, { n: T('בינוני', 'Medium'), m: 3.5, sk: .08 }, { n: T('קשה', 'Hard'), m: 6.5, sk: .14 }, { n: T('אגדי', 'Legend'), m: 10.5, sk: .2 }];
 const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-function rollRoster() { const D = DIFF[S.diff ?? 1], nm = shuf(RNAMES), col = shuf(RCOL), lp = shuf([0, 1, 2]), sk = shuf([.5, .68, .82]);
-  bots.forEach((b, i) => { const c = col[i], skill = clamp(sk[i] + rnd(-.06, .06) + D.sk, .3, .97); b.d = { n: nm[i], shirt: c[0], helm: c[1], bars: c[2], skin: RSKIN[Math.floor(Math.random() * RSKIN.length)], skill, sp: 8.1 + skill * 1.1, loop: lp[i], wp: LSTART[lp[i]].wp, at: LSTART[lp[i]].at, sc: rnd(.85, 1.15) * D.m };
+function rollRoster() { const di = S.diff ?? 1, D = DIFF[di], nm = shuf(RNAMES), col = shuf(RCOL), lp = shuf([0, 1, 2]), sk = shuf(di === 3 ? [.74, .84, .92] : [.5, .68, .82]);
+  // Legend adapts to you: the best rival is tuned to beat your own best in this park by ~8%
+  let mult = D.m; if (di === 3) mult = Math.max(mult, Math.max(S.best['p' + S.park] || 0, (S.bestL || {})['p' + S.park] || 0) * 1.08 / (98000 * (RSCALE[S.park] || 1)));
+  bots.forEach((b, i) => { const c = col[i], skill = clamp(sk[i] + rnd(-.06, .06) + D.sk, .3, .97); b.d = { n: nm[i], shirt: c[0], helm: c[1], bars: c[2], skin: RSKIN[Math.floor(Math.random() * RSKIN.length)], skill, sp: 8.1 + skill * 1.1, loop: lp[i], wp: LSTART[lp[i]].wp, at: LSTART[lp[i]].at, sc: (di === 3 ? rnd(.88, 1.1) : rnd(.85, 1.15)) * mult };
     const m = b.body.userData.m; m.sh.color.set(c[0]); m.he.color.set(c[1]); m.sk.color.set(b.d.skin); for (const [k, v] of b.mm) if (k === scM.bars) v.color.set(c[2]); }); }
 function resetBots() { rollRoster(); for (const b of bots) { const d = b.d; Object.assign(b, { x: d.at[0], z: d.at[1], psi: d.at[2], y: H(d.at[0], d.at[1]) ?? 0, u: d.sp, air: false, vx: 0, vy: 0, vz: 0, airT: 0, ps: 0, pitch: 0, auto: 0, autoT: 0, wp: d.wp, plan: [], animT: 1, bailP: false, crash: 0, score: 0, cp: 0, cm: 0, ct: 0, subT: 0, ollT: 0 }); drawLabel(b); } }
 function botPlan(b, Tf) { b.plan = []; b.animT = Math.max(.25, Tf * .78); b.bailP = false; if (Tf < .32) return; const sk = b.d.skill, avail = BOT_TR.filter(t => t[2] <= Tf * (.85 + sk * .25)); if (!avail.length) return;
@@ -501,7 +506,7 @@ function loop(now) { requestAnimationFrame(loop); let dt = Math.min(.04, (now - 
   if (state === 'play') { tLeft -= dt; if (tLeft <= 0) { tLeft = 0; finish(); }
     let target = 0; if (S.ctl === 'touch') { touchInput(now, dt); const st = finger(P.fakie ? 'deck' : 'bar') || [...ptrs.values()][0]; if (st && !P.air) target = clamp((st.x - st.x0) / (innerWidth * .16), -1, 1) * BARMAX; } else target = (hold.R - hold.L) * BARMAX;
     if (keys.ArrowLeft || keys.a) target = -BARMAX; if (keys.ArrowRight || keys.d) target = BARMAX; P.bar = lerp(P.bar, target, Math.min(1, dt * 12));
-    const tricking = P.air && (P.rf || Object.values(Q).some(q => q.free || q.auto !== null)); airSlow = lerp(airSlow, tricking ? .72 : 1, Math.min(1, dt * 8)); const pdt = dt * airSlow;
+    const tricking = P.air && (P.rf || Object.values(Q).some(q => q.free || q.auto !== null)); airSlow = lerp(airSlow, tricking ? AST.slow : 1, Math.min(1, dt * 8)); const pdt = dt * airSlow;
     const n = 4; for (let i = 0; i < n; i++) { step(pdt / n); if (S.mode !== 'free') for (const b of bots) botStep(b, pdt / n); }
     hudT += dt; if (hudT > .1) { hudT = 0; updHud(); } $('airB').hidden = S.ctl !== 'btn' || !P.air;
     const rl = A.loop('roll'); if (rl) { rl.fl.frequency.value = 180 + Math.abs(P.u) * 40; rl.g.gain.value = P.air || P.crash || (P.grind && P.grind.kind !== 'beam') ? 0 : .02 + Math.abs(P.u) * .004; } }
@@ -520,7 +525,7 @@ function titleCam(t) { const a = t * .12; Object.assign(P, { x: 0, z: 18, y: H(0
 /* ================= FLOW / UI ================= */
 const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 function updHud() { $('scT').textContent = score.toLocaleString('en-US'); $('mX').textContent = '×' + Math.max(1, combo.mult); $('mBar').innerHTML = Array.from({ length: 10 }, (_, i) => `<i class="${i < combo.mult ? 'on' : ''}"></i>`).join(''); $('timeT').textContent = fmt(tLeft); $('timeT').classList.toggle('low', tLeft < 15); $('coinTxt').textContent = S.coins; if (S.mode !== 'free' && state === 'play') drawLB(); }
-function start() { A.ac(); park = S.park; if (!parkG || parkG.userData.p !== park) { buildPark(park); applyTime(park); parkG.userData.p = park; } respawn(); resetBots(); score = 0; tLeft = SESSION; combo = { pts: 0, list: [], mult: 0, t: 0 }; runStats = {}; state = 'play'; ptrs.clear(); gLock = false;
+function start() { A.ac(); AST = S.mode === 'free' ? ASSIST[0] : ASSIST[S.diff ?? 1]; park = S.park; if (!parkG || parkG.userData.p !== park) { buildPark(park); applyTime(park); parkG.userData.p = park; } respawn(); resetBots(); score = 0; tLeft = SESSION; combo = { pts: 0, list: [], mult: 0, t: 0 }; runStats = {}; state = 'play'; ptrs.clear(); gLock = false;
   $('title').hidden = true; $('endSheet').hidden = true; $('pauseSheet').hidden = true; $('hud').hidden = false; $('score').hidden = false; $('timeT').hidden = false; $('combo').innerHTML = ''; $('lb').hidden = S.mode === 'free';
   const btn = S.ctl === 'btn'; for (const id of ['bL', 'bR', 'bJ', 'bP']) $(id).hidden = !btn; $('bJ').textContent = T('קפיצה', 'JUMP'); $('bP').textContent = T('דחיפה', 'PUSH');
   S.runs = (S.runs || 0) + 1; S.save(); A.loopOn('roll', 'bandpass', 300, 1.2, .02); A.startMusic({ bpm: 124, chords: [[40, 47, 52], [43, 50, 55], [36, 43, 48], [38, 45, 50]], kick: true, vol: .5, lead: true }); updHud();
@@ -529,7 +534,8 @@ function finish() { if (state !== 'play') return; if (P.grind) endGrind(false); 
   const comp = S.mode !== 'free', L = comp ? standings() : null, place = comp ? L.findIndex(r => r.me) + 1 : 0;
   const R = PARKS[park], st = R.stars.filter(x => score >= x).length, key = 'p' + park, nb = score > (S.best[key] || 0); if (nb) S.best[key] = score;
   const g = S.goals[key] || [0, 0, 0]; R.goals.forEach(([k, v], i) => { const ok = k === 'score' ? score >= v : k === 'grind' ? (runStats.grind || 0) >= v : k === 'mult' ? (runStats.mult || 0) >= v : !!runStats[k]; if (ok) g[i] = 1; }); S.goals[key] = g;
-  const bonus = comp ? Math.round([0, 150, 80, 40, 0][place] * [1, 1.5, 2.2, 3][S.diff ?? 1]) : 0, coins = Math.round(score / 500) + st * 30 + bonus; S.coins += coins; if (comp && place === 1) { S.wins = (S.wins || 0) + 1; S.wd = S.wd || [0, 0, 0, 0]; S.wd[S.diff ?? 1]++; } S.save();
+  const bonus = comp ? Math.round([0, 150, 80, 40, 0][place] * [1, 1.5, 2.2, 3][S.diff ?? 1]) : 0, coins = Math.round(score / 500) + st * 30 + bonus; S.coins += coins; if (comp && (S.diff ?? 1) === 3) { S.bestL = S.bestL || {}; S.bestL[key] = Math.max(S.bestL[key] || 0, score); }
+  if (comp && place === 1) { S.wins = (S.wins || 0) + 1; S.wd = S.wd || [0, 0, 0, 0]; S.wd[S.diff ?? 1]++; } S.save();
   A.voice(comp && place > 1 ? 'aww' : 'yay', 1.2);
   for (let i = 0; i < 120; i++) GLOW.emit(V3(P.x + rnd(-3, 3), P.y + rnd(1, 4), P.z + rnd(-3, 3)), V3(rnd(-2, 2), rnd(1, 5), rnd(-2, 2)), CONFETTI[i % 5], rnd(.04, .08), rnd(1, 2), 4, 1, .98);
   $('eS').textContent = comp ? ['', '🥇', '🥈', '🥉', '4️⃣'][place] : '⭐'.repeat(st) + '☆'.repeat(3 - st);

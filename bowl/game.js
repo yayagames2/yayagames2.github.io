@@ -278,4 +278,4 @@ $('goBtn').textContent = T('לשחק! 🎳', 'Bowl! 🎳'); $('shopBtn').textCon
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 mkBall(); resetPins(true);
 setTimeout(() => { E.resize(); showTitle(); $('loading').hidden = true; requestAnimationFrame(loop); }, 30);
-window.__bw = { get state() { return state; }, get phase() { return phase; }, ball, pins, throwBall, stepPhys, settled, frameScores, frameMarks, get players() { return players; }, start, endRoll, newGame };
+window.__bw = { resetPins, get state() { return state; }, get phase() { return phase; }, ball, pins, throwBall, stepPhys, settled, frameScores, frameMarks, get players() { return players; }, start, endRoll, newGame };

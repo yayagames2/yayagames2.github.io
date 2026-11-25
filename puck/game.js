@@ -164,6 +164,7 @@ function paintMallet(k, sk) { const s = SKINS[sk], m = MV[k].m; m.color.set(s.c)
 /* ================= STATE ================= */
 const P = { x: 0, z: 0, vx: 0, vz: 0, y: 0, vy: 0, rot: 0, live: true };
 const M = [{ x: 0, z: .8, vx: 0, vz: 0, tx: 0, tz: .8, sg: 1 }, { x: 0, z: -.8, vx: 0, vz: 0, tx: 0, tz: -.8, sg: -1 }];
+let tLeft = 90, golden = false, tHud = 0; const MATCH_T = 90, fmtT = s => Math.floor(s / 60) + ':' + String(Math.ceil(s % 60) === 60 ? 0 : Math.floor(s % 60)).padStart(2, '0');
 let state = 'title', score = [0, 0], cur = { t: 0, names: ['YOU', 'CPU'], goal: 7, lv: .42, two: false, stage: -1 }, goalT = 0, serveTo = 0, lastScorer = -1, rally = 0, idleT = 0, hitCool = 0, wallCool = 0, coinsWon = 0, ai = { t: 0, tx: 0, tz: -.8, bank: 0 }, ai0 = { t: 0, tx: 0, tz: .8, bank: 0 };
 function applyTable(ti) { cur.t = ti; const t = TABLES[ti]; drawSurface(t); buildRails(t); drawApron(t); railM.color.set(t.rail); railTopM.color.set(t.top); railM.metalness = railTopM.metalness = t.metal ? .9 : 0; railTopM.roughness = t.metal ? .2 : .3;
   puckM.color.set(t.puck); puckM.emissive.set(t.neon ? t.puck : '#000000'); puckM.emissiveIntensity = t.neon ? .7 : 0; ledStripM.color.set(t.l1);
@@ -226,10 +227,10 @@ function goal(scorer) { P.live = false; score[scorer]++; S.goals += scorer === 0
   A.noise(.35, 'bandpass', 700, 1.5, .22); A.tone(160, .25, 'square', .05, .05); [523, 659, 784, 1047].forEach((f, i) => A.tone(f, .16, 'square', .055, .1 + i * .09)); A.noise(1.2, 'bandpass', 1400, .6, .07, .2);
   const gz = scorer === 0 ? -L / 2 : L / 2; for (let i = 0; i < 70; i++) GLOW.emit(V3(rnd(-.15, .15), .05, gz), V3(rnd(-1.2, 1.2), rnd(1, 3), -Math.sign(gz) * rnd(.2, 1.4)), CONFETTI[i % 5], rnd(.012, .026), rnd(.6, 1.2), 4, 1, .97);
   const mine = cur.two ? scorer === 0 : scorer === 0; big(T('גול!', 'GOAL!'), mine ? '' : 'r', cur.two ? cur.names[scorer] : (mine ? (rally > 6 ? T('ראלי ענק! 🔥', 'Epic rally! 🔥') : '') : cur.names[1]));
-  updHud(); serveTo = 1 - scorer; if (score[scorer] >= cur.goal) setTimeout(endMatch, 1300); }
+  updHud(); serveTo = 1 - scorer; if (score[scorer] >= cur.goal || golden) setTimeout(endMatch, 1300); }
 
 /* ================= MATCH FLOW ================= */
-function setupMatch() { const md = S.mode; score = [0, 0]; coinsWon = 0; lastHit = -1;
+function setupMatch() { const md = S.mode; score = [0, 0]; coinsWon = 0; lastHit = -1; tLeft = MATCH_T; golden = false;
   if (md === 'career') { const st = Math.min(S.career, CAREER.length - 1), o = CAREER[st]; cur = { t: o.t, names: [T('אתם', 'You'), o.n], goal: st < 5 ? 5 : 7, lv: o.lv, two: false, stage: st, em: o.em }; }
   else if (md === 'two') { cur = { t: tableUnlocked(S.tbl) ? S.tbl : 0, names: [T('שחקן 1', 'Player 1'), T('שחקן 2', 'Player 2')], goal: 7, lv: .5, two: true, stage: -1 }; }
   else { cur = { t: tableUnlocked(S.tbl) ? S.tbl : 0, names: [T('אתם', 'You'), LVS[S.lv][0]], goal: 7, lv: LVS[S.lv][1], two: false, stage: -1 }; }
@@ -239,7 +240,7 @@ function start() { A.ac(); camera.clearViewOffset(); setupMatch(); state = 'play
   A.loopOn('air', 'lowpass', 520, .6, .035); A.startMusic({ bpm: 122, chords: [[45, 52, 57], [41, 48, 53], [48, 55, 60], [43, 50, 55]], kick: true, vol: .55, lead: false });
   big(T('3, 2, 1… בואו!', 'FACE OFF!'), 's', cur.stage >= 0 ? `${cur.em} ${cur.names[1]} · ${TABLES[cur.t].n}` : TABLES[cur.t].n); A.voice('wow', 1.2);
   if (cur.two) { $('hint').hidden = false; $('hint').textContent = T('👆 כל שחקן גורר את המחבט בצד שלו', '👆 Each player drags the mallet on their side'); setTimeout(() => $('hint').hidden = true, 3500); } else if (!S.tut) { $('hint').hidden = false; $('hint').textContent = T('👆 גררו את המחבט – והכניסו לשער של היריב!', '👆 Drag your mallet – score in the far goal!'); } }
-function updHud() { $('sA').textContent = score[0]; $('sB').textContent = score[1]; $('nA').textContent = cur.names[0]; $('nB').textContent = cur.names[1]; $('sM').textContent = T('עד ', 'TO ') + cur.goal; $('coinTxt').textContent = S.coins; }
+function updHud() { $('sA').textContent = score[0]; $('sB').textContent = score[1]; $('nA').textContent = cur.names[0]; $('nB').textContent = cur.names[1]; $('sM').innerHTML = `<span class="tm${golden ? ' gg' : tLeft < 10.5 ? ' low' : ''}"><b>${golden ? T('גול זהב', 'GOLDEN GOAL') : fmtT(tLeft)}</b><small>${T('עד ', 'TO ') + cur.goal}</small></span>`; $('coinTxt').textContent = S.coins; }
 function endMatch() { if (state !== 'play') return; state = 'over'; A.stopMusic(); A.loopOff('air'); $('hint').hidden = true; const won = score[0] > score[1];
   let coins = 0, chest = null; const md = S.mode;
   if (md === 'career' && won) { const st = cur.stage; coins = 60 + st * 35; S.career = Math.max(S.career, st + 1); S.wins++; if ([2, 5, 9].includes(st)) chest = st === 9 ? 'gold' : 'silver'; }
@@ -285,10 +286,11 @@ function loop(now) { requestAnimationFrame(loop); const dt = Math.min(.04, (now 
   if (state === 'play' || state === 'title') {
     // keyboard
     if (state === 'play') { const kx = (keys.arrowright || keys.d ? 1 : 0) - (keys.arrowleft || keys.a ? 1 : 0), kz = (keys.arrowdown || keys.s ? 1 : 0) - (keys.arrowup || keys.w ? 1 : 0); if (kx || kz) { M[0].tx = M[0].x + kx * .25; M[0].tz = M[0].z + kz * .25; } }
+    if (state === 'play' && !golden) { tLeft -= dt; tHud -= dt; if (tHud <= 0) { tHud = .25; updHud(); } if (tLeft <= 0) { tLeft = 0; if (score[0] !== score[1]) { if (P.live || goalT <= 0) endMatch(); } else { golden = true; updHud(); big(T('גול זהב!', 'GOLDEN GOAL!'), 's', T('תיקו – הגול הבא מנצח', 'Tied – next goal wins')); A.tone(880, .2, 'square', .05); } } }
     if (state === 'play' && !cur.two) think(1, ai, cur.lv, dt); if (state === 'title') { think(1, ai, .55, dt); think(0, ai0, .5, dt); }
     const n = 10; for (let i = 0; i < n; i++) step(dt / n);
     if (P.live) { const sp = Math.hypot(P.vx, P.vz); if (sp < .06) idleT += dt; else idleT = 0; if (idleT > 2.5 && Math.abs(P.z) < .1) { P.vz = (P.z >= 0 ? .4 : -.4); idleT = 0; } if (state === 'title' && idleT > 3) { P.vx = rnd(-1, 1); P.vz = rnd(-2, 2); idleT = 0; } }
-    else { goalT -= dt; if (goalT <= 0 && !(state === 'play' && Math.max(...score) >= cur.goal)) resetPuck(state === 'title' ? (Math.random() < .5 ? 0 : 1) : serveTo); }
+    else { goalT -= dt; if (goalT <= 0 && !(state === 'play' && (Math.max(...score) >= cur.goal || (golden && score[0] !== score[1])))) resetPuck(state === 'title' ? (Math.random() < .5 ? 0 : 1) : serveTo); }
   }
   // puck visuals
   if (P.live) { P.vy -= 9.8 * dt; P.y += P.vy * dt; if (P.y < .0012) { if (P.vy < -1) A.tone(600, .03, 'square', .03); P.y = .0012; P.vy = 0; } P.y = Math.max(.0012, P.y); puckG.visible = true; }
@@ -334,4 +336,4 @@ $('pauseBtn').innerHTML = ICO.pause('#ffffff'); $('homeT').innerHTML = ICO.home(
 $('shopBtn').textContent = T('🏒 מחבטים', '🏒 Mallets'); $('shopT').textContent = T('מחבטים', 'Mallets'); $('shopClose').textContent = T('סגירה', 'Close'); $('eMenu').textContent = T('תפריט', 'Menu'); $('pT').textContent = T('הפסקה', 'Paused'); $('pGo').textContent = T('המשך ▶', 'Resume ▶'); $('pMenu').textContent = T('תפריט', 'Menu');
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 applyTable(0); setTimeout(() => { E.resize(); showTitle(); $('loading').hidden = true; requestAnimationFrame(loop); window.__puckOK = true; }, 30);
-window.__pk = { sparks, GLOW, P, M, get state() { return state; }, set state(v) { state = v; }, get score() { return score; }, get cur() { return cur; }, start, step, think, ai, ai0, applyTable, fitCam, endMatch, S, setupMatch, sim(sec, f) { for (let i = 0; i < sec * 60; i++) { f && f(i); if (!cur.two) think(1, ai, cur.lv, 1 / 60); for (let j = 0; j < 10; j++) step(1 / 600); if (!P.live) { goalT -= 1 / 60; if (goalT <= 0) resetPuck(serveTo); } } } };
+window.__pk = { sparks, GLOW, P, M, setT(v) { tLeft = v; }, get golden() { return golden; }, get state() { return state; }, set state(v) { state = v; }, get score() { return score; }, get cur() { return cur; }, start, step, think, ai, ai0, applyTable, fitCam, endMatch, S, setupMatch, sim(sec, f) { for (let i = 0; i < sec * 60; i++) { f && f(i); if (!cur.two) think(1, ai, cur.lv, 1 / 60); for (let j = 0; j < 10; j++) step(1 / 600); if (!P.live) { goalT -= 1 / 60; if (goalT <= 0) resetPuck(serveTo); } } } };
