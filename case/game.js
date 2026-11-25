@@ -223,7 +223,7 @@ function hitItem(px, py) { for (let i = D.items.length - 1; i >= 0; i--) { const
 function select(it) { if (it && it !== sel) { D.items.splice(D.items.indexOf(it), 1); D.items.push(it); } sel = it; rebuildUnder(); dirty = true; if (tab === 'stk' || tab === 'photo' || tab === 'text') renderOpts(); }
 
 const ptr = new Map(); let pinch = null, stroke = null, lastSpray = 0;
-ed.addEventListener('pointerdown', e => { A.ac(); ed.setPointerCapture(e.pointerId); const [px, py] = toD(e.clientX, e.clientY); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+ed.addEventListener('pointerdown', e => { A.ac(); hBegin(); ed.setPointerCapture(e.pointerId); const [px, py] = toD(e.clientX, e.clientY); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (ptr.size === 2 && sel && ['stk', 'photo', 'text'].includes(sel.k)) { const [a, b] = [...ptr.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), a: Math.atan2(b.y - a.y, b.x - a.x), s: sel.s, r: sel.r }; stroke = null; active = null; return; }
   if (ptr.size > 1) return;
   if (['paint', 'glit', 'gem'].includes(tab)) { if (sel) { sel = null; rebuildUnder(); }
@@ -242,15 +242,24 @@ ed.addEventListener('pointermove', e => { if (!ptr.has(e.pointerId)) return; ptr
   if (active.k === 'paint') { if (dd < 3) return; active.pts.push([px, py]); if (active.b === 'spray') sprayAt(active, px, py); if (active.b === 'gpen' && Math.random() < .8) active.fl.push(...makeFlakes(px, py, active.s * .5, 2, 'fine')); stroke.lx = px; stroke.ly = py; dirty = true; }
   else if (active.k === 'glit') { if (dd < 8) return; sprinkle(active, px, py); stroke.lx = px; stroke.ly = py; dirty = true; }
   else if (active.k === 'gem') { if (dd < active.s * 1.05) return; commit(); active = { k: 'gem', t: gemT, c: gemC, s: gemS, x: px, y: py, r: rnd(-.3, .3) }; gemClick(); stroke.lx = px; stroke.ly = py; dirty = true; } });
-const up = e => { ptr.delete(e.pointerId); if (ptr.size < 2) pinch = null; if (ptr.size === 0) { if (active) commit(); stroke = null; } };
+const up = e => { ptr.delete(e.pointerId); if (ptr.size < 2) pinch = null; if (ptr.size === 0) { if (active) commit(); stroke = null; hEnd(); } };
 ed.addEventListener('pointerup', up); ed.addEventListener('pointercancel', up);
 function commit() { if (!active) return; if (active.k === 'paint' && active.pts.length === 1) active.pts.push([active.pts[0][0] + .5, active.pts[0][1] + .5]); D.items.push(active); drawItem(ux, active); active = null; dirty = true; updUndo(); }
 function sprayAt(it, px, py) { for (let i = 0; i < 14; i++) { const a = Math.random() * TAU, d = Math.random() * it.s * 1.6; it.dots.push([Math.round(px + Math.cos(a) * d), Math.round(py + Math.sin(a) * d), +rnd(1, 2.6).toFixed(1), +rnd(.4, 1).toFixed(2)]); } }
 function sprinkle(it, px, py) { const n = it.sh === 'fine' ? 46 : it.sh === 'chunky' ? 16 : 7; it.fl.push(...makeFlakes(px, py, it.sh === 'fine' ? 46 : 42, n, it.sh)); const t = A.ac(); if (t) A.noise(.05, 'highpass', 6000 + rnd(0, 3000), 1, .05); }
 function gemClick() { A.tone(1500 + rnd(0, 400), .05, 'sine', .06); A.tone(2400, .04, 'sine', .03, .03); buzz(6); }
-function updUndo() { $('undoBtn').hidden = !D.items.length; }
-$('undoBtn').onclick = () => { if (!D.items.length) return; const it = D.items.pop(); if (it === sel) sel = null; rebuildUnder(); dirty = true; A.tone(400, .06, 'triangle', .05); updUndo(); renderOpts(); };
-$('undoBtn').innerHTML = ICO.undo('#8a2a9a');
+let H = [], RH = [], pre = null;
+function snapD() { return { base: { ...D.base }, items: D.items.map(o => ({ ...o })) }; }
+function sigOf(z) { const r = v => Math.round((v || 0) * 10); return z.base.t + z.base.c1 + z.base.c2 + '|' + z.items.map(o => [o.k, o.e, o.t, o.c, o.sh, o.b, o.shape, o.font, o.txt, r(o.x), r(o.y), r(o.s), r(o.r * 10), (o.pts || []).length, (o.dots || []).length, (o.fl || []).length].join(',')).sort().join(';'); }
+function hBegin() { if (!pre && D) pre = snapD(); }
+function hEnd() { if (!pre) return; const a = pre; pre = null; if (sigOf(a) !== sigOf(snapD())) { H.push(a); if (H.length > 80) H.shift(); RH.length = 0; } updUndo(); }
+function hReset() { H = []; RH = []; pre = null; }
+function hApply(from, to) { if (!from.length) return; to.push(snapD()); const z = from.pop(); D.base = z.base; D.items = z.items; sel = null; active = null; stroke = null; rebuildUnder(); dirty = true; renderOpts(); updUndo(); buzz(6); }
+function updUndo() { const on = state === 'design'; for (const [id, n] of [['undoBtn', H.length], ['redoBtn', RH.length], ['wipeBtn', D && (D.items.length || D.base.t !== 'solid') ? 1 : 0]]) { const b = $(id); b.hidden = !on; b.classList.toggle('off', !n); } }
+$('undoBtn').onclick = () => { if (!H.length) { toast(T('אין מה לבטל', 'Nothing to undo')); return; } hApply(H, RH); A.tone(420, .07, 'triangle', .06, 0, 300); };
+$('redoBtn').onclick = () => { if (!RH.length) return; hApply(RH, H); A.tone(300, .07, 'triangle', .06, 0, 440); };
+let wipeArm = 0; $('wipeBtn').onclick = () => { const n = performance.now(); if (n - wipeArm > 2500) { wipeArm = n; toast(T('🧽 לחצו שוב כדי לנקות את כל המגן (אפשר לבטל עם ↩️)', '🧽 Tap again to wipe the whole case (you can undo with ↩️)')); return; } wipeArm = 0; hBegin(); const b = newDesign().base; D.base = b; D.items = []; sel = null; rebuildUnder(); dirty = true; hEnd(); renderOpts(); A.noise(.25, 'highpass', 3000, 1, .08); toast(T('✨ מגן נקי – מתחילים מחדש!', '✨ A clean case – start again!')); };
+$('undoBtn').innerHTML = ICO.undo('#8a2a9a'); $('redoBtn').innerHTML = ICO.undo('#8a2a9a');
 
 /* ---------- panel ---------- */
 const btn = (cls, attrs, html) => `<button class="${cls}" ${attrs}>${html}</button>`;
@@ -269,11 +278,12 @@ function renderOpts() { let h = '';
     h += selTools(T('👆 נוגעים במגן כדי להדביק · שתי אצבעות = הגדלה וסיבוב', '👆 Tap the case to stick · two fingers = resize & rotate')); }
   else if (tab === 'photo') { h = `<div class="row2">${SHAPES.map(([k, ic, n]) => btn('ch' + (photoShape === k ? ' on' : ''), `data-ps="${k}"`, `${ic}<small>${n}</small>`)).join('')}</div><div class="row2">${btn('btn pri', 'id="addPhoto"', '📷 ' + T('בחירת תמונה', 'Choose a photo'))}</div>` + selTools(T('🔒 התמונה נשארת רק בטלפון שלכם', '🔒 Your photo stays only on your phone')); }
   else if (tab === 'text') h = `<div class="row2"><input class="tin" id="tin" maxlength="14" placeholder="${T('כתבו שם או מילה…', 'Type a name or word…')}">${btn('btn pri', 'id="addTxt"', '➕')}</div><div class="row2">${FONTS.map(([k, ic]) => btn('ch' + (fontK === k ? ' on' : ''), `data-fk="${k}"`, ic)).join('')}<span class="sep"></span>${swatches(PAL.slice(0, 16), txtCol, 'tc')}</div>` + selTools('');
-  $('opts').innerHTML = h; const ti = $('tin'); if (ti) ti.onkeydown = e => { if (e.key === 'Enter') addText(); };
+  $('opts').innerHTML = h; const ti = $('tin'); if (ti) ti.onkeydown = e => { if (e.key === 'Enter') { hBegin(); addText(); hEnd(); } };
   requestAnimationFrame(layoutEd); }
 function selTools(hint) { if (sel && sel.k === (tab === 'stk' ? 'stk' : tab)) return `<div class="row2">${btn('ch', 'data-act="smaller"', '➖')}${btn('ch', 'data-act="bigger"', '➕')}${btn('ch', 'data-act="rotl"', '↺')}${btn('ch', 'data-act="rotr"', '↻')}${btn('ch', 'data-act="del"', '🗑️')}${btn('ch', 'data-act="done"', '✔️')}</div>`; return hint ? `<p class="lbl">${hint}</p>` : ''; }
 $('tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b) return; tab = b.dataset.tab; if (sel && !['stk', 'photo', 'text'].includes(tab)) { sel = null; rebuildUnder(); dirty = true; } A.tone(760, .04, 'triangle', .04); renderTabs(); renderOpts(); };
-$('opts').onclick = e => { const b = e.target.closest('button'); if (!b) return; const d = b.dataset; A.tone(820, .035, 'triangle', .04);
+$('opts').onclick = e => { hBegin(); optsClick(e); hEnd(); };
+function optsClick(e) { const b = e.target.closest('button'); if (!b) return; const d = b.dataset; A.tone(820, .035, 'triangle', .04);
   if (d.base) { const bs = BASES.find(x => x[0] === d.base); if (bs[3] && !owned('b_' + bs[0])) { if (!buy('b_' + bs[0], bs[3])) return; } D.base.t = d.base; if (d.base === 'clear') { } baseSlot = 1; rebuildUnder(); }
   if (d.slot) baseSlot = +d.slot; if (d.bc) { if (baseSlot === 2 && !['solid', 'clear', 'jelly'].includes(D.base.t)) D.base.c2 = d.bc; else D.base.c1 = d.bc; rebuildUnder(); }
   if (d.br) brush = d.br; if (d.bs) bSize = +d.bs; if (d.pc) bCol = d.pc; if (d.gt) gType = d.gt; if (d.gc) gCol = d.gc; if (d.gm) gemT = d.gm; if (d.gs) gemS = +d.gs; if (d.gmc) gemC = d.gmc;
@@ -284,12 +294,12 @@ $('opts').onclick = e => { const b = e.target.closest('button'); if (!b) return;
   if (d.act && sel) { if (d.act === 'smaller') sel.s *= .85; if (d.act === 'bigger') sel.s *= 1.18; if (d.act === 'rotl') sel.r -= .2; if (d.act === 'rotr') sel.r += .2; if (d.act === 'del') { D.items.splice(D.items.indexOf(sel), 1); sel = null; rebuildUnder(); updUndo(); } if (d.act === 'done') { sel = null; rebuildUnder(); } }
   if (b.id === 'addPhoto') { $('fileIn').value = ''; $('fileIn').click(); }
   if (b.id === 'addTxt') addText();
-  dirty = true; renderOpts(); };
+  dirty = true; renderOpts(); }
 function buy(k, p) { if (owned(k)) return true; if (S.coins < p) { toast(T('צריך עוד מטבעות 🪙 – אופים עוד מגנים!', 'Need more coins 🪙 – bake more cases!')); A.tone(200, .12, 'sine', .05); return false; } S.coins -= p; S.unl.push(k); S.save(); updCoins(); A.voice('yay', 1.3); toast(T('נפתח! 🎉', 'Unlocked! 🎉')); return true; }
 function addText() { const ti = $('tin'); const v = (ti && ti.value || '').trim(); if (!v) { ti && ti.focus(); return; } const it = { k: 'text', txt: v, font: fontK, c: txtCol, x: DW / 2, y: DH * .62, s: Math.min(110, 760 / Math.max(3, v.length)), r: 0 }; D.items.push(it); select(it); ti.value = ''; ti.blur(); updUndo(); A.tone(990, .08, 'triangle', .06); }
 function fullPhoto(it) { const im = it.img, ar = im.height / im.width; it.x = DW / 2; it.y = DH / 2; it.r = 0; it.s = Math.max(DW, DH / ar); }
 $('fileIn').onchange = () => { const f = $('fileIn').files && $('fileIn').files[0]; if (!f) return; const url = URL.createObjectURL(f); const im = new Image(); im.onload = () => { const m = 900, sc = Math.min(1, m / Math.max(im.width, im.height)); const c = cnv(Math.round(im.width * sc), Math.round(im.height * sc)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-    const it = { k: 'photo', img: c, shape: photoShape, x: DW / 2, y: DH * .55, s: 300, r: 0 }; if (photoShape === 'full') fullPhoto(it); D.items.push(it); select(it); updUndo(); A.voice('wow', 1.2); if (!S.photoTip) { S.photoTip = 1; S.save(); toast(T('🔒 התמונה נשארת רק בטלפון שלכם', '🔒 Your photo stays only on your phone'), 2600); } };
+    const it = { k: 'photo', img: c, shape: photoShape, x: DW / 2, y: DH * .55, s: 300, r: 0 }; if (photoShape === 'full') fullPhoto(it); hBegin(); D.items.push(it); select(it); hEnd(); A.voice('wow', 1.2); if (!S.photoTip) { S.photoTip = 1; S.save(); toast(T('🔒 התמונה נשארת רק בטלפון שלכם', '🔒 Your photo stays only on your phone'), 2600); } };
   im.onerror = () => toast(T('לא הצלחנו לפתוח את התמונה', 'Could not open that photo')); im.src = url; };
 
 /* ================= FLOW ================= */
@@ -302,11 +312,12 @@ function demoDesign() { const d = newDesign(); d.base = { t: pick(['grad', 'tied
   for (let i = 0; i < 9; i++) d.items.push({ k: 'gem', t: 'pearl', c: '#ffffff', s: 26, x: 90 + i * 42, y: 1000, r: 0 }); return d; }
 function title() { state = 'title'; A.allOff(); A.stopMusic(); for (const id of ['hud', 'panel', 'pick', 'oven', 'rev', 'album', 'rotHint']) show(id, false); ed.hidden = true; show('title', true); document.body.classList.remove('dark'); paintBg(false);
   P = PHONES[S.ph] || PHONES[0]; pcol = S.pc || 0; buildPhone(P, PCOL[pcol][0]); const dd = D; D = demoDesign(); const ft = finalTextures(); buildCase(P, D, ft.tex, ft.tw, 2); D = dd; caseG.position.set(0, 0, 0); tYaw = Math.PI; zoom = 7.2; world.position.y = -.2; updCoins(); }
-function pickPhone() { state = 'pick'; show('title', false); show('pick', true); show('hud', true); $('stepT').textContent = T('בוחרים טלפון', 'Pick a phone'); $('undoBtn').hidden = true; if (caseG) { spin.remove(caseG); caseG = null; } tYaw = Math.PI; zoom = 6.6; world.position.y = .62; renderPick(); }
+function clearRev() { for (const id of ['rev', 'rotHint', 'oven', 'album']) show(id, false); if (document.body.classList.contains('dark')) { document.body.classList.remove('dark'); paintBg(false); hemi.intensity = .55; key.intensity = 1.6; } }
+function pickPhone() { state = 'pick'; clearRev(); show('title', false); show('pick', true); show('hud', true); $('stepT').textContent = T('בוחרים טלפון', 'Pick a phone'); updUndo(); if (caseG) { spin.remove(caseG); caseG = null; } tYaw = Math.PI; zoom = 6.6; world.position.y = .62; renderPick(); }
 function renderPick() { P = PHONES[S.ph] || PHONES[0]; pcol = S.pc || 0; buildPhone(P, PCOL[pcol][0]);
   $('pickIn').innerHTML = `<p class="lbl">${T('דגם', 'Model')}</p><div class="row2">${PHONES.map((p, i) => btn('ch' + (S.ph === i ? ' on' : ''), `data-ph="${i}"`, `📱<small>${p.n}</small>`)).join('')}</div><p class="lbl">${T('צבע הטלפון', 'Phone color')}</p><div class="row2">${PCOL.map(([c], i) => btn('sw' + (pcol === i ? ' on' : ''), `data-pcl="${i}" style="background:${c}"`, '')).join('')}</div><div class="go"><button class="btn pri ready" id="toDesign">${T('לעיצוב המגן! 🎨', 'Design the case! 🎨')}</button></div>`; }
 $('pickIn').onclick = e => { const b = e.target.closest('button'); if (!b) return; A.tone(800, .04, 'triangle', .04); if (b.dataset.ph) { S.ph = +b.dataset.ph; S.save(); tYaw += TAU; } if (b.dataset.pcl) { S.pc = +b.dataset.pcl; S.save(); } if (b.id === 'toDesign') { startDesign(); return; } renderPick(); };
-function startDesign() { state = 'design'; show('pick', false); show('hud', true); show('panel', true); ed.hidden = false; D = newDesign(); sel = null; tab = 'base'; $('stepT').textContent = T('מעצבים!', 'Design it!'); $('bakeBtn').textContent = T('🔥 לתנור!', '🔥 Into the oven!'); maskFor = null; rebuildUnder(); renderTabs(); renderOpts(); updUndo(); layoutEd(); A.startMusic({ bpm: 100, chords: [[60, 64, 67], [57, 60, 64], [65, 69, 72], [67, 71, 74]], lead: true, vol: .6 });
+function startDesign() { state = 'design'; clearRev(); show('pick', false); show('hud', true); show('panel', true); ed.hidden = false; D = newDesign(); hReset(); sel = null; tab = 'base'; $('stepT').textContent = T('מעצבים!', 'Design it!'); $('bakeBtn').textContent = T('🔥 לתנור!', '🔥 Into the oven!'); maskFor = null; rebuildUnder(); renderTabs(); renderOpts(); updUndo(); layoutEd(); A.startMusic({ bpm: 100, chords: [[60, 64, 67], [57, 60, 64], [65, 69, 72], [67, 71, 74]], lead: true, vol: .6 });
   if (!S.tut) toast(T('בוחרים בסיס, מציירים, מפזרים נצנצים ומדביקים – ואז לתנור!', 'Pick a base, paint, sprinkle glitter and add stickers – then bake it!'), 3600); }
 $('bakeBtn').onclick = () => { if (!D.items.length && D.base.t === 'solid' && D.base.c1 === '#ffd0e8') { toast(T('קודם מעצבים משהו 🎨', 'Design something first 🎨')); return; } sel = null; rebuildUnder(); oven(); };
 
@@ -331,7 +342,7 @@ function rollTier(luck) { const w = TIERS.map((t, i) => t.w * (i >= 2 ? 1 + luck
   const fl = $('flash'); fl.style.transition = 'none'; fl.style.opacity = tier >= 3 ? 1 : .8; requestAnimationFrame(() => { fl.style.transition = 'opacity .8s'; fl.style.opacity = 0; });
   setTimeout(() => tb.classList.add('on'), 60); [523, 659, 784, 1047, 1319].slice(0, 2 + tier).forEach((f, i) => A.tone(f, .18, 'square', .05, i * .09)); if (tier >= 3) { A.voice('wow', 1.4); buzz([30, 40, 30]); } else A.voice('yay', 1.2);
   setTimeout(() => { tb.classList.remove('on'); reveal(tier); }, 1900); }
-function reveal(tier, rec) { state = 'reveal'; ov = null; show('oven', false); show('panel', false); show('pick', false); show('title', false); ed.hidden = true; show('hud', true); $('undoBtn').hidden = true; $('stepT').textContent = rec ? T('מהאוסף', 'From the collection') : T('המגן מוכן! 🎉', 'Your case is ready! 🎉'); updCoins();
+function reveal(tier, rec) { state = 'reveal'; ov = null; show('oven', false); show('panel', false); show('pick', false); show('title', false); ed.hidden = true; show('hud', true); updUndo(); $('stepT').textContent = rec ? T('מהאוסף', 'From the collection') : T('המגן מוכן! 🎉', 'Your case is ready! 🎉'); updCoins();
   P = PHONES[rec ? rec.ph : S.ph] || PHONES[0]; pcol = rec ? rec.pc : S.pc; buildPhone(P, PCOL[pcol][0]);
   const go = (tex, tw, spec) => { buildCase(P, spec, tex, tw, tier); if (!rec) { caseG.position.set(0, -2.6, -.4); caseG.rotation.set(-1.2, 0, .6); snap = { t: 0 }; } else { caseG.position.set(0, 0, 0); snap = null; } tYaw = Math.PI + .5; yaw = Math.PI - .6; tPitch = .12; zoom = 5.6; world.position.y = .42; idle = 0;
     const dark = tier >= 3; document.body.classList.toggle('dark', dark); paintBg(dark); hemi.intensity = dark ? .18 : .55; key.intensity = dark ? .5 : 1.6;

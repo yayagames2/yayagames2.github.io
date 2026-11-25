@@ -17,6 +17,9 @@ body{background:radial-gradient(circle at 50% 10%,#fff4fb,#ffd8ee 45%,#d8c8ff);c
 #hud>*{pointer-events:auto}
 #stepT{flex:1;text-align:center;font-weight:900;font-size:19px;color:#8a2a9a;text-shadow:0 2px 0 #fff;pointer-events:none!important}
 #coinC{direction:ltr;font-weight:900;background:#fff;border-radius:999px;padding:5px 12px;box-shadow:0 3px 0 #e8c0e0;color:#8a2a9a}
+#edTools{position:fixed;z-index:6;left:max(8px,env(safe-area-inset-left));top:max(70px,calc(env(safe-area-inset-top) + 64px));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.et{pointer-events:auto;width:50px;height:50px;border-radius:16px;background:#fff;box-shadow:0 4px 0 #d9a8e6,0 8px 16px rgba(120,40,140,.22);display:grid;place-items:center;font-size:24px;transition:opacity .15s,transform .1s}
+.et:active{transform:translateY(3px);box-shadow:0 1px 0 #d9a8e6}.et svg{width:28px;height:28px}#redoBtn svg{transform:scaleX(-1)}.et.off{opacity:.38}
 #panel{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:8px 10px max(10px,env(safe-area-inset-bottom));background:rgba(255,255,255,.93);border-radius:24px 24px 0 0;box-shadow:0 -8px 30px rgba(120,40,140,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #panel .in{max-width:620px;margin:0 auto}
 .tabs{display:flex;gap:4px;justify-content:space-between;margin-bottom:6px}
@@ -103,8 +106,9 @@ body.dark #stepT{color:#fff;text-shadow:0 2px 8px #000}
 <body>
 <div id="stage"></div>
 <canvas id="ed" hidden></canvas>
-<div id="hud" hidden><button class="rb" id="backBtn"></button><div id="stepT"></div><button class="rb" id="undoBtn" hidden>↩️</button><span id="coinC"></span><button class="rb" id="sndBtn"></button></div>
+<div id="hud" hidden><button class="rb" id="backBtn"></button><div id="stepT"></div><span id="coinC"></span><button class="rb" id="sndBtn"></button></div>
 <div id="panel" hidden><div class="in"><div class="tabs" id="tabs"></div><div id="opts"></div><div class="go"><button class="btn pri ready" id="bakeBtn"></button></div></div></div>
+<div id="edTools"><button class="et" id="undoBtn" hidden></button><button class="et" id="redoBtn" hidden></button><button class="et" id="wipeBtn" hidden>🧽</button></div>
 <div id="title" hidden><button class="rb homeT" id="homeT" hidden></button><h1 class="logo"><span class="a">CASE</span><span class="b">CRAFT</span></h1><p id="tSub"></p><span id="tCoin"></span>
   <div class="tbot"><button class="btn pri" id="newBtn"></button><button class="btn wh" id="albBtn"></button></div></div>
 <div id="pick" hidden><div class="pp"><div id="pickIn"></div></div></div>

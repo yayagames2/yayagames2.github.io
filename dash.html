@@ -29,6 +29,10 @@ body{background:#bfe4ff;color:#1c2240}
 .ci,.ui{border-radius:16px;background:#f2f4fb;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;border:3px solid transparent;font-weight:800;color:#1c2240}
 .ci.on{border-color:#ffb23a;background:#fff4dc}.ci .dot{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.ci small,.ui small{font-size:11px;opacity:.75}.ui span{font-size:13px;color:#e86a1a}
 .card{background:#fff;color:#1c2240}
+#icap{position:fixed;z-index:8;left:0;right:0;top:max(60px,calc(env(safe-area-inset-top) + 54px));display:flex;justify-content:center;pointer-events:none;padding:0 16px}
+#icap b{background:#fff;color:#1a3a8a;font-weight:900;font-size:clamp(18px,5.4vw,26px);padding:10px 20px;border-radius:22px;box-shadow:0 6px 0 #ffb23a,0 12px 26px rgba(0,0,0,.25);text-align:center;animation:icp .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes icp{from{transform:scale(.3) rotate(-8deg);opacity:0}}
+#iskip{position:fixed;z-index:8;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));text-align:center;color:#fff;font-weight:800;font-size:15px;text-shadow:0 2px 6px rgba(0,0,0,.6);pointer-events:none;opacity:.9}
 </style>
 </head>
 <body>
@@ -41,6 +45,7 @@ body{background:#bfe4ff;color:#1c2240}
 </div>
 <div id="pows"></div>
 <div id="toast"></div>
+<div id="icap" hidden><b id="icapT"></b></div><div id="iskip" hidden></div>
 <section class="scr" id="title" hidden>
   <button class="rb homeT" id="homeT" hidden></button>
   <h1 class="logo"><span class="a">CITY</span><span class="b">DASH</span></h1>
