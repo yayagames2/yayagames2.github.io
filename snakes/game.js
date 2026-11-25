@@ -6,6 +6,7 @@ const SNAKES = { 17: 7, 32: 10, 48: 26, 62: 18, 66: 45, 87: 54, 93: 73, 95: 75, 
 const JUMP = Object.assign({}, LADDERS, SNAKES);
 const cellXY = n => { const r = Math.floor((n - 1) / 10); let c = (n - 1) % 10; if (r % 2) c = 9 - c; return [c * 100 + 50, (9 - r) * 100 + 50]; };
 const TOK = [['🐰', '#ff5a7a'], ['🐻', '#4a8aff'], ['🦊', '#ffa21f'], ['🐸', '#3ac06a']];
+const CHARS = ['🐰', '🐻', '🦊', '🐸', '🐼', '🐯', '🦁', '🐵', '🐶', '🐱', '🦄', '🐲', '🐧', '🐙', '🦖', '🐢', '🤖', '👽', '🦸', '🧚', '👸', '🤴', '🧙', '🥷'];
 
 /* ================= app shell ================= */
 const app = makeApp({
@@ -25,7 +26,7 @@ const app = makeApp({
     ['💯', T('הסוף', 'The end'), T('צריך להגיע ל-100 בדיוק. מספר גדול מדי? מגיעים ל-100 וחוזרים אחורה את מה שנשאר.', 'You must land exactly on 100. Too big a number? Reach 100 and bounce back the rest.')],
     ['6️⃣', T('יצא 6', 'Rolled a 6'), T('אם בחרתם “עוד תור!” – מי שמוציא 6 מגלגל שוב.', 'If you chose “Roll again!” – whoever rolls a 6 rolls once more.')],
     ['👆', T('איך משחקים', 'How to play'), T('לוחצים על הכפתור “גלגלו” (או על הקובייה) – והחייל זז לבד.', 'Tap “Roll” (or the die) – your piece moves by itself.')]] },
-  onStart: tk => newGame(tk), onStop: () => { G = null; },
+  onStart: tk => pickChars(tk), onStop: () => { G = null; const o = document.getElementById('cpick'); if (o) o.hidden = true; },
 });
 const { S, sfx } = app;
 
@@ -68,12 +69,26 @@ function drawBoard() { svg.innerHTML = ''; const defs = el('defs', {}, svg);
 
 /* ================= game ================= */
 let G = null;
-function players() { const n = +S.np || 2, out = []; for (let i = 0; i < n; i++) { const cpu = S.who === 'cpu' && i > 0; out.push({ i, pos: 0, cpu, name: S.who === 'cpu' ? (i === 0 ? T('אתם', 'You') : `${T('מחשב', 'CPU')} ${n > 2 ? i : ''}`.trim()) : `${T('שחקן', 'Player')} ${i + 1}`, tok: TOK[i][0], col: TOK[i][1] }); } return out; }
+function players() { const n = +S.np || 2, out = []; for (let i = 0; i < n; i++) { const cpu = S.who === 'cpu' && i > 0; out.push({ i, pos: 0, cpu, name: S.who === 'cpu' ? (i === 0 ? T('אתם', 'You') : `${T('מחשב', 'CPU')} ${n > 2 ? i : ''}`.trim()) : `${T('שחקן', 'Player')} ${i + 1}`, tok: (S.chars && S.chars[i]) || TOK[i][0], photo: S.chars && S.chars[i] === 'photo' ? (S.photos || {})[i] : null, col: TOK[i][1] }); } return out; }
 function tokXY(pl, pos) { if (pos === 0) { const [x, y] = cellXY(1); return [x - 30 + pl.i * 20, y + 28]; } const [x, y] = cellXY(pos); const same = G.pl.filter(q => q.pos === pos && q.i !== pl.i).length; const off = [[0, 6], [-20, -12], [20, -12], [0, 24]]; const k = G.pl.filter(q => q.pos === pos && q.i < pl.i).length; return same ? [x + off[k][0], y + off[k][1]] : [x, y + 6]; }
 function drawTokens() { const g = $('toks'); g.innerHTML = ''; for (const pl of G.pl) { const [x, y] = tokXY(pl, pl.pos); const t = el('g', { transform: `translate(${x} ${y})`, id: 'tk' + pl.i }, g); tokShape(t, pl); } }
-function tokShape(t, pl) { el('ellipse', { cx: 0, cy: 22, rx: 22, ry: 8, fill: 'rgba(0,0,0,.25)' }, t); el('circle', { cx: 0, cy: 0, r: 26, fill: pl.col, stroke: '#fff', 'stroke-width': 5 }, t); const e = el('text', { x: 0, y: 11, 'text-anchor': 'middle', 'font-size': 30 }, t); e.textContent = pl.tok; if (G.cur === pl.i) el('circle', { cx: 0, cy: 0, r: 33, fill: 'none', stroke: '#ffe24a', 'stroke-width': 5, class: 'hl' }, t); }
-function plist() { $('plist').innerHTML = G.pl.map(p => `<div class="pl${p.i === G.cur ? ' on' : ''}" style="--c:${p.col}"><i>${p.tok}</i>${p.name} · ${p.pos || 0}</div>`).join(''); }
+function tokShape(t, pl) { el('ellipse', { cx: 0, cy: 22, rx: 22, ry: 8, fill: 'rgba(0,0,0,.25)' }, t); el('circle', { cx: 0, cy: 0, r: 26, fill: pl.col, stroke: '#fff', 'stroke-width': 5 }, t); if (pl.photo) { const cid = 'clp' + pl.i; if (!document.getElementById(cid)) { const svg = document.getElementById('ssvg'); let defs = svg.querySelector('defs'); if (!defs) defs = el('defs', {}, svg); const cp = el('clipPath', { id: cid }, defs); el('circle', { cx: 0, cy: 0, r: 23 }, cp); } const im = el('image', { href: pl.photo, x: -23, y: -23, width: 46, height: 46, 'clip-path': `url(#${cid})`, preserveAspectRatio: 'xMidYMid slice' }, t); }
+  else { const e = el('text', { x: 0, y: 11, 'text-anchor': 'middle', 'font-size': 30 }, t); e.textContent = pl.tok; } if (G.cur === pl.i) el('circle', { cx: 0, cy: 0, r: 33, fill: 'none', stroke: '#ffe24a', 'stroke-width': 5, class: 'hl' }, t); }
+function plist() { $('plist').innerHTML = G.pl.map(p => `<div class="pl${p.i === G.cur ? ' on' : ''}" style="--c:${p.col}"><i>${p.photo ? `<img src="${p.photo}" alt="">` : p.tok}</i>${p.name} · ${p.pos || 0}</div>`).join(''); }
 function turnBar() { const p = G.pl[G.cur]; app.turn(`<span class="chip"><span class="dot" style="background:${p.col}"></span>${p.name} · ${p.cpu ? T('מגלגל…', 'rolling…') : T('גלגלו!', 'roll!')}</span>`); }
+/* ---------- character picker ---------- */
+let pickTk = null, photoFor = -1;
+function pickChars(tk) { pickTk = tk; if (!S.chars) S.chars = []; if (!S.photos) S.photos = {}; let o = document.getElementById('cpick'); if (!o) { o = document.createElement('div'); o.id = 'cpick'; document.body.appendChild(o); const fi = document.createElement('input'); fi.type = 'file'; fi.accept = 'image/*'; fi.id = 'cpFile'; fi.hidden = true; document.body.appendChild(fi); fi.onchange = onPhoto;
+    o.onclick = e => { const b = e.target.closest('button'); if (!b) return; app.A.ac(); sfx.step && sfx.step(); const d = b.dataset;
+      if (d.e != null) { S.chars[+d.p] = d.e; S.save(); renderPick(); }
+      if (d.ph != null) { photoFor = +d.ph; fi.value = ''; fi.click(); }
+      if (b.id === 'cpGo') { o.hidden = true; if (app.alive(pickTk)) newGame(pickTk); } }; }
+  renderPick(); o.hidden = false; }
+function renderPick() { const o = document.getElementById('cpick'); const n = +S.np || 2; let h = `<div class="cpc"><h3>🎭 ${T('בוחרים דמויות', 'Pick your characters')}</h3>`;
+  for (let i = 0; i < n; i++) { const cpu = S.who === 'cpu' && i > 0; const cur = S.chars[i] || TOK[i][0]; const nm = S.who === 'cpu' ? (i === 0 ? T('אתם', 'You') : `${T('מחשב', 'CPU')} ${n > 2 ? i : ''}`) : `${T('שחקן', 'Player')} ${i + 1}`;
+    h += `<div class="cpr"><div class="cpn" style="--c:${TOK[i][1]}"><i>${cur === 'photo' && S.photos[i] ? `<img src="${S.photos[i]}" alt="">` : cur}</i><b>${nm}</b></div><div class="cpl">${cpu ? '' : `<button class="cpb ph${cur === 'photo' ? ' on' : ''}" data-ph="${i}">📷</button>`}${CHARS.map(e => `<button class="cpb${cur === e ? ' on' : ''}" data-p="${i}" data-e="${e}">${e}</button>`).join('')}</div></div>`; }
+  h += `<p class="cpt">${T('📷 אפשר לשים תמונה שלכם בתור הדמות – היא נשארת רק בטלפון', '📷 You can use your own photo as your piece – it stays on your phone')}</p><button class="btn pri" id="cpGo">▶ ${T('יוצאים לדרך!', 'Let’s play!')}</button></div>`; o.innerHTML = h; }
+function onPhoto() { const f = this.files && this.files[0]; if (!f || photoFor < 0) return; const url = URL.createObjectURL(f); const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 128; const m = Math.min(im.width, im.height); c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, 128, 128); URL.revokeObjectURL(url); S.photos[photoFor] = c.toDataURL('image/jpeg', .8); S.chars[photoFor] = 'photo'; S.save(); renderPick(); }; im.src = url; }
 function newGame(tk) { fit(); G = { pl: players(), cur: 0, tk, busy: false }; drawBoard(); drawTokens(); plist(); startTurn(); }
 function startTurn() { if (!G) return; const p = G.pl[G.cur]; turnBar(); plist(); drawTokens(); $('rollBtn').disabled = p.cpu; $('rollBtn').hidden = p.cpu;
   if (p.cpu) setTimeout(() => doRoll(G.tk), 700); }

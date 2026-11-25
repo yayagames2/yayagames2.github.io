@@ -104,10 +104,16 @@ function buildPet(sp, acc) { const D = SPEC[sp]; const g = new THREE.Group(); co
   R.hatS = new THREE.Group(); R.hatS.position.set(0, .46 * hs, 0); head.add(R.hatS); R.glassS = new THREE.Group(); R.glassS.position.set(0, .05, fz); head.add(R.glassS); R.neckS = new THREE.Group(); R.neckS.position.set(0, 1.0, .02); root.add(R.neckS);
   R.g = g; R.D = D; R.sp = sp; R.hs = hs; R.mouthLocal = V3(0, my, mz + .1);
   R.hitMeshes = []; root.traverse(m => { if (m.isMesh) R.hitMeshes.push(m); });
-  const lv = (S.pets[sp] && S.pets[sp].lvl) || 1; const stg = stageOf(lv); R.stage = stg; const ST = [[.62, 1.2, 1.18], [.8, 1.1, 1.08], [1, 1, 1]][stg]; g.scale.setScalar(ST[0]); head.scale.setScalar(ST[1]); eyes.forEach(e => e.scale.setScalar(ST[2])); happy.forEach(e => e.scale.setScalar(ST[2])); sleepE.forEach(e => e.scale.setScalar(ST[2]));
+  const lv = (S.pets[sp] && S.pets[sp].lvl) || 1; const stg = stageOf(lv); R.stage = stg;
+  // growth proportions: [overall, head, eyes, legs, tail, ears, snout, body-length]
+  const ST = [[.44, 1.45, 1.36, .5, .4, 1.22, .62, .88], [.56, 1.3, 1.24, .66, .6, 1.14, .74, .92], [.7, 1.17, 1.14, .8, .78, 1.07, .85, .96], [.85, 1.07, 1.05, .92, .92, 1.02, .94, 1], [1, 1, 1, 1, 1, 1, 1, 1]][stg];
+  const lk = ST[3], drop = .34 * (1 - lk); g.scale.setScalar(ST[0]); head.scale.setScalar(ST[1]); eyes.forEach(e => e.scale.setScalar(ST[2])); happy.forEach(e => e.scale.setScalar(ST[2])); sleepE.forEach(e => e.scale.setScalar(ST[2]));
+  if (!D.float) for (const l of legs) { l.scale.set(1 + (1 - lk) * .25, lk, 1 + (1 - lk) * .25); l.position.y = .34 * lk; }
+  body.position.y = .62 - drop; body.scale.set(1, 1, ST[7]); R.hy = 1.42 - drop - (1 - lk) * .12; head.position.y = R.hy; tail.position.y = .52 - drop; tail.scale.setScalar(ST[4]); ears.forEach(e => e.scale.setScalar(ST[5])); R.neckS.position.y = 1.0 - drop;
+  head.children.forEach(m => { if (m.isMesh && m.geometry && m.geometry.parameters && m.geometry.parameters.radius === .19) m.scale.multiplyScalar(ST[6]); });
   setAcc(R, acc); return R; }
-function stageOf(lv) { return lv < 3 ? 0 : lv < 6 ? 1 : 2; }
-const STN = [T('תינוק', 'Baby'), T('צעיר', 'Young'), T('גדול', 'Grown-up')];
+function stageOf(lv) { return lv < 3 ? 0 : lv < 5 ? 1 : lv < 8 ? 2 : lv < 11 ? 3 : 4; }
+const STN = [T('גור קטנטן', 'Newborn'), T('תינוק', 'Baby'), T('צעיר', 'Young'), T('נער', 'Teen'), T('גדול', 'Grown-up')];
 function accMesh(slot, id, R) { const g = new THREE.Group(); const gold = std('#ffcf3a', { metalness: .8, roughness: .25 });
   if (slot === 'hat') {
     if (id === 'party') { const c = new THREE.Mesh(new THREE.ConeGeometry(.2, .45, 24), std('#ff5aa8', { roughness: .5 })); c.position.y = .2; g.add(c); for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(.16 - i * .05, .018, 6, 20).rotateX(Math.PI / 2), std('#ffe24a')); r.position.y = .07 + i * .13; g.add(r); } const p = new THREE.Mesh(new THREE.SphereGeometry(.06, 10, 8), std('#3ad8ff')); p.position.y = .45; g.add(p); g.rotation.z = .2; g.position.x = -.08; }
@@ -293,7 +299,7 @@ function animate(dt, t) { const R = pet; if (!R) return; const D = R.D; const P 
   // breathing & body
   const br = Math.sin(t * (AN.sleep ? 1.4 : 2.2)); R.body.scale.set(1 + br * .012, 1 + br * .02, 1 + br * .012);
   // sleep pose
-  const sl = AN.sleep ? 1 : 0; R.root.rotation.x = lerp(R.root.rotation.x, 0, dt * 4); R.head.position.y = lerp(R.head.position.y, 1.42 - sl * .2, dt * 3); R.head.rotation.z = lerp(R.head.rotation.z, sl * .35 + (AN.shake ? Math.sin(t * 30) * .25 : 0), dt * 6);
+  const sl = AN.sleep ? 1 : 0; R.root.rotation.x = lerp(R.root.rotation.x, 0, dt * 4); R.head.position.y = lerp(R.head.position.y, (R.hy || 1.42) - sl * .2, dt * 3); R.head.rotation.z = lerp(R.head.rotation.z, sl * .35 + (AN.shake ? Math.sin(t * 30) * .25 : 0), dt * 6);
   for (let i = 0; i < R.legs.length; i++) { const lg = R.legs[i]; if (walking) lg.rotation.x = Math.sin(t * 14 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI : 0)) * .6; else lg.rotation.x = lerp(lg.rotation.x, sl * (i < 2 ? -1.2 : 0), dt * 6); }
   if (walking) R.root.position.y = Math.abs(Math.sin(t * 14)) * .06;
   if (AN.shake) { AN.shake -= dt; if (AN.shake < 0) AN.shake = 0; }
@@ -303,7 +309,7 @@ function animate(dt, t) { const R = pet; if (!R) return; const D = R.D; const P 
   // expressions
   AN.blinkT -= dt; const blink = AN.blinkT < .12; if (AN.blinkT < 0) AN.blinkT = rnd(2, 4.5); AN.tPet -= dt; if (AN.eat > 0) { AN.eat -= dt; if (AN.eat <= 0) AN.mood = 'idle'; }
   const m = AN.sleep ? 'sleep' : AN.eat > 0 ? 'eat' : AN.mood === 'happy' || AN.tPet > 0 || AN.jump > 0 ? 'happy' : AN.mood === 'open' ? 'open' : sad ? 'sad' : 'idle';
-  const eOpen = m === 'idle' || m === 'open' || m === 'sad' || m === 'eat'; const es0 = [1.18, 1.08, 1][R.stage || 0]; R.eyes.forEach(e => { e.visible = eOpen; e.scale.y = es0 * (blink ? .12 : (m === 'sad' ? .8 : 1)); }); R.happyE.forEach(e => e.visible = m === 'happy'); R.sleepE.forEach(e => e.visible = m === 'sleep');
+  const eOpen = m === 'idle' || m === 'open' || m === 'sad' || m === 'eat'; const es0 = [1.36, 1.24, 1.14, 1.05, 1][R.stage || 0]; R.eyes.forEach(e => { e.visible = eOpen; e.scale.y = es0 * (blink ? .12 : (m === 'sad' ? .8 : 1)); }); R.happyE.forEach(e => e.visible = m === 'happy'); R.sleepE.forEach(e => e.visible = m === 'sleep');
   R.smile.visible = m === 'idle'; R.sad.visible = m === 'sad'; R.openM.visible = m === 'happy' || m === 'open' || (m === 'eat' && Math.sin(t * 22) > 0); R.openM.scale.setScalar(m === 'open' ? 1.3 : 1);
   // ears & tail
   const happyLv = (P.n.l + P.n.f) / 200; R.ears.forEach((ep, i) => { const s = i ? 1 : -1; if (D.ear === 'flop') ep.rotation.z = s * (.35 + (sad ? .4 : 0)) + Math.sin(t * 3 + i) * .05 + (AN.jump > 0 ? s * -.4 : 0); if (D.ear === 'bun') ep.rotation.z = -s * .15 + (sad ? s * .9 : 0) + Math.sin(t * 2.3 + i * 2) * .06; if (D.ear === 'cat') ep.rotation.x = Math.max(0, Math.sin(t * 1.7 + i * 3)) > .97 ? -.3 : 0; if (D.ear === 'ant') ep.rotation.x = Math.sin(t * 3 + i) * .15; });

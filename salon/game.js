@@ -304,9 +304,9 @@ function resample(H, s, oldL, newL) {
 
 /* ================= characters ================= */
 const CHARS = [
-  { id: 'mila', name: T('מילה', 'Mila'), desc: T('שיער ארוך וחלק', 'Long silky hair'), skin: '#f5c9a8', hair: '#7a3c1a', eye: '#5a3720', pants: '#5b7cff', shoe: '#ff6f91', voice: 1.35, freckles: true, lash: true,
+  { id: 'mila', name: T('מילה', 'Mila'), desc: T('שיער ארוך וחלק', 'Long silky hair'), skin: '#f5c9a8', hair: '#7a3c1a', eye: '#5a3720', pants: '#5b7cff', shoe: '#ff6f91', voice: 1.35, freckles: true, lash: true, noBeard: true,
     style(n, k) { if (k === 2) return { L: 0, stiff: .35, dir: (n, t) => n.clone().multiplyScalar(.7).add(V3(0, -1, .15).multiplyScalar(.4 + t)) };
-      if (n.z > .35 && n.y > .36 && n.y < .86 && Math.abs(n.x) < .48) return { L: .16, stiff: .25, dir: (n, t) => n.clone().multiplyScalar(.5).add(V3(0, -.7, .55)) };
+      if (n.z > .35 && n.y > .36 && n.y < .86 && Math.abs(n.x) < .48) { const sd = n.x > .02 ? 1 : n.x < -.02 ? -1 : (Math.random() < .5 ? -1 : 1); return { L: 1.02 + Math.random() * .12, stiff: .05, dir: (n, t) => n.clone().multiplyScalar(.75 * (1 - t) * (1 - t) + .05).add(V3(sd * (.55 + t * .9) * (1 - t * .3), -Math.min(1.5, .05 + t * 2.2), -.35 * t)) }; }
       const side = Math.abs(n.x) > .04 ? Math.sign(n.x) : (Math.random() < .5 ? -1 : 1), fz = clamp(n.z + .15, 0, 1);
       return { L: 1.22 + (n.z < 0 ? .14 : 0), stiff: .03, dir: (n, t) => n.clone().multiplyScalar(1.0 * (1 - t) * (1 - t) + .05).add(V3(side * (.35 + fz) * (1 - t) * 1.1, 0, -fz * .45 * (1 - t))).add(V3(0, -Math.min(1.6, .2 + t * 2.4), 0)) }; } },
   { id: 'rafi', name: T('רפי', 'Rafi'), desc: T('זקן מלא ושיער קצר', 'Full beard, short hair'), skin: '#c78a60', hair: '#2b1d16', eye: '#2c1d14', pants: '#3a3f58', shoe: '#7a4a2a', voice: .78, bigNose: true, thickBrow: true,
@@ -370,7 +370,7 @@ function buildChar(ch) {
   // accessories
   G.acc = {};
   const bow = new THREE.Group(); { const m = std('#ff3d8b', { roughness: .35 }); for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.ConeGeometry(.09, .17, 20), m); w.rotation.z = s * Math.PI / 2; w.position.x = s * .09; bow.add(w); } bow.add(new THREE.Mesh(new THREE.SphereGeometry(.045, 16, 12), m)); }
-  const bp = onHead(-.5, .74, R * 1.22); bow.userData.n = bp.clone().normalize(); bow.position.copy(bp); bow.quaternion.copy(qFromN(bp)); G.acc.bow = bow;
+  const bp = onHead(-.5, .74, R * 1.22); bow.userData.n = bp.clone().normalize(); bow.userData.base = .08; bow.position.copy(bp); bow.quaternion.copy(qFromN(bp)); G.acc.bow = bow;
   const gl = new THREE.Group(); { const fm = std('#1c1c2a', { roughness: .2 }), lm = std('#3a2a6e', { roughness: .05, metalness: .4, transparent: true, opacity: .88 });
     for (const s of [-1, 1]) { const l = new THREE.Mesh(new THREE.CylinderGeometry(.1, .1, .02, 32), lm); l.rotation.x = Math.PI / 2; l.position.x = s * .17; gl.add(l); const f = new THREE.Mesh(new THREE.TorusGeometry(.1, .014, 8, 32), fm); f.position.x = s * .17; gl.add(f);
       const arm = new THREE.Mesh(new THREE.BoxGeometry(.015, .015, .36), fm); arm.position.set(s * .28, .02, -.18); gl.add(arm); }
@@ -379,7 +379,7 @@ function buildChar(ch) {
   const crown = new THREE.Group(); { const band = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, .1, 32, 1, true), std('#ffcf5a', { metalness: 1, roughness: .2, side: THREE.DoubleSide })); crown.add(band);
     for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const sp = new THREE.Mesh(new THREE.ConeGeometry(.035, .1, 8), gold); sp.position.set(Math.cos(a) * .2, .09, Math.sin(a) * .2); crown.add(sp);
       const gem = new THREE.Mesh(new THREE.SphereGeometry(.02, 12, 8), new THREE.MeshStandardMaterial({ color: ['#ff3d8b', '#4fd1c5', '#a98bff'][i % 3], emissive: C(['#ff3d8b', '#4fd1c5', '#a98bff'][i % 3]), emissiveIntensity: 1.5 })); gem.position.set(Math.cos(a) * .205, 0, Math.sin(a) * .205); crown.add(gem); } }
-  crown.position.set(0, R + .12, -.02); crown.rotation.x = -.12; crown.userData.n = V3(0, 1, -.04).normalize(); crown.userData.base = .12; G.acc.crown = crown;
+  crown.position.set(0, R + .12, -.02); crown.rotation.x = -.12; crown.userData.n = V3(0, 1, -.04).normalize(); crown.userData.base = 0; G.acc.crown = crown;
   const flower = new THREE.Group(); { const pm = std('#ffe14d', { roughness: .4 }); for (let i = 0; i < 6; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.05, 16, 10), std(['#ffffff', '#ffd0e4'][i % 2], { roughness: .5 })); const a = i / 6 * Math.PI * 2; p.scale.set(1, .6, .4); p.position.set(Math.cos(a) * .06, Math.sin(a) * .06, 0); flower.add(p); } flower.add(new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 10), pm)); }
   const fp = onHead(.6, .6, R * 1.2); flower.userData.n = fp.clone().normalize(); flower.position.copy(fp); flower.quaternion.copy(qFromN(fp)); G.acc.flower = flower;
   const ear = new THREE.Group(); for (const s of [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(.04, .009, 8, 24), gold); const p = onHead(s * .97, -.2); r.position.copy(p).multiplyScalar(1.03); r.position.y -= .05; r.rotation.y = Math.PI / 2; ear.add(r); } G.acc.earrings = ear;
@@ -550,7 +550,7 @@ $('tray').onclick = e => { const s = e.target.closest('[data-c]'); if (s) { pain
   const a = e.target.closest('[data-a]'); if (a && CUR) { const m = CUR.acc[a.dataset.a]; m.visible = !m.visible; if (m.visible) placeAcc(m); sfx.pop(); if (m.visible) { react('happy', 1.6); voice('happy'); for (let i = 0; i < 14; i++) emit(m.getWorldPosition(V3()), V3(rnd(-1, 1), rnd(0, 1.5), rnd(-1, 1)).multiplyScalar(.8), [3, 2.6, 1.2], .05, .7, 0, .92); } renderTools(); } };
 function placeAcc(m) { const n = m.userData.n; if (!n || !CUR) return; const H = CUR.hair; let mx = 0;
   for (let s = 0; s < H.S; s++) { if (H.kind[s] !== 1) continue; const d = H.nrm[s * 3] * n.x + H.nrm[s * 3 + 1] * n.y + H.nrm[s * 3 + 2] * n.z; if (d > .9) mx = Math.max(mx, H.L[s]); }
-  const cu = CUR.hair.curl.reduce((x, y) => x + y, 0) / CUR.hair.S; const off = clamp(mx * (.32 + cu * .45), .03, .4) + (m.userData.base || .05); m.position.copy(n).multiplyScalar(R + off); }
+  const cu = CUR.hair.curl.reduce((x, y) => x + y, 0) / CUR.hair.S; const off = (mx > .02 ? .03 + Math.min(mx, .3) * (.2 + cu * .9) : .006) + (m.userData.base ?? .03); m.position.copy(n).multiplyScalar(R + off); }
 let toastT = 0; function toast(s) { $('toast').textContent = s; $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), 2200); }
 
 /* ================= input ================= */
@@ -611,15 +611,15 @@ function applyTool(dt, t) {
   const toW = p => headG.localToWorld(p.clone());
   if (tool === 'cut' || tool === 'clip') {
     let cuts = 0, spawned = 0;
-    for (let s = 0; s < S; s++) { const l = H.L[s]; if (l < .015) continue; const i = near(s, tool === 'clip' ? r2 * 1.25 : r2); if (i < 0) continue;
-      const nl = tool === 'clip' ? .012 : Math.max(.012, l * Math.max(0, i - .5) / NS1); if (nl > l - .01) continue;
+    for (let s = 0; s < S; s++) { const l = H.L[s]; if (l < (tool === 'clip' ? .004 : .015)) continue; const i = near(s, tool === 'clip' ? r2 * 1.25 : r2); if (i < 0) continue;
+      const nl = tool === 'clip' ? .002 : Math.max(.012, l * Math.max(0, i - .5) / NS1); if (nl > l - .01) continue;
       if (spawned < (tool === 'clip' ? 14 : 22)) { const o = s * NP * 3, k = Math.max(1, i); const a = V3(H.pos[o + k * 3], H.pos[o + k * 3 + 1], H.pos[o + k * 3 + 2]), b = V3(H.pos[o + NS1 * 3], H.pos[o + NS1 * 3 + 1], H.pos[o + NS1 * 3 + 2]);
         spawnDebris(toW(a.add(b).multiplyScalar(.5)), (l - nl) * .7, [H.col[o + NS1 * 3], H.col[o + NS1 * 3 + 1], H.col[o + NS1 * 3 + 2]]); spawned++; }
       resample(H, s, l, nl); H.L[s] = nl; cuts++; }
     if (cuts) { H.wDirty = true; if (tool === 'cut' && snipCd <= 0) { sfx.snip(); snipCd = .13; } }
   } else if (tool === 'grow') {
     let g = 0;
-    for (let s = 0; s < S; s++) { const rootK = s * NP; let hit = false; if (FR[rootK]) { const dx = SX[rootK] - px, dy = SY[rootK] - py; hit = dx * dx + dy * dy < r2 * 1.6; } if (!hit && H.L[s] > .05) hit = near(s, r2 * 1.3) >= 0; if (!hit) continue;
+    for (let s = 0; s < S; s++) { if (H.kind[s] === 2 && G.ch.noBeard) continue; const rootK = s * NP; let hit = false; if (FR[rootK]) { const dx = SX[rootK] - px, dy = SY[rootK] - py; hit = dx * dx + dy * dy < r2 * 1.6; } if (!hit && H.L[s] > .05) hit = near(s, r2 * 1.3) >= 0; if (!hit) continue;
       const l = H.L[s]; if (l >= H.Lmax[s]) continue; const nl = Math.min(H.Lmax[s], Math.max(l, .02) + dt * .62); if (l > .02) resample(H, s, l, nl); H.L[s] = nl; g++;
       if (nl > .5) for (let i = 1; i < NS1; i++) { const r = (s * NS1 + i) * 3; H.rd[r + 1] -= dt * .5 * (i / NS1); const dl = Math.hypot(H.rd[r], H.rd[r + 1], H.rd[r + 2]); H.rd[r] /= dl; H.rd[r + 1] /= dl; H.rd[r + 2] /= dl; } }
     if (g) { H.wDirty = true; if (sparkCd <= 0) { sfx.sparkle(); sparkCd = .09; } const hp = hitPt(); if (hp) for (let i = 0; i < 3; i++) emit(toW(hp), V3(rnd(-.4, .4), rnd(.2, .9), rnd(-.2, .5)), Math.random() < .5 ? [3.2, 2.6, 1] : [1.4, 3, 2.4], rnd(.03, .06), .8, -.2, .95); }
@@ -732,7 +732,7 @@ function frame(now) {
     H.calm = !ptr.down && Math.abs(rotT - rotNow) < .01 && CUR.face.mood === 'smile';
     // drips from wet tips
     if (Math.random() < .35) { const s = Math.floor(Math.random() * H.S); if (H.wet[s] > .3 && H.L[s] > .1) { const o = (s * NP + NS1) * 3; emit(headG.localToWorld(V3(H.pos[o], H.pos[o + 1], H.pos[o + 2])), V3(0, -.1, 0), [.7, .9, 1.25], .028, 1.2, 5, .99, .8); } }
-    writeHair(H); if (frameN % 6 === 0) updateScalp(CUR);
+    writeHair(H); if (frameN % 6 === 0) updateScalp(CUR); if (frameN % 15 === 0) for (const k in CUR.acc) { const m = CUR.acc[k]; if (m.visible && m.userData.n) placeAcc(m); }
     updateBubbles(dt, t); updateFace(dt, t);
   } else if (CUR) { const H = CUR.hair; headG.getWorldQuaternion(_bq); gLocal.set(0, -1, 0).applyQuaternion(_bq.invert()); H.wake = (H.wake ?? 1.6) - dt; if (H.wake > 0) stepHair(H, 1 / 60, gLocal); writeHair(H); updateScalp(CUR); updateFace(dt, t); updateBubbles(dt, t); }
   updateDebris(dt, t); updateParts(dt); musicTick();

@@ -17,6 +17,20 @@
 #plist .pl i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:16px;background:var(--c)}
 #sp{display:flex;align-items:center;gap:14px;min-height:70px}
 #sp .rollBtn{min-width:150px}
+#plist .pl i img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+#cpick{position:fixed;inset:0;z-index:30;background:rgba(10,40,25,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:14px}
+#cpick[hidden]{display:none}
+.cpc{background:#fff;border-radius:24px;padding:14px;width:min(480px,100%);max-height:92vh;overflow-y:auto;color:#14402a;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.cpc h3{margin:2px 0 10px}
+.cpr{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#f0fbf3;border-radius:16px;padding:6px}
+.cpn{flex:none;width:74px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px}
+.cpn i{font-style:normal;width:46px;height:46px;border-radius:50%;background:var(--c);display:grid;place-items:center;font-size:26px;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);overflow:hidden}
+.cpn i img{width:100%;height:100%;object-fit:cover}
+.cpl{display:flex;gap:5px;overflow-x:auto;padding:2px;scrollbar-width:none;flex:1}.cpl::-webkit-scrollbar{display:none}
+.cpb{flex:none;width:42px;height:42px;border-radius:12px;background:#fff;font-size:24px;box-shadow:0 2px 0 #c8e8d0;padding:0}
+.cpb.on{outline:3px solid #1a9a3a;background:#e0ffe8}.cpb.ph{background:#ffe8a8}
+.cpt{font-size:12.5px;font-weight:700;opacity:.8;margin:4px 0 10px}
+#cpGo{height:54px;font-size:19px;padding:0 30px}
 </style>
 </head>
 <body>

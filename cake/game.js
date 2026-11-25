@@ -30,6 +30,27 @@ const TIERS = [
   { n: T('אגדי', 'Legendary'), c: '#ffb31a', g: '🟡', w: 10, fx: T('עוגת קשת', 'Rainbow cake') },
   { n: T('מיתי', 'Mythic'), c: '#ff4ab0', g: '🌈', w: 4, fx: T('פיניאטה של ממתקים!', 'Candy piñata!') }];
 
+/* ================= PHOTO / BIRTHDAY ================= */
+const IMC = {}; let reTitle = 0; function imgOf(src) { if (!src) return null; let im = IMC[src]; if (!im) { im = IMC[src] = new Image(); im.onload = () => { if (state === 'title') { clearTimeout(reTitle); reTitle = setTimeout(showTitle, 60); } }; im.src = src; } return im.complete && im.naturalWidth ? im : null; }
+function drawPhotoTop(x, G, spec) { const im = imgOf(spec.photo); const rx = G.w / 2 * .6, ry = G.ry * .6, cy = G.y - G.h; x.save(); x.fillStyle = mixC(spec.frost || '#ffffff', '#ffffff', .5); x.beginPath(); x.ellipse(G.x, cy, rx * 1.1, ry * 1.12, 0, 0, TAU); x.fill();
+  x.beginPath(); x.ellipse(G.x, cy, rx, ry, 0, 0, TAU); x.clip(); if (im) { const sc = Math.max(rx * 2 / im.width, ry * 2 / im.height * 1.0); x.drawImage(im, G.x - im.width * sc / 2, cy - im.height * sc / 2, im.width * sc, im.height * sc); } else { x.fillStyle = '#fde8e0'; x.fillRect(G.x - rx, cy - ry, rx * 2, ry * 2); }
+  x.fillStyle = 'rgba(255,255,255,.18)'; x.beginPath(); x.ellipse(G.x - rx * .3, cy - ry * .4, rx * .5, ry * .3, 0, 0, TAU); x.fill(); x.restore();
+  x.save(); x.strokeStyle = mixC(spec.frost || '#ffffff', '#ffffff', .2); x.lineWidth = G.w * .025; x.setLineDash([G.w * .02, G.w * .012]); x.lineCap = 'round'; x.beginPath(); x.ellipse(G.x, cy, rx * 1.05, ry * 1.06, 0, 0, TAU); x.stroke(); x.restore(); }
+function drawName(x, G, spec) { const nm = spec.bday && spec.bday.name; if (!nm) return; const txt = T('מזל טוב ', 'Happy Birthday ') + nm + '!'; x.save(); let fs = G.w * .085; x.font = `900 ${fs}px Arial`; const w = x.measureText(txt).width; if (w > G.w * .9) { fs *= G.w * .9 / w; x.font = `900 ${fs}px Arial`; }
+  x.textAlign = 'center'; x.textBaseline = 'middle'; const y = G.y - G.h * .4; x.lineJoin = 'round'; x.lineWidth = fs * .28; x.strokeStyle = 'rgba(255,255,255,.95)'; x.strokeText(txt, G.x, y); x.fillStyle = spec.frost === '#ff8ab0' || spec.frost === '#ffd0e4' ? '#a8303a' : '#ff4a8a'; x.fillText(txt, G.x, y); x.restore(); }
+function drawAge(x, G, spec, t, thumb) { const a = spec.bday && spec.bday.age; if (!a) return; const str = String(a), fs = G.w * (str.length > 1 ? .2 : .24), py = G.y - G.h - G.ry * (spec.photo ? .82 : .15); x.save(); x.font = `900 ${fs}px Arial`; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; const w = x.measureText(str).width;
+  const g = x.createLinearGradient(G.x - w / 2, 0, G.x + w / 2, 0); for (let i = 0; i <= 8; i++) { g.addColorStop(i / 8, i % 2 ? '#ffffff' : '#ff6aa8'); } x.lineJoin = 'round'; x.lineWidth = fs * .12; x.strokeStyle = '#c83a7a'; x.strokeText(str, G.x, py); x.fillStyle = g; x.fillText(str, G.x, py);
+  const top = py - fs * .74; for (const dx of str.length > 1 ? [-w * .25, w * .25] : [0]) { x.strokeStyle = '#3a2a2a'; x.lineWidth = 2; x.beginPath(); x.moveTo(G.x + dx, top); x.lineTo(G.x + dx, top - fs * .1); x.stroke();
+    if (spec.lit && !thumb) { const fl = 1 + .15 * Math.sin(t * 22 + dx); const fy = top - fs * .1; const gg = x.createRadialGradient(G.x + dx, fy - fs * .08, 1, G.x + dx, fy - fs * .08, fs * .3); gg.addColorStop(0, 'rgba(255,230,140,.7)'); gg.addColorStop(1, 'rgba(255,200,80,0)'); x.fillStyle = gg; x.beginPath(); x.arc(G.x + dx, fy - fs * .08, fs * .3, 0, TAU); x.fill();
+      x.fillStyle = '#ffb02a'; x.beginPath(); x.ellipse(G.x + dx, fy - fs * .08 * fl, fs * .05, fs * .1 * fl, 0, 0, TAU); x.fill(); x.fillStyle = '#fff6c0'; x.beginPath(); x.ellipse(G.x + dx, fy - fs * .06, fs * .025, fs * .05, 0, 0, TAU); x.fill(); } } x.restore(); }
+const HB = [[392, .75], [392, .25], [440, 1], [392, 1], [523, 1], [494, 2], [392, .75], [392, .25], [440, 1], [392, 1], [587, 1], [523, 2], [392, .75], [392, .25], [784, 1], [659, 1], [523, 1], [494, 1], [440, 2], [698, .75], [698, .25], [659, 1], [523, 1], [587, 1], [523, 2.5]];
+function song() { A.stopMusic(); let t0 = .1; for (const [f, d] of HB) { A.tone(f, d * .4, 'triangle', .09, t0); A.tone(f / 2, d * .4, 'sine', .04, t0); t0 += d * .42; } return t0; }
+let hist = []; function snapH() { if (!sp) return; hist.push(JSON.stringify(sp)); if (hist.length > 50) hist.shift(); updUndoH(); }
+function updUndoH() { $('undoH').hidden = !(state === 'make' && (step === 0 || step === 2) && hist.length); }
+$('undoH').onclick = () => { if (!hist.length) return; const o = JSON.parse(hist.pop()); Object.keys(sp).forEach(k => delete sp[k]); Object.assign(sp, o); A.tone(400, .07, 'triangle', .06); renderPanel(); updUndoH(); };
+$('fileIn').onchange = () => { const f = $('fileIn').files && $('fileIn').files[0]; if (!f) return; const url = URL.createObjectURL(f); const im = new Image(); im.onload = () => { const S2 = 360, c = cnv(S2, S2), x = c.getContext('2d'); const m = Math.min(im.width, im.height); x.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, S2, S2); URL.revokeObjectURL(url);
+    snapH(); sp.photo = c.toDataURL('image/jpeg', .82); A.voice('wow', 1.3); hop = 1; renderPanel(); if (!S.photoTip) { S.photoTip = 1; S.save(); toast(T('🔒 התמונה נשארת רק בטלפון שלכם', '🔒 Your photo stays only on your phone'), 2600); } }; im.onerror = () => toast(T('לא הצלחנו לפתוח את התמונה', 'Could not open that photo')); im.src = url; };
+
 /* ================= STATE ================= */
 let ORD = null, pipeC = -1, lastPipe = null; let state = 'title', step = 0, sp = null, VW = 0, VH = 0, dpr = 1, panelH = 220, rTier = 0, wheel = null, bake = 0, baking = false, cutLine = null, cutT = -1, pours = [], candies = [], hop = 0;
 const cv = $('cv'), cx = cv.getContext('2d');
@@ -49,14 +70,15 @@ function drawCake(x, G, spec, t, opts = {}) { const fr = spec.frost; const layer
   const side = x.createLinearGradient(G.x - G.w / 2, 0, G.x + G.w / 2, 0); side.addColorStop(0, mixC(fr, '#000000', .1)); side.addColorStop(.35, mixC(fr, '#ffffff', .25)); side.addColorStop(1, mixC(fr, '#000000', .14));
   x.fillStyle = side; x.beginPath(); x.moveTo(G.x - G.w / 2, G.y - G.h); x.lineTo(G.x - G.w / 2, G.y); x.ellipse(G.x, G.y, G.w / 2, G.ry, 0, Math.PI, 0, true); x.lineTo(G.x + G.w / 2, G.y - G.h); x.closePath(); x.fill();
   for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI; x.fillStyle = mixC(fr, '#ffffff', .35); x.beginPath(); x.arc(G.x - Math.cos(a) * G.w * .49, G.y + Math.sin(a) * G.ry - 2, G.w * .028, 0, TAU); x.fill(); }
-  drips(x, G, mixC(fr, '#ffffff', .1), t);
+  drips(x, G, mixC(fr, '#ffffff', .1), t); drawName(x, G, spec);
   x.fillStyle = mixC(fr, '#ffffff', .3); x.beginPath(); x.ellipse(G.x, G.y - G.h, G.w / 2, G.ry, 0, 0, TAU); x.fill();
   const r = rng(spec.seed); if (spec.sprink !== 'none') for (let i = 0; i < 60; i++) { const a = r() * TAU, f = Math.sqrt(r()) * .92; const px = G.x + Math.cos(a) * G.w / 2 * f, py = G.y - G.h + Math.sin(a) * G.ry * f; x.save(); x.translate(px, py); x.rotate(r() * 3);
     if (spec.sprink === 'hearts') { x.fillStyle = '#ff4a8a'; x.font = `${G.w * .04}px serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('♥', 0, 0); } else { x.fillStyle = spec.sprink === 'gold' ? '#ffd23a' : spec.sprink === 'dots' ? pick(['#4ab0ff', '#ff6ab0', '#5ae08a']) : ['#ff4a5a', '#ffa040', '#ffe04a', '#5ae08a', '#4ab0ff', '#a86aff'][i % 6]; if (spec.sprink === 'dots' || spec.sprink === 'gold') { x.beginPath(); x.arc(0, 0, G.w * .009, 0, TAU); x.fill(); } else x.fillRect(-G.w * .016, -G.w * .005, G.w * .032, G.w * .01); } x.restore(); }
+  if (spec.photo) drawPhotoTop(x, G, spec);
   if (spec.pipe && spec.pipe.length) for (const [u, v, ci] of spec.pipe) { const px = G.x + u * G.w / 2, py = G.y - G.h + v * G.h, rr = G.w * .026; const c = PIPE[ci] || '#fff'; x.fillStyle = mixC(c, '#000000', .18); x.beginPath(); x.arc(px, py + rr * .25, rr, 0, TAU); x.fill(); x.fillStyle = c; x.beginPath(); x.arc(px, py, rr * .92, 0, TAU); x.fill(); x.fillStyle = 'rgba(255,255,255,.7)'; x.beginPath(); x.arc(px - rr * .3, py - rr * .35, rr * .3, 0, TAU); x.fill(); }
-  const tops = spec.tops || []; tops.forEach((e, i) => { const a = (i / Math.max(1, tops.length)) * TAU + .4, f = tops.length === 1 ? 0 : .58; const px = G.x + Math.cos(a) * G.w / 2 * f, py = G.y - G.h + Math.sin(a) * G.ry * f; x.font = `${G.w * .14}px serif`; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.fillText(e, px, py + G.w * .03);
+  const tops = spec.tops || []; tops.forEach((e, i) => { const a = (i / Math.max(1, tops.length)) * TAU + .4, f = spec.photo ? .84 : tops.length === 1 ? 0 : .58; const px = G.x + Math.cos(a) * G.w / 2 * f, py = G.y - G.h + Math.sin(a) * G.ry * f; x.font = `${G.w * .14}px serif`; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.fillText(e, px, py + G.w * .03);
     if (e === '🕯️' && !opts.thumb) { x.fillStyle = `rgba(255,220,120,${.3 + .2 * Math.sin(t * 9 + i)})`; x.beginPath(); x.arc(px, py - G.w * .12, G.w * .05, 0, TAU); x.fill(); } });
-  x.restore(); }
+  drawAge(x, G, spec, t, opts.thumb); x.restore(); }
 function drawInside(x, R, spec, t) { const layers = spec.layers.length ? spec.layers : ['van']; const tier = spec.tier; x.save(); x.beginPath(); x.rect(R.x, R.y, R.w, R.h); x.clip();
   if (tier === 3) { const rb = ['#ff4a5a', '#ffa040', '#ffe04a', '#5ae08a', '#4ab0ff', '#a86aff']; rb.forEach((c, i) => { x.fillStyle = c; x.fillRect(R.x, R.y + R.h - (i + 1) * R.h / 6, R.w, R.h / 6 + 1); }); }
   else { const lh = R.h / layers.length; layers.forEach((k, i) => { x.fillStyle = FL[k][1]; x.fillRect(R.x, R.y + R.h - (i + 1) * lh, R.w, lh + 1); if (i) { x.fillStyle = mixC(spec.frost || '#ffffff', '#ffffff', .4); x.fillRect(R.x, R.y + R.h - i * lh - 3, R.w, 6); } }); }
@@ -103,17 +125,20 @@ function landed() { const q = TIERS[rTier]; flash(.35); [0, 4, 7, 12, 16, 19].sl
   const el = $('tierB'); el.innerHTML = `<b style="--c:${q.c}">${q.g} ${q.n}${rTier >= 3 ? '!!' : '!'}</b><span>${T('מה מסתתר בפנים…?', 'What’s hiding inside…?')}</span>`; el.className = 'tierB on t' + rTier; setTimeout(() => { el.className = 'tierB'; step = 4; wheel = null; renderPanel(); }, 1700); }
 
 /* ================= PANEL ================= */
-const STEPT6 = T('🛎️ מה הלקוח אמר?', '🛎️ The verdict!');
+const STEPT6 = T('🛎️ מה הלקוח אמר?', '🛎️ The verdict!'), STEPT7 = T('🕯️ מאחלים משאלה…', '🕯️ Make a wish…'), STEPT8 = T('🎉 יום הולדת שמח!', '🎉 Happy birthday!');
 const STEPT = [T('🥣 שופכים שכבות', '🥣 Pour the layers'), T('🔥 אופים!', '🔥 Baking!'), T('🎨 מקשטים', '🎨 Decorate'), T('🎡 מה בפנים?!', '🎡 What’s inside?!'), T('🔪 חותכים!', '🔪 Cut it!'), T('🎂 העוגה שלכם!', '🎂 Your cake!')];
-function renderPanel() { $('stepT').textContent = step === 6 ? STEPT6 : STEPT[step]; let h = '';
+function renderPanel() { $('stepT').textContent = step === 6 ? STEPT6 : step === 7 ? STEPT7 : step === 8 ? STEPT8 : (step === 2 && sp.bday ? T('🎉 מקשטים עוגת יום הולדת', '🎉 Decorate the birthday cake') : STEPT[step]); let h = ''; updUndoH();
   if (step === 0) { h += `<div class="lbl">${T('בחרו טעמים לשכבות (עד 4) – כל לחיצה שופכת שכבה', 'Pick flavors for the layers (up to 4) – each tap pours one')}</div><div class="row2">${FLAVORS.map(([k, c, ic, n]) => `<button class="ch${isUnl(k) ? '' : ' lk'}" data-price="🪙${PRICE[k] || ''}" data-fl="${k}" style="background:${c};color:${k === 'choc' || k === 'red' ? '#fff' : '#7a2a2a'}">${isUnl(k) ? ic : '🔒'}<small>${n}</small></button>`).join('')}</div>`;
     h += `<div class="lbl">${sp.layers.length ? sp.layers.map(k => FL[k][2]).join(' ') : '…'}</div><div class="nav1">${sp.layers.length ? `<button class="btn" id="undoB" style="margin-inline-end:8px">↩️</button>` : ''}<button class="btn pri big${sp.layers.length >= 2 ? ' ready' : ''}" id="bakeB" ${sp.layers.length ? '' : 'disabled'}>🔥 ${T('לתנור!', 'Into the oven!')}</button></div>`; }
   else if (step === 1) h += `<div class="hint hb">${bake < 1 ? T('⏳ העוגה תופחת…', '⏳ The cake is rising…') : T('🔔 דינג! מוכן!', '🔔 Ding! Ready!')}</div><div class="nav1"><button class="btn pri big ready" id="outB" ${bake < 1 ? 'disabled' : ''}>🧤 ${T('להוציא מהתנור', 'Take it out')}</button></div>`;
   else if (step === 2) { h += `<div class="lbl">${T('ציפוי', 'Frosting')}</div><div class="row2">${FROST.map(c => `<button class="sw${sp.frost === c ? ' on' : ''}" data-fr="${c}" style="background:${c}"></button>`).join('')}<span class="sep"></span>${SPRINK.map(([k, ic]) => `<button class="ch${sp.sprink === k ? ' on' : ''}" data-spk="${k}">${ic}</button>`).join('')}</div>`;
     h += `<div class="lbl">${T('קישוטים למעלה (עד 5)', 'Toppings (up to 5)')}</div><div class="row2">${TOPS.map(e => `<button class="ch${sp.tops.includes(e) ? ' on' : ''}${isUnl(e) ? '' : ' lk'}" data-price="🪙${PRICE[e] || ''}" data-tp="${e}">${e}</button>`).join('')}</div>`;
-    h += `<div class="lbl">🖌️ ${T('קצפת – ציירו עם האצבע על העוגה!', 'Whipped cream – draw on the cake with your finger!')}</div><div class="row2"><button class="ch${pipeC < 0 ? ' on' : ''}" data-pp="-1">✋</button>${PIPE.map((c, i) => `<button class="sw${pipeC === i ? ' on' : ''}" data-pp="${i}" style="background:${c}"></button>`).join('')}${sp.pipe && sp.pipe.length ? `<button class="ch" id="pUndo">↩️</button>` : ''}</div>`;
-    h += ORD ? `<div class="nav1"><button class="btn pri big ready" id="serveB">🛎️ ${T('להגיש ל', 'Serve ')}${ORD.c[1]}!</button></div>` : `<div class="nav1"><button class="btn pri big ready" id="spinB">🎡 ${T('מה מסתתר בפנים?', 'What’s inside?')}</button></div>`; }
+    h += `<div class="lbl">🖌️ ${T('קצפת – ציירו עם האצבע על העוגה!', 'Whipped cream – draw on the cake with your finger!')}</div><div class="row2"><button class="ch${pipeC < 0 ? ' on' : ''}" data-pp="-1">✋</button>${PIPE.map((c, i) => `<button class="sw${pipeC === i ? ' on' : ''}" data-pp="${i}" style="background:${c}"></button>`).join('')}${sp.pipe && sp.pipe.length ? `<button class="ch" id="pUndo">↩️</button>` : ''}<span class="sep"></span><button class="ch" id="clrB">🧽<small>${T('ניקוי הקישוטים', 'Clear decorations')}</small></button></div>`;
+    if (sp.bday) h += `<div class="lbl">🎉 ${T('עוגת יום הולדת אישית', 'Personal birthday cake')}</div><div class="bd"><button class="ch" id="photoB">📷<small>${sp.photo ? T('החלפה', 'Change') : T('תמונה', 'Photo')}</small></button>${sp.photo ? `<button class="ch" id="photoX">🗑️</button>` : ''}<input id="bdName" maxlength="12" placeholder="${T('שם החוגג/ת', 'Birthday name')}" value="${(sp.bday.name || '').replace(/"/g, '')}"><span class="age"><button class="ch" id="ageM">−</button>${sp.bday.age}<button class="ch" id="ageP">+</button></span></div>`;
+    h += sp.bday ? `<div class="nav1"><button class="btn pri big ready" id="candleB">🕯️ ${T('להדליק את הנרות!', 'Light the candles!')}</button></div>` : ORD ? `<div class="nav1"><button class="btn pri big ready" id="serveB">🛎️ ${T('להגיש ל', 'Serve ')}${ORD.c[1]}!</button></div>` : `<div class="nav1"><button class="btn pri big ready" id="spinB">🎡 ${T('מה מסתתר בפנים?', 'What’s inside?')}</button></div>`; }
   else if (step === 6) h += ORD && ORD.res ? ORD.res : '';
+  else if (step === 7) h += `<div class="hint hb">${T('🎶 מאחלים משאלה… והקישו על הנרות כדי לכבות! 🌬️', '🎶 Make a wish… then tap the candles to blow them out! 🌬️')}</div>`;
+  else if (step === 8) h += `<div class="res"><div class="rbig">🎉🎂🎈</div><p>${T('יום הולדת שמח', 'Happy birthday')}${sp.bday && sp.bday.name ? ' ' + sp.bday.name : ''}!</p></div><div class="nav1"><button class="btn" id="menuB" style="margin-inline-end:8px">☰</button><button class="btn" id="picB" style="margin-inline-end:8px">📸</button><button class="btn pri big ready" id="bdAgain">🎉 ${T('עוד עוגת יום הולדת', 'Another birthday cake')}</button></div>`;
   else if (step === 3) h += `<div class="hint hb">${T('🥁 הגלגל מסתובב…', '🥁 The wheel is spinning…')}</div>`;
   else if (step === 4) h += `<div class="hint hb">${T('🔪 החליקו את האצבע לאורך העוגה כדי לחתוך!', '🔪 Swipe down across the cake to slice it!')}</div>`;
   else h += `<div class="hint">${T('🎉 הקישו על העוגה לחגוג שוב', '🎉 Tap the cake to celebrate again')}</div><div class="nav1"><button class="btn pri big ready" id="againB">🎂 ${T('עוד עוגה!', 'Bake another!')}</button></div>`;
@@ -121,10 +146,18 @@ function renderPanel() { $('stepT').textContent = step === 6 ? STEPT6 : STEPT[st
 $('opts').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; A.ac(); const d = b.dataset;
   if ((d.fl || d.tp) && !isUnl(d.fl || d.tp)) { const k = d.fl || d.tp, pr = PRICE[k]; if (S.coins >= pr) { S.coins -= pr; S.unl.push(k); S.save(); A.tone(880, .1, 'triangle', .07); A.tone(1320, .25, 'triangle', .07, .1); burst(VW / 2, VH * .4, 14, ['✨', '🪙', '🎉']); toast(T('נפתח! 🎉', 'Unlocked! 🎉'), 1200); updCoins(); } else toast(T(`צריך 🪙 ${pr} – הגישו עוגות ללקוחות במאפייה כדי להרוויח!`, `Need 🪙 ${pr} – serve customers in the bakery to earn!`), 2200); renderPanel(); return; }
   if (d.pp != null) { pipeC = +d.pp; A.tone(700, .06, 'triangle', .05); renderPanel(); return; }
-  if (b.id === 'pUndo') { sp.pipe.splice(Math.max(0, sp.pipe.length - 25)); }
+  if (b.id === 'photoB') { $('fileIn').value = ''; $('fileIn').click(); return; }
+  if (b.id === 'photoX') { snapH(); sp.photo = null; }
+  if (b.id === 'ageM' || b.id === 'ageP') { snapH(); sp.bday.age = clamp(sp.bday.age + (b.id === 'ageP' ? 1 : -1), 1, 120); S.lastAge = sp.bday.age; S.save(); A.tone(b.id === 'ageP' ? 900 : 600, .05, 'triangle', .05); }
+  if (b.id === 'clrB') { snapH(); sp.tops = []; sp.pipe = []; sp.photo = null; sp.sprink = 'none'; A.noise(.2, 'highpass', 3000, 1, .05); }
+  if (b.id === 'candleB') { step = 7; sp.lit = true; const d2 = song(); A.voice('yay', 1.2); setTimeout(() => { if (step === 7) toast(T('🌬️ עכשיו נושפים! הקישו על הנרות', '🌬️ Now blow! Tap the candles'), 2000); }, d2 * 1000); }
+  if (b.id === 'bdAgain') { saveCur(); startBday(); return; }
+  if (b.id === 'picB') { try { const a = document.createElement('a'); a.download = 'birthday-cake.png'; a.href = cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); toast(T('נשמר! 📸', 'Saved! 📸')); } catch (er) { } return; }
+  if (b.id === 'pUndo') { snapH(); sp.pipe.splice(Math.max(0, sp.pipe.length - 25)); }
   if (b.id === 'serveB') { serve(); return; }
   if (b.id === 'nextB') { startOrder(); return; }
   if (b.id === 'menuB') { showTitle(); return; }
+  if (d.fl || d.fr || d.spk || d.tp || b.id === 'undoB') snapH();
   if (d.fl) { if (sp.layers.length >= 4) { toast(T('מקסימום 4 שכבות 🎂', 'Max 4 layers 🎂'), 1200); return; } const G = cakeG(); pours.push({ x: G.x + (Math.random() - .5) * 30, y0: 60, y: 60, c: FL[d.fl][1], k: d.fl }); A.noise(.6, 'lowpass', 500, 2, .1, 0, 200); return; }
   if (b.id === 'undoB') { sp.layers.pop(); A.tone(300, .1, 'sine', .06); }
   if (b.id === 'bakeB') { step = 1; bake = 0; baking = true; A.tone(200, .3, 'square', .04); A.loopTone('oven', 'sawtooth', 70, .012); }
@@ -136,6 +169,8 @@ $('opts').addEventListener('click', e => { const b = e.target.closest('button');
   if (b.id === 'againB') { saveCur(); startMake(null); return; }
   renderPanel(); });
 
+$('opts').addEventListener('input', e => { if (e.target.id === 'bdName' && sp && sp.bday) { sp.bday.name = e.target.value.slice(0, 12); } });
+$('opts').addEventListener('focusin', e => { if (e.target.id === 'bdName') snapH(); });
 /* ================= FLOW ================= */
 function newSpec() { return { layers: [], frost: null, sprink: 'rain', tops: [], pipe: [], seed: Math.floor(Math.random() * 1e6), tier: 0 }; }
 function updCoins() { $('coinT').textContent = '🪙 ' + S.coins + '  ·  🛎️ ' + S.served; }
@@ -151,9 +186,10 @@ function serve() { const o = ORD; let ls = 0; for (let i = 0; i < o.layers.lengt
   const face = ['😢', '🙂', '😊', '😍'][stars]; const msg = [T('אוי... זאת לא העוגה שהזמנתי', 'Oh... that’s not my cake'), T('תודה, זה בסדר', 'Thanks, it’s okay'), T('יאמי! כמעט מושלם!', 'Yummy! Almost perfect!'), T('וואו! בדיוק מה שרציתי!!', 'WOW! Exactly what I wanted!!')][stars];
   o.res = `<div class="res"><div class="rbig">${o.c[0]}${face}</div><p>${o.c[1]}: ${msg}</p><div class="st">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div><p>🪙 +${coins}${tip ? ' · ' + T('טיפ על הקצפת! 🖌️', 'cream tip! 🖌️') : ''}</p></div><div class="nav1"><button class="btn" id="menuB" style="margin-inline-end:8px">☰</button><button class="btn pri big ready" id="nextB">🛎️ ${T('הלקוח הבא!', 'Next customer!')}</button></div>`;
   step = 6; $('order').hidden = true; $('stepT').textContent = T('🛎️ הלקוח טועם…', '🛎️ The customer tastes…'); renderPanel(); $('stepT').textContent = T('🛎️ מה הלקוח אמר?', '🛎️ The verdict!'); flash(.4); if (stars >= 2) celebrate(); [0, 4, 7, 12].slice(0, 1 + stars).forEach((k, j) => A.tone(523 * Math.pow(2, k / 12), .3, 'triangle', .08, .1 + j * .1)); A.voice(stars >= 2 ? 'yay' : stars ? 'hm' : 'aww', 1.3); }
-function startMake(spec, ord) { if (!ord) { ORD = null; $('order').hidden = true; } pipeC = -1; $('tierB').className = 'tierB'; fx.length = 0; wheel = null; cutLine = null; cutT = -1; pours = []; candies = []; A.loopOff('roll'); A.loopOff('oven');
+function startBday() { startMake(null); sp.bday = { name: '', age: S.lastAge || 6 }; sp.tops = ['🎈']; renderPanel(); toast(T('🎉 עוגת יום הולדת! שופכים שכבות, ואחר כך מוסיפים תמונה, שם וגיל', '🎉 Birthday cake! Pour the layers, then add a photo, name and age'), 3200); }
+function startMake(spec, ord) { hist = []; if (!ord) { ORD = null; $('order').hidden = true; } pipeC = -1; $('tierB').className = 'tierB'; fx.length = 0; wheel = null; cutLine = null; cutT = -1; pours = []; candies = []; A.loopOff('roll'); A.loopOff('oven');
   $('title').hidden = true; $('album').hidden = true; $('panel').hidden = false; if (!sp || !sp.pipe) {} $('hud').hidden = false; state = 'make';
-  if (spec) { sp = JSON.parse(JSON.stringify(spec)); step = 5; cutT = 1; rTier = sp.tier; }
+  if (spec) { sp = JSON.parse(JSON.stringify(spec)); step = sp.bday ? 8 : 5; cutT = 1; rTier = sp.tier; sp.lit = false; }
   else { sp = newSpec(); step = 0; if (!S.tut) { S.tut = 1; S.save(); setTimeout(() => toast(T('שופכים שכבות, אופים, מקשטים – ומגלים מה מסתתר בפנים! 🎂', 'Pour layers, bake, decorate – and discover what’s hiding inside! 🎂'), 4200), 500); } }
   renderPanel(); panelH = $('panel').offsetHeight || panelH;
   A.startMusic({ chords: [[60, 64, 67, 72], [65, 69, 72, 76], [67, 71, 74, 77], [60, 64, 67, 72]], bpm: 96, lead: true, vol: .35 }); }
@@ -162,10 +198,13 @@ function doCut() { if (cutT >= 0) return; cutT = 0; A.noise(.5, 'bandpass', 2400
     step = 5; renderPanel(); flash(.7); [0, 4, 7, 12, 16, 19, 24].slice(0, 3 + rTier).forEach((k, j) => A.tone(523 * Math.pow(2, k / 12), .3, 'triangle', .08, .2 + j * .1)); setTimeout(() => A.voice(rTier >= 3 ? 'wow' : 'yay', 1.3), 300);
     if (rTier === 4) { A.noise(1.2, 'highpass', 3000, 1, .1); for (let i = 0; i < 40; i++) setTimeout(() => candies.push({ x: VW / 2 + (Math.random() - .5) * 60, y: cakeG().y - cakeG().h * .5, vx: (Math.random() - .5) * 420, vy: -300 - Math.random() * 400, e: pick(['🍬', '🍭', '🍫', '⭐', '💎', '🍩']), r: Math.random() * 6, l: 3 }), i * 40); }
     celebrate(); const q = TIERS[rTier], el = $('tierB'); el.innerHTML = `<b style="--c:${q.c}">${q.g} ${q.n}</b><span>${FL[sp.layers[0]][3]} · ${q.fx}</span>${isNew ? `<i>${T('חדש באוסף!', 'NEW in your album!')}</i>` : ''}`; el.className = 'tierB on t' + rTier; setTimeout(() => el.className = 'tierB', 3400); }, 900); }
+function blowOut() { sp.lit = false; step = 8; const G = cakeG(); for (let i = 0; i < 8; i++) fx.push({ x: G.x + (Math.random() - .5) * 30, y: G.y - G.h - G.ry - G.w * .25, vx: (Math.random() - .5) * 60, vy: -120 - Math.random() * 80, l: 1.4, e: '💨', s: 26 });
+  A.noise(.6, 'bandpass', 900, 1, .18, 0, 300); buzz(30); setTimeout(() => { flash(.5); rTier = 3; celebrate(); A.voice('yay', 1.4); [523, 659, 784, 1047].forEach((f, i) => A.tone(f, .25, 'triangle', .08, i * .1)); }, 350);
+  sp.id = Date.now(); const keep = JSON.parse(JSON.stringify(sp)); S.cakes.unshift(keep); S.cakes = S.cakes.slice(0, 30); let n = JSON.stringify(S.cakes).length; while (n > 3e6 && S.cakes.length > 1) { S.cakes.pop(); n = JSON.stringify(S.cakes).length; } S.save(); renderPanel(); }
 function celebrate() { for (let i = 0; i < 16 + rTier * 6; i++) setTimeout(() => burst(VW / 2 + (Math.random() - .5) * VW * .7, VH * .35, 1, rTier >= 3 ? ['⭐', '✨', '💖', '🌟', '🎉'] : ['✨', '🎉', '💗']), i * 40); }
 function saveCur() { if (!sp || !sp.id) return; const i = S.cakes.findIndex(z => z.id === sp.id); if (i >= 0) S.cakes[i] = JSON.parse(JSON.stringify(sp)); S.save(); }
 function flash(v) { const f = $('flash'); f.style.transition = 'none'; f.style.opacity = v; requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity .7s'; f.style.opacity = 0; })); }
-function showTitle() { saveCur(); ORD = null; $('order').hidden = true; updCoins(); $('ordBtn').textContent = T('🛎️ המאפייה – הזמנות מלקוחות', '🛎️ Bakery – customer orders'); state = 'title'; A.stopMusic(); A.loopOff('roll'); A.loopOff('oven'); $('title').hidden = false; $('panel').hidden = true; $('hud').hidden = true; $('album').hidden = true; $('tierB').className = 'tierB';
+function showTitle() { saveCur(); ORD = null; $('order').hidden = true; updCoins(); $('ordBtn').textContent = T('🛎️ המאפייה – הזמנות מלקוחות', '🛎️ Bakery – customer orders'); $('bdayBtn').textContent = T('🎉 עוגת יום הולדת אישית', '🎉 Personal birthday cake'); state = 'title'; $('undoH').hidden = true; A.stopMusic(); A.loopOff('roll'); A.loopOff('oven'); $('title').hidden = false; $('panel').hidden = true; $('hud').hidden = true; $('album').hidden = true; $('tierB').className = 'tierB';
   $('shelf').innerHTML = S.cakes.length ? S.cakes.slice(0, 12).map((c, i) => `<button class="tc" data-i="${i}"><img src="${thumb(c)}" alt=""></button>`).join('') : `<p class="empty">${T('עוד אין עוגות – בואו נאפה את הראשונה! 🎂', 'No cakes yet – let’s bake the first! 🎂')}</p>`; $('shelfT').textContent = T('🍰 העוגות שלי', '🍰 My cakes');
   $('albumBtn').textContent = `📖 ${T('האוסף שלי', 'My album')} ${Object.keys(S.album).length}/${FLAVORS.length * TIERS.length}`;
   if (!$('demo').src) $('demo').src = thumb({ layers: ['straw', 'van', 'choc'], frost: '#ffd0e4', sprink: 'rain', tops: ['🍓', '🕯️', '🍒'], seed: 3, tier: 3 }, 240, 204); }
@@ -177,12 +216,13 @@ function thumb(spec, w = 200, h = w) { const c = cnv(w * 2, h * 2), x = c.getCon
   const R = { x: w * .62, y: h * .4, w: w * .3, h: h * .38 }; x.save(); x.shadowColor = 'rgba(0,0,0,.2)'; x.shadowBlur = 8; x.fillStyle = '#fff'; x.fillRect(R.x - 6, R.y - 10, R.w + 12, R.h + 16); x.restore(); drawInside(x, R, spec, 0); return c.toDataURL(); }
 $('shelf').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; A.ac(); startMake(S.cakes[+b.dataset.i]); };
 $('albumBtn').onclick = () => { A.ac(); openAlbum(); };
-$('newBtn').onclick = () => { A.ac(); startMake(null); }; $('ordBtn').onclick = () => { A.ac(); startOrder(); }; $('backBtn').onclick = () => showTitle();
+$('newBtn').onclick = () => { A.ac(); startMake(null); }; $('bdayBtn').onclick = () => { A.ac(); startBday(); }; $('ordBtn').onclick = () => { A.ac(); startOrder(); }; $('backBtn').onclick = () => { showTitle(); updUndoH(); };
 
 /* ================= INPUT ================= */
 const fx = []; function burst(x, y, n, em) { for (let i = 0; i < n; i++) fx.push({ x: x + (Math.random() - .5) * 40, y, vx: (Math.random() - .5) * 260, vy: -150 - Math.random() * 260, l: 1.1 + Math.random() * .8, e: pick(em), s: 18 + Math.random() * 18 }); }
 cv.addEventListener('pointerdown', e => { if (state === 'title') return; A.ac(); try { cv.setPointerCapture(e.pointerId); } catch (er) { } const x = e.clientX, y = e.clientY; const G = cakeG();
-  if (step === 2 && pipeC >= 0) { lastPipe = null; addPipe(x, y); return; }
+  if (step === 2 && pipeC >= 0) { snapH(); lastPipe = null; addPipe(x, y); return; }
+  if (step === 7 && Math.abs(x - G.x) < G.w * .8 && y > G.y - G.h * 3 && y < G.y + G.ry * 2) { blowOut(); return; }
   if (step === 4 && cutT < 0) { cutLine = { x0: x, y0: y, x, y }; A.tone(1800, .06, 'sine', .04); return; }
   if (step === 5 && Math.abs(x - G.x) < G.w * .8 && y > G.y - G.h * 2.2 && y < G.y + G.ry * 2) { hop = 1; celebrate(); A.voice('yay', 1.4); } });
 function addPipe(x, y) { const G = cakeG(); const u = (x - G.x) / (G.w / 2), v = (y - (G.y - G.h)) / G.h; const topV = (G.ry / G.h) * 1.05; if (Math.abs(u) > 1.03 || v < -topV || v > 1 + (G.ry / G.h) * Math.sqrt(Math.max(0, 1 - u * u))) return; if (v < topV) { const eu = u, ev = v / (G.ry / G.h); if (eu * eu + ev * ev > 1.08 && v < 0) return; }
@@ -192,7 +232,7 @@ const up = () => { if (cutLine) { const G = cakeG(); if (Math.abs(cutLine.y - cu
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 
 /* ================= LOOP ================= */
-$('backBtn').innerHTML = ICO.home('#a8303a'); $('homeT').innerHTML = ICO.home('#a8303a'); soundButton('sndBtn', S, A, '#a8303a'); hubButtons(['homeT'], A); $('newBtn').textContent = T('🎂 עוגה חופשית + גלגל הפתעות', '🎂 Free cake + surprise wheel');
+$('backBtn').innerHTML = ICO.home('#a8303a'); $('homeT').innerHTML = ICO.home('#a8303a'); soundButton('sndBtn', S, A, '#a8303a'); hubButtons(['homeT'], A); $('newBtn').textContent = T('🎂 עוגה חופשית', '🎂 Free cake');
 $('tSub').textContent = T('שופכים שכבות צבעוניות, אופים, מקשטים, מסובבים את הגלגל… וחותכים! מה מסתתר בפנים? לב? קשת? פיניאטה של ממתקים?!', 'Pour colorful layers, bake, decorate, spin the wheel… and slice! What’s inside? A heart? A rainbow? A candy piñata?!');
 addEventListener('resize', layout);
 let last = performance.now();
@@ -200,7 +240,7 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(1 / 30, 
   const G = cakeG(); hop = Math.max(0, hop - dt * 3); const hy = -Math.sin(hop * Math.PI) * 14; const Gh = { ...G, y: G.y + hy };
   if (step === 0) { for (const p of pours) { p.y += 900 * dt; const surf = G.y - sp.layers.length * G.h * .9 / 4 - 10; if (p.y >= surf) { p.done = 1; sp.layers.push(p.k); renderPanel(); A.noise(.25, 'lowpass', 400, 2, .1); A.tone(180, .25, 'sine', .07, 0, 110); buzz(15); } } pours = pours.filter(p => !p.done); drawPan(cx, G, t); }
   if (step === 1) { if (baking) { bake = Math.min(1, bake + dt / 4); if (bake >= 1) { baking = false; A.loopOff('oven'); A.tone(1568, .6, 'sine', .12); A.tone(2093, .8, 'sine', .08, .15); buzz([40, 40, 40]); renderPanel(); } } drawOven(t); }
-  if (step === 2 || step === 3 || step === 6) { drawStand(cx, G); drawCake(cx, Gh, sp, t); if (step === 3) { wheelTick(dt); drawWheel(t); } }
+  if (step === 2 || step === 3 || step === 6 || step === 7 || step === 8) { drawStand(cx, G); drawCake(cx, Gh, sp, t); if (step === 3) { wheelTick(dt); drawWheel(t); } }
   if (step === 4 && cutT < 0) { drawStand(cx, G); drawCake(cx, G, sp, t); const pulse = .5 + .5 * Math.sin(t * 5); cx.strokeStyle = `rgba(255,255,255,${.5 + .4 * pulse})`; cx.setLineDash([10, 10]); cx.lineWidth = 4; cx.beginPath(); cx.moveTo(G.x, G.y - G.h - G.ry - 30); cx.lineTo(G.x, G.y + G.ry + 10); cx.stroke(); cx.setLineDash([]);
     cx.font = '44px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('🔪', G.x + 34, G.y - G.h - G.ry - 30 + ((t * 70) % (G.h + G.ry + 60)));
     if (cutLine) { cx.strokeStyle = '#fff'; cx.lineWidth = 6; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(cutLine.x0, cutLine.y0); cx.lineTo(cutLine.x, cutLine.y); cx.stroke(); } }
@@ -211,4 +251,4 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(1 / 30, 
   for (let i = candies.length - 1; i >= 0; i--) { const c = candies[i]; c.vy += 900 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.r += dt * 4; c.l -= dt; const floor = VH - panelH - 20; if (c.y > floor) { c.y = floor; c.vy *= -.35; c.vx *= .7; } if (c.l <= 0) { candies.splice(i, 1); continue; } cx.save(); cx.globalAlpha = Math.min(1, c.l); cx.translate(c.x, c.y); cx.rotate(c.r); cx.font = '30px serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(c.e, 0, 0); cx.restore(); }
   for (let i = fx.length - 1; i >= 0; i--) { const f = fx[i]; f.vy += 600 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.l -= dt; if (f.l <= 0) { fx.splice(i, 1); continue; } cx.globalAlpha = Math.min(1, f.l * 1.5); cx.font = `${f.s}px serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(f.e, f.x, f.y); cx.globalAlpha = 1; } }
 layout(); showTitle(); $('loading').hidden = true; requestAnimationFrame(frame); window.__ckOK = true;
-window.__ck = { thumb, startMake, get step() { return step; }, set step(v) { step = v; renderPanel(); }, get sp() { return sp; }, force(k) { window.__forceTier = k; }, cut: doCut, spin() { step = 3; spinWheel(); renderPanel(); }, S };
+window.__ck = { thumb, startMake, startBday, blowOut, get step() { return step; }, set step(v) { step = v; renderPanel(); }, get sp() { return sp; }, force(k) { window.__forceTier = k; }, cut: doCut, spin() { step = 3; spinWheel(); renderPanel(); }, S };

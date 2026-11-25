@@ -269,6 +269,10 @@ async function showTitle() { state = 'title'; A.stopMusic(); A.allOff(); $('titl
 $('prs').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; A.ac(); A.tone(880, .08, 'triangle', .06); A.tone(1320, .1, 'triangle', .05, .07); open(+b.dataset.i); };
 $('alb').onclick = async e => { const b = e.target.closest('[data-id]'); if (!b) return; const alb = (await idb.get('album')) || []; const a = alb.find(q => q.id === +b.dataset.id); if (!a) return; $('pvImg').src = a.url; $('pvSheet').hidden = false; $('pvDel').onclick = async () => { await idb.set('album', alb.filter(q => q !== a)); $('pvSheet').hidden = true; showTitle(); }; };
 $('pvClose').onclick = () => $('pvSheet').hidden = true;
+let rstArm = 0; function resetAll(force) { if (!pr) return; const n = performance.now(); if (!force && n - rstArm > 2500) { rstArm = n; toast(T('🔄 לחצו שוב כדי למחוק הכול ולהתחיל מחדש', '🔄 Tap again to wipe everything and start over')); return; } rstArm = 0;
+  L = Object.assign({}, pr); M = newMakeup(); for (const t of TOOLS) if (t.lay) { const o = M.lay[t.lay]; o.col = sel[t.k].c; o.st = sel[t.k].st; if (o.D.kind === 'rev') styled(o); }
+  if (S.p[pr.id]) { delete S.p[pr.id].L; S.save(); } state = 'edit'; $('showBar').hidden = true; $('hud').hidden = false; $('panel').hidden = false; $('undoBtn').disabled = true; renderPanel(); layout(); dirty = true; A.noise(.35, 'highpass', 2500, 1, .08); A.tone(880, .12, 'triangle', .06); toast(T('✨ פנים נקיות – מתחילים מחדש!', '✨ A fresh face – start again!')); }
+$('resetBtn').onclick = () => { A.ac(); resetAll(); }; $('shNew').onclick = () => { A.ac(); resetAll(true); };
 $('galBtn').onclick = () => back(); $('undoBtn').onclick = () => undo(); $('doneBtn').onclick = () => { A.ac(); show(); }; $('magicBtn').onclick = () => { A.ac(); autoApply(tool); renderPanel(); };
 $('shSave').onclick = () => savePhoto(); $('shEdit').onclick = () => { state = 'edit'; $('showBar').hidden = true; $('hud').hidden = false; $('panel').hidden = false; layout(); A.startMusic(); dirty = true; }; $('shHome').onclick = () => back();
 
@@ -291,7 +295,7 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (no
 addEventListener('resize', () => { layout(); Object.assign(cam, target()); });
 
 /* ================= BOOT ================= */
-$('galBtn').innerHTML = ICO.grid('#c8407a'); $('undoBtn').innerHTML = ICO.undo('#c8407a'); $('homeT').innerHTML = ICO.home('#c8407a'); soundButton('sndBtn', S, A, '#c8407a'); hubButtons(['homeT'], A);
+$('galBtn').innerHTML = ICO.grid('#c8407a'); $('undoBtn').innerHTML = ICO.undo('#c8407a'); $('resetBtn').innerHTML = ICO.reset('#c8407a'); $('shNew').textContent = T('🔄 מתחילים מחדש', '🔄 Start over'); $('homeT').innerHTML = ICO.home('#c8407a'); soundButton('sndBtn', S, A, '#c8407a'); hubButtons(['homeT'], A);
 $('tSub').textContent = T('בחרו נסיכה, אפרו אותה לפרטי פרטים, סדרו לה תסרוקת, כתר ושמלה – ושלחו אותה לנשף המלכותי ✨', 'Pick a princess, do her makeup in every detail, style her hair, add a crown and gown – then send her to the royal ball ✨');
 $('albT').textContent = T('📸 האלבום המלכותי', '📸 Royal album'); $('shSave').textContent = T('📸 שמרו תמונה', '📸 Save photo'); $('shEdit').textContent = T('✏️ המשך', '✏️ Keep styling'); $('shHome').textContent = T('👸 נסיכות', '👸 Princesses'); $('pvDel').textContent = T('🗑️ מחיקה', '🗑️ Delete'); $('pvClose').textContent = T('סגירה', 'Close'); $('doneBtn').textContent = T('לנשף ✨', 'To the ball ✨'); $('magicBtn').textContent = '🪄';
 setTimeout(() => { layout(); showTitle(); $('loading').hidden = true; requestAnimationFrame(frame); window.__tgOK = true; }, 20);
