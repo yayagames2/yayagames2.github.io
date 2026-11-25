@@ -42,6 +42,17 @@ body{color:#fff;background:radial-gradient(circle at 50% 100%,#3a1a5a,#120a22 70
 @keyframes up{to{transform:translate(-50%,-50px);opacity:0}}
 .combo{position:fixed;z-index:6;top:38%;inset-inline-start:16px;font-weight:900;font-size:26px;color:#fff;text-shadow:0 3px 0 #e8302a,0 0 14px #ff5a3a;pointer-events:none;direction:ltr}
 .card{background:#fff}
+.btns{width:232px}#bDodge small{display:block;font-size:9px;line-height:1;margin-top:-2px}#bDodge{display:flex;flex-direction:column;align-items:center;justify-content:center;left:0;bottom:78px;width:60px;height:60px;background:radial-gradient(circle at 35% 30%,#8affd0,#1aa88a);font-size:24px}
+.wave{position:fixed;z-index:5;top:max(66px,calc(env(safe-area-inset-top) + 64px));left:50%;transform:translateX(-50%);font-weight:900;font-size:16px;background:rgba(20,12,40,.7);border-radius:999px;padding:4px 14px;border:1px solid rgba(255,210,58,.5);color:#ffd23a;pointer-events:none}
+#lgrid .lb{aspect-ratio:auto;height:60px;min-height:0}.lb.surv{grid-column:1/-1;background:linear-gradient(180deg,#5a2ad8,#2a0a6a);color:#fff;height:46px!important}
+.chip.coin{pointer-events:none;font-weight:900}
+@media (orientation:landscape){.btns{transform:scale(.8);transform-origin:100% 100%}.stick{transform:scale(.8);transform-origin:0 100%}.btns button{opacity:.86}}
+@media (orientation:landscape) and (max-height:500px){.logo{font-size:min(9vh,44px)!important;margin-top:1vh!important}#tSub{display:none}.pick{margin-top:6px;gap:8px}.pk{padding:6px 8px}#lgrid{grid-template-columns:repeat(6,1fr)!important;width:min(620px,96vw)}#lgrid .lb{height:46px}.lb.surv{height:38px!important}}
+.shop{max-height:86vh;overflow-y:auto;width:min(460px,94vw);color:#1a1030}.shop .sh{font-weight:900;margin:10px 0 6px;text-align:start}
+.up{display:flex;align-items:center;gap:10px;background:#f3f0fb;border-radius:14px;padding:8px 10px;margin-bottom:6px;text-align:start}.up .ic{font-size:26px}.up .tx{flex:1;display:flex;flex-direction:column}.up .tx small{font-size:11.5px;opacity:.75}.up .tx i{font-style:normal;color:#e8302a;letter-spacing:2px}.up .btn{min-width:86px;height:40px;font-size:14px}
+.fits{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.fit{border-radius:14px;background:#f3f0fb;border:3px solid transparent;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:800;font-size:11.5px;color:#1a1030}.fit i{width:34px;height:52px;border-radius:12px;display:block}.fit.on{border-color:#ffb21f;background:#fff4dc}.fit small{font-size:10.5px;opacity:.8}
+.lets{position:fixed;z-index:5;top:max(66px,calc(env(safe-area-inset-top) + 64px));inset-inline-end:12px;display:flex;gap:3px;direction:ltr;pointer-events:none}.lets i{font-style:normal;font-weight:900;font-size:15px;width:24px;height:26px;display:grid;place-items:center;border-radius:7px;background:rgba(20,12,40,.6);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.15)}.lets i.on{background:linear-gradient(180deg,#ffd23a,#ff8a1a);color:#5a1a00;border-color:#fff;box-shadow:0 0 10px rgba(255,190,40,.7)}
+.ech{list-style:none;padding:0;margin:4px 0 10px;text-align:start;font-weight:800;font-size:13.5px;color:#1a1030;display:flex;flex-direction:column;gap:4px}.ech li{background:#f3f0fb;border-radius:10px;padding:5px 9px;opacity:.7}.ech li.ok{background:#e4ffe8;opacity:1}.ech li.old{opacity:.85}.ech li.gain{background:#fff4dc;opacity:1;text-align:center}
 </style>
 </head>
 <body>
@@ -57,17 +68,20 @@ body{color:#fff;background:radial-gradient(circle at 50% 100%,#3a1a5a,#120a22 70
 <div class="go" id="goUI" hidden>GO ▶</div>
 <div class="combo" id="comboUI"></div>
 <div class="stick" id="stick" hidden><i id="knob"></i></div>
-<div class="btns" id="btns" hidden><button id="bJmp">⤴</button><button id="bKick">🦶</button><button id="bAtk">👊</button><button id="bSp">⚡</button></div>
+<div class="btns" id="btns" hidden><button id="bJmp">⤴</button><button id="bDodge">💨</button><button id="bKick">🦶</button><button id="bAtk">👊</button><button id="bSp">⚡</button></div>
+<div class="wave" id="waveUI" hidden></div>
+<div class="lets" id="letUI" hidden></div>
 <div id="toast"></div>
 <section class="scr" id="title" hidden>
   <button class="rb homeT" id="homeT" hidden></button>
   <h1 class="logo" style="margin-top:4vh"><span class="a">RUMBLE</span><span class="b">ALLEY</span></h1>
   <p class="sub" id="tSub"></p>
   <div class="pick" id="pick"></div>
-  <div class="lgrid" id="lgrid" style="grid-template-columns:repeat(4,1fr)"></div>
-  <div class="chips"><button class="chip" id="qBtn"></button></div>
+  <div class="lgrid" id="lgrid" style="grid-template-columns:repeat(3,1fr)"></div>
+  <div class="chips"><span class="chip coin">🪙 <b id="tCoins">0</b></span><button class="chip" id="shopBtn"></button><button class="chip" id="qBtn"></button></div>
 </section>
-<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="eP"></p><div class="row"><button class="btn" id="eMap"></button><button class="btn" id="eAgain"></button><button class="btn pri" id="eNext"></button></div></div></div>
+<div class="sheet" id="shopSheet" hidden><div class="card shop"><h3><span id="shopT"></span> · 🪙 <span id="shopCoins"></span></h3><p class="sh" id="upT"></p><div id="upList"></div><p class="sh" id="fitT"></p><div class="fits" id="fitList"></div><div class="row"><button class="btn pri" id="shopClose"></button></div></div></div>
+<div class="sheet" id="endSheet" hidden><div class="card"><h3 id="eT"></h3><div class="stars" id="eStars"><i>⭐</i><i>⭐</i><i>⭐</i></div><p id="eP"></p><ul class="ech" id="eCh" hidden></ul><div class="row"><button class="btn" id="eMap"></button><button class="btn" id="eAgain"></button><button class="btn pri" id="eNext"></button></div></div></div>
 <div class="sheet" id="pauseSheet" hidden><div class="card"><h3 id="pT"></h3><div class="row"><button class="btn" id="pMap"></button><button class="btn pri" id="pGo"></button></div></div></div>
 <div id="loading"><div><div class="sp"></div>…</div></div>
 <script type="importmap">{"imports":{"three":"./lib/three.module.min.js","three/addons/":"./lib/addons/"}}</script>
