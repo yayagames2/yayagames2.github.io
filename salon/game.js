@@ -348,7 +348,7 @@ function buildChar(ch) {
   // brows
   G.brows = [];
   for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.CapsuleGeometry(ch.thickBrow ? .022 : .015, .09, 4, 10), std(C(ch.hair).multiplyScalar(.8).getStyle(), { roughness: .8 }));
-    const p = onHead(s * .33, .3, R * 1.0); b.position.copy(p); b.quaternion.copy(qFromN(p)); b.rotateZ(Math.PI / 2 - s * .12); G.head.add(b); G.brows.push({ m: b, base: p.clone(), s }); }
+    const p = onHead(s * .33, .3, R * 1.0); b.position.copy(p); b.quaternion.copy(qFromN(p)); b.rotateZ(Math.PI / 2 - s * .12); G.head.add(b); G.brows.push({ m: b, base: p.clone(), s, q0: b.quaternion.clone() }); }
   // mouth
   const mp = onHead(0, -.36, R * .995); const mg = new THREE.Group(); mg.position.copy(mp); mg.quaternion.copy(qFromN(mp)); G.head.add(mg);
   const mDark = std('#6b1a33', { roughness: .4 });
@@ -356,9 +356,11 @@ function buildChar(ch) {
   const open = new THREE.Group(); const om = new THREE.Mesh(new THREE.SphereGeometry(.07, 24, 16), mDark); om.scale.set(1, .75, .3); open.add(om);
   const tongue = new THREE.Mesh(new THREE.SphereGeometry(.04, 16, 12), std('#ff7c94')); tongue.scale.set(1, .6, .3); tongue.position.set(0, -.025, .01); open.add(tongue);
   const teeth = new THREE.Mesh(new THREE.BoxGeometry(.08, .018, .01), std('#ffffff')); teeth.position.set(0, .035, .018); open.add(teeth);
-  mg.add(open); open.visible = false; G.mouth = { smile, open, g: mg };
+  mg.add(open); open.visible = false;
+  const frown = new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(V3(-.075, -.03, 0), V3(0, .045, 0), V3(.075, -.03, 0)), 20, .014, 8), mDark); frown.visible = false; mg.add(frown);
+  G.mouth = { smile, open, frown, g: mg };
   // cheeks + freckles
-  for (const s of [-1, 1]) { const p = onHead(s * .55, -.15, R * 1.004); const c = new THREE.Mesh(new THREE.CircleGeometry(.07, 24), new THREE.MeshBasicMaterial({ color: C('#ff6f91'), transparent: true, opacity: .32, depthWrite: false })); c.position.copy(p); c.quaternion.copy(qFromN(p)); G.head.add(c); }
+  for (const s of [-1, 1]) { const p = onHead(s * .55, -.15, R * 1.004); const c = new THREE.Mesh(new THREE.CircleGeometry(.07, 24), new THREE.MeshBasicMaterial({ color: C('#ff6f91'), transparent: true, opacity: .32, depthWrite: false })); c.position.copy(p); c.quaternion.copy(qFromN(p)); G.head.add(c); (G.cheeks = G.cheeks || []).push(c); }
   if (ch.freckles) { for (let i = 0; i < 14; i++) { const s = i % 2 ? 1 : -1; const p = onHead(s * rnd(.14, .36), rnd(-.2, -.06), R * 1.003); const f = new THREE.Mesh(new THREE.CircleGeometry(.008, 8), new THREE.MeshBasicMaterial({ color: C('#a0603a') })); f.position.copy(p); f.quaternion.copy(qFromN(p)); G.head.add(f); } }
   // body: neck, cape, legs
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(.12, .13, .3, 20), skinPlain); neck.position.y = 1.3; G.body.add(neck);
@@ -476,7 +478,7 @@ const LOOPS = {
 };
 function voice(kind) {
   const a = ac(); if (!a || !CUR) return; const p = CUR.ch.voice; const t = a.currentTime;
-  const seq = { happy: [[1, .12], [1.25, .12], [1.5, .22]], wow: [[1.1, .1], [1.6, .32]], giggle: [[1.4, .07], [1.2, .07], [1.45, .07], [1.25, .07], [1.5, .1]], ouch: [[1.3, .08], [.9, .25]], hmm: [[1, .14], [.92, .22]] }[kind] || [[1, .2]];
+  const seq = { happy: [[1, .12], [1.25, .12], [1.5, .22]], wow: [[1.1, .1], [1.6, .32]], giggle: [[1.4, .07], [1.2, .07], [1.45, .07], [1.25, .07], [1.5, .1]], ouch: [[1.3, .08], [.9, .25]], hmm: [[1, .14], [.92, .22]], sad: [[1, .18], [.85, .2], [.72, .34]], scared: [[1.5, .07], [1.6, .07], [1.95, .3]], love: [[1.2, .1], [1.45, .1], [1.8, .28]] }[kind] || [[1, .2]];
   let tt = t;
   for (const [m, d] of seq) { const o = a.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(220 * p * m, tt); o.frequency.linearRampToValueAtTime(220 * p * m * 1.08, tt + d);
     const f1 = a.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 800 * Math.sqrt(p); f1.Q.value = 3; const f2 = a.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1900 * Math.sqrt(p); f2.Q.value = 4;
@@ -547,7 +549,7 @@ function renderTools() {
 }
 $('tools').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; ac(); sfx.click(); tool = b.dataset.t; renderTools(); const t = TOOLS.find(x => x.id === tool); if (t.hint && !SAVE.seen[tool]) { toast(t.hint); SAVE.seen[tool] = 1; store(); } };
 $('tray').onclick = e => { const s = e.target.closest('[data-c]'); if (s) { paint = s.dataset.c; sfx.click(); renderTools(); return; }
-  const a = e.target.closest('[data-a]'); if (a && CUR) { const m = CUR.acc[a.dataset.a]; m.visible = !m.visible; if (m.visible) placeAcc(m); sfx.pop(); if (m.visible) { react('happy', 1.6); voice('happy'); for (let i = 0; i < 14; i++) emit(m.getWorldPosition(V3()), V3(rnd(-1, 1), rnd(0, 1.5), rnd(-1, 1)).multiplyScalar(.8), [3, 2.6, 1.2], .05, .7, 0, .92); } renderTools(); } };
+  const a = e.target.closest('[data-a]'); if (a && CUR) { const m = CUR.acc[a.dataset.a]; m.visible = !m.visible; if (m.visible) placeAcc(m); sfx.pop(); if (m.visible) { const P = pers(), e2 = P && P.acc[a.dataset.a]; if (e2) say(e2[1], e2[0], 2.2, e2[0] === 'hmm' || e2[0] === 'wow' ? 'hmm' : 'happy'); else { react('happy', 1.6); voice('happy'); } wantDone('acc', a.dataset.a); for (let i = 0; i < 14; i++) emit(m.getWorldPosition(V3()), V3(rnd(-1, 1), rnd(0, 1.5), rnd(-1, 1)).multiplyScalar(.8), [3, 2.6, 1.2], .05, .7, 0, .92); } renderTools(); } };
 function placeAcc(m) { const n = m.userData.n; if (!n || !CUR) return; const H = CUR.hair; let mx = 0;
   for (let s = 0; s < H.S; s++) { if (H.kind[s] !== 1) continue; const d = H.nrm[s * 3] * n.x + H.nrm[s * 3 + 1] * n.y + H.nrm[s * 3 + 2] * n.z; if (d > .9) mx = Math.max(mx, H.L[s]); }
   const cu = CUR.hair.curl.reduce((x, y) => x + y, 0) / CUR.hair.S; const off = (mx > .02 ? .03 + Math.min(mx, .3) * (.2 + cu * .9) : .006) + (m.userData.base ?? .03); m.position.copy(n).multiplyScalar(R + off); }
@@ -568,17 +570,77 @@ cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); 
 cv.addEventListener('pointerenter', () => { if (!isTouch && tool !== 'acc') $('cur').classList.add('on'); });
 cv.addEventListener('wheel', e => { e.preventDefault(); zoom = clamp(zoom * (1 + Math.sign(e.deltaY) * .08), .55, 1.35); }, { passive: false });
 let rotT = 0, rotV = 0;
-const rot = d => { ac(); rotT += d * Math.PI / 4; sfx.swish(); };
+const rot = d => { ac(); rotT += d * Math.PI / 4; sfx.swish(); const n = performance.now(); rotHist = rotHist.filter(x => n - x < 2600); rotHist.push(n); if (rotHist.length >= 5 && CUR && state === 'play') { rotHist = []; const P = pers(); if (P) say(P.dizzy[2], P.dizzy[0], 2.4, P.dizzy[1]); } };
 $('rotL').onclick = () => rot(-1); $('rotR').onclick = () => rot(1);
 addEventListener('keydown', e => { if (e.key === 'ArrowLeft') rot(-1); if (e.key === 'ArrowRight') rot(1); const k = parseInt(e.key); if (k >= 1 && k <= 9) { tool = TOOLS[k - 1].id; renderTools(); } if (e.key === '0') { tool = 'straight'; renderTools(); } });
 
+/* ================= personality: likes, dislikes, fears + speech bubbles ================= */
+// [mood, voice, line] per tool. Lines are short so kids can read them in a second.
+const PERS = {
+  mila: {
+    hi: T('היי! 💇‍♀️ מה עושים לי היום?', 'Hi! 💇‍♀️ What are we doing today?'),
+    tools: { cut: ['hmm', 'hmm', T('✂️ רק את הקצוות, טוב?', '✂️ Just the tips, okay?')], clip: ['scared', 'scared', T('😱 לא את המכונה!', '😱 Not the clippers!')], comb: ['happy', 'happy', T('☺️ נעים…', '☺️ Ahh, nice…')],
+      grow: ['love', 'love', T('🤩 עוד יותר ארוך!', '🤩 Even longer!')], shampoo: ['laugh', 'giggle', T('😂 מדגדג!', '😂 That tickles!')], shower: ['squint', 'ouch', T('🥶 קר! קר!', '🥶 Cold! Cold!')],
+      dryer: ['happy', 'happy', T('😊 חם ונעים!', '😊 Warm and cozy!')], curl: ['love', 'love', T('🥰 תלתלים!', '🥰 Curls!')], straight: ['happy', 'happy', T('✨ חלק ומבריק', '✨ Smooth and shiny')], color: ['happy', 'happy', null] },
+    cLove: ['#ff5fb0', '#b26bff', 'rainbow', '#ff3d6e', '#fff1b8'], cLoveL: T('💖 הצבע האהוב עליי!', '💖 My favorite color!'), cHate: ['#2b1d16', '#57d65b'], cHateL: T('🤨 הממ… לא בטוחה', '🤨 Hmm… not sure'),
+    cut1: ['wow', 'wow', T('😮 וואו, זה מתקצר!', '😮 Whoa, it is getting short!')], cut2: ['sad', 'sad', T('😢 השיער הארוך שלי…', '😢 My long hair…')],
+    acc: { bow: ['love', T('🎀 איזה מתוק!', '🎀 So cute!')], crown: ['love', T('👑 אני נסיכה!', '👑 I am a princess!')], flower: ['love', T('🌼 איזה יפה!', '🌼 So pretty!')], glasses: ['proud', T('😎 סטייל!', '😎 So stylish!')], earrings: ['love', T('💫 נוצץ!', '💫 Sparkly!')] },
+    proud: T('😍 אני נראית מדהים!', '😍 I look amazing!'), dizzy: ['dizzy', 'wow', T('🌀 מסתובב לי הראש!', '🌀 I am so dizzy!')], thanks: T('🥰 תודה! בדיוק מה שרציתי', '🥰 Thank you! Just what I wanted'),
+    wants: [{ tool: 'color', paint: '#ff5fb0', line: T('💖 אפשר צבע ורוד?', '💖 Can I have pink hair?') }, { tool: 'curl', line: T('🥰 אפשר תלתלים?', '🥰 Can I have curls?') }, { acc: 'crown', line: T('👑 אני רוצה כתר!', '👑 I want a crown!') }, { tool: 'dryer', line: T('💨 תעשו לי פן?', '💨 A blow-dry, please?') }] },
+  rafi: {
+    hi: T('שלום! 😄 רק בלי ורוד, טוב?', 'Hello! 😄 Just no pink, okay?'),
+    tools: { cut: ['happy', 'happy', T('✂️ קצר ומסודר, בבקשה', '✂️ Short and neat, please')], clip: ['proud', 'happy', T('💪 יאללה, מכונה!', '💪 Clippers, let us go!')], comb: ['happy', 'happy', T('😌 ככה אני אוהב', '😌 Just how I like it')],
+      grow: ['wow', 'wow', T('🧔 זקן של מלך!', '🧔 A king-size beard!')], shampoo: ['laugh', 'giggle', T('😂 חחח, מדגדג!', '😂 Haha, it tickles!')], shower: ['ouch', 'ouch', T('🥶 אוי, קר!', '🥶 Oof, cold!')],
+      dryer: ['happy', 'happy', T('😄 חם!', '😄 Toasty!')], curl: ['hmm', 'hmm', T('🤔 תלתלים? מעניין…', '🤔 Curls? Interesting…')], straight: ['smile', 'hmm', null], color: ['happy', 'happy', null] },
+    cLove: ['#2b1d16', '#7a3c1a', '#3f8cff', '#f2c46a'], cLoveL: T('👍 קלאסי!', '👍 Classic!'), cHate: ['#ff5fb0', '#ff3d6e', 'rainbow', '#b26bff'], cHateL: T('😳 ורוד?! …טוב, למה לא', '😳 Pink?! …okay, why not'),
+    cut1: ['proud', 'happy', T('😎 מרענן!', '😎 So fresh!')], cut2: ['wow', 'wow', T('😮 קרחת? אמיץ!', '😮 Bald? Brave!')],
+    acc: { bow: ['wow', T('😳 פפיון?!', '😳 A bow?!')], crown: ['proud', T('👑 המלך הגיע!', '👑 The king is here!')], flower: ['laugh', T('😂 חחח, פרח!', '😂 Haha, a flower!')], glasses: ['proud', T('😎 סטייל!', '😎 So cool!')], earrings: ['hmm', T('🤔 עגילים? נו טוב', '🤔 Earrings? Oh well')] },
+    proud: T('😎 נראה מעולה!', '😎 Looking sharp!'), dizzy: ['dizzy', 'wow', T('🌀 וואו, מסתובב לי!', '🌀 Whoa, the room is spinning!')], thanks: T('😄 תודה, אלופים!', '😄 Thanks, champs!'),
+    wants: [{ tool: 'grow', line: T('🧔 תגדלו לי זקן?', '🧔 Grow my beard?') }, { tool: 'clip', line: T('✂️ אפשר תספורת קצרה?', '✂️ A short buzz cut, please?') }, { acc: 'glasses', line: T('😎 יש משקפי שמש?', '😎 Got any sunglasses?') }, { tool: 'comb', line: T('🪮 תסרקו אותי יפה?', '🪮 Comb me nicely?') }] },
+  pom: {
+    hi: T('גררר! 👾 תעשו אותי יפה!', 'Grrr! 👾 Make me pretty!'),
+    tools: { cut: ['laugh', 'giggle', T('😝 גזרו! גזרו!', '😝 Snip! Snip!')], clip: ['scared', 'scared', T('😱 קרחת?! לאאא!', '😱 Bald?! Nooo!')], comb: ['hmm', 'hmm', T('🤪 אני אוהב כשזה פרוע…', '🤪 I like it messy…')],
+      grow: ['love', 'love', T('🤩 עוד פרווה!', '🤩 More fluff!')], shampoo: ['love', 'giggle', T('🫧 בועות!!', '🫧 Bubbles!!')], shower: ['scared', 'scared', T('😱 מים?! מפלצות שונאות מים!', '😱 Water?! Monsters hate water!')],
+      dryer: ['wow', 'wow', T('🌪️ ווווש! איזה פרוותי!', '🌪️ Whoosh! So fluffy!')], curl: ['love', 'love', T('🥰 עוד תלתלים!', '🥰 More curls!')], straight: ['sad', 'sad', T('😕 איפה התלתלים שלי?', '😕 Where did my curls go?')], color: ['happy', 'happy', T('🎨 יאמי, צבע!', '🎨 Yummy, paint!')] },
+    cLove: ['rainbow', '#57d65b', '#2fd3c0', '#b26bff', '#ff5fb0'], cLoveL: T('🌈 עוד צבעים!', '🌈 More colors!'), cHate: ['#2b1d16', '#7a3c1a', '#ffffff'], cHateL: T('😴 משעמם…', '😴 Boring…'),
+    cut1: ['wow', 'wow', T('🙀 קריר לי בראש!', '🙀 My head feels breezy!')], cut2: ['sad', 'sad', T('🥺 הפרווה שלי…', '🥺 My fluff…')],
+    acc: { crown: ['proud', T('👑 מלך המפלצות!', '👑 King of the monsters!')], bow: ['laugh', T('😂 חחח!', '😂 Hahaha!')], flower: ['love', T('🌼 יאמי… אפשר לאכול?', '🌼 Yum… can I eat it?')], glasses: ['proud', T('😎 מפלצת מגניבה!', '😎 Cool monster!')], earrings: ['laugh', T('💫 נוצץ!', '💫 Shiny!')] },
+    proud: T('🤩 אני המפלצת הכי יפה!', '🤩 I am the prettiest monster!'), dizzy: ['laugh', 'giggle', T('🎢 יאאא! עוד פעם!', '🎢 Wheee! Again!')], thanks: T('🤗 תודה! אני אוהב אתכם!', '🤗 Thank you! I love you!'),
+    wants: [{ tool: 'shampoo', line: T('🫧 אפשר בועות?', '🫧 Bubbles, please?') }, { tool: 'color', paint: 'rainbow', line: T('🌈 אני רוצה שיער קשת!', '🌈 I want rainbow hair!') }, { tool: 'curl', line: T('🌀 עוד תלתלים?', '🌀 More curls?') }, { acc: 'crown', line: T('👑 אפשר כתר?', '👑 Can I have a crown?') }] },
+};
+const MOODFX = { love: ['💖', '💕', '✨'], scared: ['💦'], sad: ['💧'], dizzy: ['🌀', '⭐', '💫'], proud: ['✨', '⭐'], wow: ['❗'], laugh: ['🎵'], squint: ['💦'] };
+const pers = () => CUR && PERS[CUR.ch.id];
+let bubT = 0, bubOn = false, bubCd = 0;
+function headScreen(y) { const w = headG.localToWorld(V3(0, y, 0)).project(camera); return [(w.x * .5 + .5) * innerWidth, (1 - (w.y * .5 + .5)) * innerHeight]; }
+function placeBub() { if (!bubOn) return; const b = $('bub'); const [x, y] = headScreen(R * 1.75); const w = b.offsetWidth, h = b.offsetHeight; b.style.left = clamp(x - w / 2, 8, innerWidth - w - 8) + 'px'; b.style.top = clamp(y - h, 70, innerHeight - h - 160) + 'px'; }
+function say(line, mood, dur = 2.4, vk) { if (!CUR || !line) { if (mood) react(mood, dur); return; } $('bubT').textContent = line; const b = $('bub'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); bubOn = true; bubT = dur; bubCd = 1.2; placeBub();
+  if (mood) { react(mood, dur); emo(mood); } if (vk) voice(vk); }
+function emo(mood, n = 4) { const L2 = MOODFX[mood]; if (!L2 || !CUR) return; const [x, y] = headScreen(R * .6); const box = $('emofx');
+  for (let i = 0; i < n; i++) { const e = document.createElement('span'); e.textContent = L2[i % L2.length]; const a = (i / n - .5) * 2.2 + rnd(-.25, .25); e.style.left = x + Math.sin(a) * 110 + 'px'; e.style.top = y - Math.cos(a) * 70 + 'px'; e.style.animationDelay = (i * .09) + 's'; e.style.fontSize = rnd(22, 34) + 'px'; box.appendChild(e); setTimeout(() => e.remove(), 1700); } }
+function sumL() { const H = CUR.hair; let s = 0; for (let i = 0; i < H.S; i++) s += H.L[i]; return s; }
+function personaStart() { const P = pers(); if (!P) return false; let e = P.tools[tool]; if (!e) return false;
+  if (tool === 'color') { if (P.cLove.includes(paint)) e = ['love', 'love', P.cLoveL]; else if (P.cHate.includes(paint)) e = ['hmm', 'hmm', P.cHateL]; }
+  CUR.seenT = CUR.seenT || {}; const key = tool + (tool === 'color' ? paint : ''); const first = !CUR.seenT[key]; CUR.seenT[key] = 1;
+  if (e[2] && (first || bubCd <= 0 && Math.random() < .3)) say(e[2], e[0], 99, e[1]); else { react(e[0], 99); emo(e[0], 2); if (Math.random() < .5) voice(e[1]); }
+  return true; }
+function wantDone(kind, v) { const w = CUR && CUR.want; if (!w) return; const ok = kind === 'acc' ? w.acc === v : w.tool === v && (!w.paint || w.paint === paint); if (!ok) return; CUR.want = null; CUR.idle = -4;
+  setTimeout(() => { const P = pers(); if (P) { say(P.thanks, 'love', 2.6, 'love'); emo('love', 7); sfx.sparkle(); } }, 350); }
+let rotHist = [];
+function personaTick(dt) { if (!CUR || state !== 'play') return; bubCd -= dt; if (bubOn) { bubT -= dt; if (bubT <= 0 && !(ptr.down && CUR.face.until > 50)) { $('bub').classList.remove('on'); bubOn = false; } else placeBub(); }
+  const P = pers(); if (!P) return;
+  if (ptr.down && (tool === 'cut' || tool === 'clip')) { CUR.cutChk = (CUR.cutChk || 0) - dt; if (CUR.cutChk <= 0) { CUR.cutChk = .35; if (!CUR.L0) CUR.L0 = sumL(); const r = sumL() / CUR.L0; const st = CUR.cutSt || 0;
+      if (st < 2 && r < .38) { CUR.cutSt = 2; say(P.cut2[2], P.cut2[0], 99, P.cut2[1]); } else if (st < 1 && r < .72) { CUR.cutSt = 1; say(P.cut1[2], P.cut1[0], 99, P.cut1[1]); } } }
+  if (tool === 'grow' && ptr.down && CUR.L0 && CUR.cutSt && sumL() / CUR.L0 > .85) CUR.cutSt = 0;
+  if (ptr.down) { CUR.idle = 0; return; } CUR.idle = (CUR.idle || 0) + dt;
+  if (CUR.idle > 9 && !bubOn) { CUR.idle = 0; if (!CUR.want) { CUR.wi = ((CUR.wi ?? -1) + 1) % P.wants.length; CUR.want = P.wants[CUR.wi]; } say(CUR.want.line, 'happy', 3.2, 'hmm'); } }
 function startTool() {
   if (!CUR) return; $('cur').classList.add('on');
   const r = { cut: ['wow', 'hmm'], clip: ['wow', 'ouch'], comb: ['smile', 'hmm'], grow: ['wow', 'wow'], color: ['happy', 'happy'], shampoo: ['laugh', 'giggle'], shower: ['squint', 'ouch'], dryer: ['happy', 'happy'], curl: ['happy', 'hmm'], straight: ['smile', 'hmm'] }[tool];
-  if (r) { react(r[0], 99); if (Math.random() < .55) voice(r[1]); }
+  ptr.t0 = performance.now(); if (!personaStart() && r) { react(r[0], 99); if (Math.random() < .55) voice(r[1]); }
   const L = { clip: 'clipper', dryer: 'dryer', shower: 'shower', color: 'spray', curl: 'sizzle', straight: 'sizzle', shampoo: 'scrub' }[tool]; if (L) loopOn(L, LOOPS[L]);
 }
-function endTool() { for (const k of Object.keys(loops)) loopOff(k); if (CUR && CUR.face.until > 50) { CUR.face.until = 1.2; } if (isTouch) { $('cur').classList.remove('on'); $('ring').classList.remove('on'); } }
+function endTool() { for (const k of Object.keys(loops)) loopOff(k); if (CUR && CUR.face.until > 50) { CUR.face.until = 1.2; if (bubOn) bubT = Math.min(bubT, 1.2); }
+  if (CUR && ptr.t0 && performance.now() - ptr.t0 > 700 && state === 'play') { wantDone('tool', tool); CUR.work = (CUR.work || 0) + 1; if (CUR.work % 5 === 0 && !CUR.want) { const P = pers(); setTimeout(() => { if (!ptr.down && P) say(P.proud, 'proud', 2.4, 'happy'); }, 900); } } ptr.t0 = 0; if (isTouch) { $('cur').classList.remove('on'); $('ring').classList.remove('on'); } }
 function react(m, d) { if (!CUR) return; CUR.face.mood = m; CUR.face.until = d; }
 
 /* projection of hair points (head local → screen) */
@@ -680,30 +742,39 @@ function updateBubbles(dt, t) {
 }
 
 /* ================= face animation ================= */
-const _look = V3();
+const _look = V3(), _brq = new THREE.Quaternion(), _zAx = V3(0, 0, 1);
 function updateFace(dt, t) {
   const G = CUR; if (!G) return; const F = G.face;
   F.until -= dt; if (F.until <= 0 && F.mood !== 'smile') F.mood = 'smile';
   const anyWet = tool === 'shower' && ptr.down;
   F.blink -= dt; let lid = 1; if (F.blink < 0) { lid = Math.abs(F.blink + .07) / .07; if (F.blink < -.14) F.blink = rnd(2, 5); }
-  if (F.mood === 'squint' || anyWet) lid = .12; if (F.mood === 'laugh') lid = .35;
+  const M = F.mood;
+  if (M === 'squint' || anyWet) lid = .12; if (M === 'laugh') lid = .35; if (M === 'love') lid = Math.min(lid, .45); if (M === 'proud') lid = Math.min(lid, .3); if (M === 'sad') lid = Math.min(lid, .62); if (M === 'hmm') lid = Math.min(lid, .7);
   // look at pointer / camera
   ndc.set(ptr.x / innerWidth * 2 - 1, -(ptr.y / innerHeight) * 2 + 1);
-  const tx = (ptr.down || !isTouch) ? clamp(ndc.x * 1.4, -1, 1) : Math.sin(t * .4) * .3, ty = (ptr.down || !isTouch) ? clamp(ndc.y * 1.4 + .2, -1, 1) : 0;
-  F.look.x = lerp(F.look.x, tx, dt * 8); F.look.y = lerp(F.look.y, ty, dt * 8);
+  let tx = (ptr.down || !isTouch) ? clamp(ndc.x * 1.4, -1, 1) : Math.sin(t * .4) * .3, ty = (ptr.down || !isTouch) ? clamp(ndc.y * 1.4 + .2, -1, 1) : 0;
+  if (M === 'dizzy') { tx = Math.cos(t * 9) * .9; ty = Math.sin(t * 9) * .9; } else if (M === 'sad') ty = -.8; else if (M === 'hmm') tx = .9;
+  F.look.x = lerp(F.look.x, tx, dt * (M === 'dizzy' ? 30 : 8)); F.look.y = lerp(F.look.y, ty, dt * (M === 'dizzy' ? 30 : 8));
   const lk = rotNow % (Math.PI * 2); const front = Math.cos(lk) > .3 ? 1 : 0;
-  for (const e of G.eyes) { e.g.scale.y = lerp(e.g.scale.y, Math.max(.08, lid), dt * 25); e.iris.position.x = F.look.x * .022 * front; e.iris.position.y = F.look.y * .02 * front; }
-  const wow = F.mood === 'wow' || F.mood === 'ouch';
-  for (const b of G.brows) { const lift = wow ? .035 : F.mood === 'squint' ? -.012 : 0; b.m.position.y = lerp(b.m.position.y, b.base.y + lift, dt * 10); }
-  const open = F.mood === 'wow' || F.mood === 'laugh' || F.mood === 'happy' && Math.sin(t * 9) > .6 || F.mood === 'ouch';
-  G.mouth.smile.visible = !open; G.mouth.open.visible = open;
-  const sc = F.mood === 'laugh' ? [1.3, .9] : F.mood === 'wow' ? [.75, 1.1] : F.mood === 'ouch' ? [.6, .8] : [1, .8];
+  const big = M === 'scared' || M === 'wow' ? 1.16 : 1;
+  for (const e of G.eyes) { e.g.scale.y = lerp(e.g.scale.y, Math.max(.08, lid) * big, dt * 25); e.g.scale.x = lerp(e.g.scale.x, big, dt * 12); e.iris.position.x = F.look.x * .022 * front; e.iris.position.y = F.look.y * .02 * front; }
+  const wow = M === 'wow' || M === 'ouch' || M === 'scared';
+  for (const b of G.brows) { const lift = wow ? .04 : M === 'squint' ? -.012 : M === 'sad' ? .012 : M === 'hmm' ? (b.s > 0 ? .035 : -.008) : M === 'love' ? .015 : 0;
+    const tilt = M === 'sad' || M === 'scared' ? -b.s * .38 : M === 'hmm' ? (b.s > 0 ? .25 : -.1) : 0;
+    b.m.position.y = lerp(b.m.position.y, b.base.y + lift, dt * 10); b.tl = lerp(b.tl || 0, tilt, dt * 10); b.m.quaternion.copy(b.q0).multiply(_brq.setFromAxisAngle(_zAx, b.tl)); }
+  const open = M === 'wow' || M === 'laugh' || M === 'happy' && Math.sin(t * 9) > .6 || M === 'ouch' || M === 'scared' || M === 'dizzy' || M === 'love' && Math.sin(t * 7) > .7;
+  const frown = !open && (M === 'sad' || M === 'hmm');
+  G.mouth.smile.visible = !open && !frown; G.mouth.open.visible = open; G.mouth.frown.visible = frown;
+  const sc = M === 'laugh' ? [1.3, .9] : M === 'wow' ? [.75, 1.1] : M === 'ouch' ? [.6, .8] : M === 'scared' ? [.62 + Math.sin(t * 40) * .04, 1] : M === 'dizzy' ? [.7, .7 + Math.sin(t * 6) * .2] : [1, .8];
   G.mouth.open.scale.set(lerp(G.mouth.open.scale.x, sc[0], dt * 12), lerp(G.mouth.open.scale.y, sc[1], dt * 12), 1);
-  G.mouth.smile.scale.setScalar(F.mood === 'happy' ? 1.2 : 1);
+  G.mouth.smile.scale.setScalar(M === 'happy' ? 1.2 : M === 'love' || M === 'proud' ? 1.35 : 1);
+  G.mouth.frown.scale.setScalar(M === 'hmm' ? .7 : 1); G.mouth.frown.position.x = M === 'hmm' ? .03 : 0; G.mouth.frown.rotation.z = M === 'hmm' ? .25 : 0;
+  if (G.cheeks) for (const c of G.cheeks) c.material.opacity = lerp(c.material.opacity, M === 'love' ? .75 : M === 'proud' || M === 'laugh' ? .5 : M === 'scared' ? .12 : .32, dt * 6);
   // head motion
-  const wig = F.mood === 'laugh' ? Math.sin(t * 18) * .05 : F.mood === 'happy' ? Math.sin(t * 6) * .03 : 0;
+  const wig = M === 'laugh' ? Math.sin(t * 18) * .05 : M === 'happy' || M === 'love' ? Math.sin(t * 6) * .035 : M === 'hmm' ? .13 : M === 'dizzy' ? Math.sin(t * 5) * .12 : 0;
   headG.rotation.z = lerp(headG.rotation.z, wig, dt * 6);
-  headG.rotation.x = lerp(headG.rotation.x, anyWet ? .12 : 0, dt * 4);
+  headG.rotation.y = M === 'scared' ? Math.sin(t * 46) * .035 : M === 'sad' ? lerp(headG.rotation.y, 0, dt * 4) : lerp(headG.rotation.y, 0, dt * 6);
+  headG.rotation.x = lerp(headG.rotation.x, anyWet ? .12 : M === 'sad' ? .16 : M === 'proud' ? -.13 : M === 'dizzy' ? Math.cos(t * 5) * .08 : 0, dt * 4);
 }
 
 /* ================= camera / loop ================= */
@@ -733,7 +804,7 @@ function frame(now) {
     // drips from wet tips
     if (Math.random() < .35) { const s = Math.floor(Math.random() * H.S); if (H.wet[s] > .3 && H.L[s] > .1) { const o = (s * NP + NS1) * 3; emit(headG.localToWorld(V3(H.pos[o], H.pos[o + 1], H.pos[o + 2])), V3(0, -.1, 0), [.7, .9, 1.25], .028, 1.2, 5, .99, .8); } }
     writeHair(H); if (frameN % 6 === 0) updateScalp(CUR); if (frameN % 15 === 0) for (const k in CUR.acc) { const m = CUR.acc[k]; if (m.visible && m.userData.n) placeAcc(m); }
-    updateBubbles(dt, t); updateFace(dt, t);
+    updateBubbles(dt, t); updateFace(dt, t); personaTick(dt);
   } else if (CUR) { const H = CUR.hair; headG.getWorldQuaternion(_bq); gLocal.set(0, -1, 0).applyQuaternion(_bq.invert()); H.wake = (H.wake ?? 1.6) - dt; if (H.wake > 0) stepHair(H, 1 / 60, gLocal); writeHair(H); updateScalp(CUR); updateFace(dt, t); updateBubbles(dt, t); }
   updateDebris(dt, t); updateParts(dt); musicTick();
   // cursor
@@ -753,13 +824,13 @@ let state = 'title';
 const THUMB = {};
 function pickHTML(sel) { return CHARS.map(c => `<button class="pc" data-c="${c.id}" aria-pressed="${c.id === sel}"><img src="${THUMB[c.id] || ''}" alt=""><b>${c.name}</b><small>${c.desc}</small></button>`).join(''); }
 function showTitle() { state = 'title'; $('title').hidden = false; $('hud').hidden = $('dock').hidden = $('rotL').hidden = $('rotR').hidden = true; $('pick').innerHTML = pickHTML(CUR ? CUR.ch.id : 'mila'); }
-function play() { ac(); startMusic(); state = 'play'; $('title').hidden = true; $('hud').hidden = $('dock').hidden = $('rotL').hidden = $('rotR').hidden = false; renderTools(); if (!SAVE.seen.cut) { toast(TOOLS[0].hint); SAVE.seen.cut = 1; store(); } voice('happy'); react('happy', 1.5); }
+function play() { ac(); startMusic(); state = 'play'; $('title').hidden = true; $('hud').hidden = $('dock').hidden = $('rotL').hidden = $('rotR').hidden = false; renderTools(); if (!SAVE.seen.cut) { toast(TOOLS[0].hint); SAVE.seen.cut = 1; store(); } voice('happy'); react('happy', 1.5); setTimeout(() => { const P = pers(); if (P && state === 'play') say(P.hi, 'happy', 2.8); }, 700); }
 $('pick').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; ac(); sfx.click(); setChar(b.dataset.c); $('pick').innerHTML = pickHTML(b.dataset.c); voice('hmm'); };
 $('playBtn').onclick = play;
 $('custBtn').onclick = () => { $('pick2').innerHTML = pickHTML(CUR.ch.id); $('custSheet').hidden = false; sfx.click(); };
-$('pick2').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; sfx.click(); setChar(b.dataset.c); clearDebris(); $('custSheet').hidden = true; rotT = Math.round(rotT / (Math.PI * 2)) * Math.PI * 2; voice('happy'); react('happy', 1.4); renderTools(); };
+$('pick2').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; sfx.click(); setChar(b.dataset.c); clearDebris(); $('custSheet').hidden = true; rotT = Math.round(rotT / (Math.PI * 2)) * Math.PI * 2; voice('happy'); react('happy', 1.4); renderTools(); setTimeout(() => { const P = pers(); if (P) say(P.hi, 'happy', 2.6); }, 500); };
 $('csClose').onclick = () => $('custSheet').hidden = true;
-$('undoBtn').onclick = () => { if (!CUR) return; resetHair(CUR.hair); CUR.bubbles.length = 0; for (const k in CUR.acc) CUR.acc[k].visible = false; clearDebris(); sfx.swish(); toast(T('השיער חזר להתחלה', 'Hair is back to the start')); renderTools(); };
+$('undoBtn').onclick = () => { if (!CUR) return; resetHair(CUR.hair); CUR.bubbles.length = 0; CUR.cutSt = 0; for (const k in CUR.acc) CUR.acc[k].visible = false; clearDebris(); sfx.swish(); toast(T('השיער חזר להתחלה', 'Hair is back to the start')); renderTools(); };
 function syncSnd() { $('sndBtn').innerHTML = SAVE.mute ? '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#c2338a"/><path d="M17 9l5 6M22 9l-5 6" stroke="#c2338a" stroke-width="2.4" stroke-linecap="round"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#c2338a"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#c2338a" stroke-width="2.2" stroke-linecap="round"/></svg>'; }
 $('sndBtn').onclick = () => { SAVE.mute = !SAVE.mute; store(); syncSnd(); if (master) master.gain.value = SAVE.mute ? 0 : .9; };
 const QN = { ultra: T('אולטרה', 'Ultra'), high: T('גבוהה', 'High'), low: T('חסכונית', 'Saver') };

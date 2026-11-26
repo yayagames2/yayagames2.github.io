@@ -1,5 +1,6 @@
 import { $, clamp, lerp, rng, T, EN, store, audio, toast, ICO, hubButtons, soundButton } from '../lib/kit.js';
 import { PI, TAU, mix, sh, rgba, P, E, STAR, HEART, FACE, EYES, LIPS, browPath, linerPath, lashes, lidPt, loPt, gem, pearl, sparkle, HAIR, DRESS, drawFigure, mouthLine, ballroom, HEADM, browOf, METAL, drawCrown, drawEarrings, drawNecklace, drawClip, drawDress, drawHeadBase } from './art.js';
+import { selfieInit } from './selfie.js';
 
 const S = store('tiara-save', { p: {}, tut: 0, size: 1 });
 const A = audio(S);
@@ -298,6 +299,7 @@ addEventListener('resize', () => { layout(); Object.assign(cam, target()); });
 $('galBtn').innerHTML = ICO.grid('#c8407a'); $('undoBtn').innerHTML = ICO.undo('#c8407a'); $('resetBtn').innerHTML = ICO.reset('#c8407a'); $('shNew').textContent = T('🔄 מתחילים מחדש', '🔄 Start over'); $('homeT').innerHTML = ICO.home('#c8407a'); soundButton('sndBtn', S, A, '#c8407a'); hubButtons(['homeT'], A);
 $('tSub').textContent = T('בחרו נסיכה, אפרו אותה לפרטי פרטים, סדרו לה תסרוקת, כתר ושמלה – ושלחו אותה לנשף המלכותי ✨', 'Pick a princess, do her makeup in every detail, style her hair, add a crown and gown – then send her to the royal ball ✨');
 $('albT').textContent = T('📸 האלבום המלכותי', '📸 Royal album'); $('shSave').textContent = T('📸 שמרו תמונה', '📸 Save photo'); $('shEdit').textContent = T('✏️ המשך', '✏️ Keep styling'); $('shHome').textContent = T('👸 נסיכות', '👸 Princesses'); $('pvDel').textContent = T('🗑️ מחיקה', '🗑️ Delete'); $('pvClose').textContent = T('סגירה', 'Close'); $('doneBtn').textContent = T('לנשף ✨', 'To the ball ✨'); $('magicBtn').textContent = '🪄';
+selfieInit({ A, S, toast, icon, swHTML, TK, STY, idb, ICO, showTitle });
 setTimeout(() => { layout(); showTitle(); $('loading').hidden = true; requestAnimationFrame(frame); window.__tgOK = true; }, 20);
 window.__tg = { h2s: (a, b) => headToScreen(a, b), open, autoApply, show, back, get state() { return state; }, get L() { return L; }, set tab(v) { tab = v; renderPanel(); layout(); }, set tool(v) { tool = v; renderPanel(); }, sel, PR, setL(o) { Object.assign(L, o); dirty = true; renderPanel(); },
   art() { const c = cnv(720, 491), x = c.getContext('2d'); ballroom(x, 720, 491); const sv = [L, M, tool, pr]; [[2, 130, '#b8001a', 'cat'], [0, 360, '#ff4a6a', 'wing'], [4, 590, '#d42a7a', 'glam']].forEach(([i, cxp, lc, ls]) => { pr = PR[i]; L = look(pr); M = newMakeup(); sel.lips.c = lc; sel.liner.st = ls; for (const t of ['shadow', 'blush', 'liner', 'lash', 'lips', 'glow']) { tool = t; autoApply(t); } const s = 491 / 700; x.setTransform(s, 0, 0, s, cxp - 500 * s, -40 * s); drawFigure(x, L, drawMakeup); }); [L, M, tool, pr] = sv; parts.length = 0; return c.toDataURL('image/jpeg', .9); }
