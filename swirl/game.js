@@ -1,5 +1,6 @@
 import { THREE, $, V3, C, clamp, lerp, rnd, T, EN, store, engine, studioEnv, std, shadowAll, cnv, ctex, particles, CONFETTI, audio, toast, ICO, hubButtons, soundButton, qualityButton, cutie } from '../lib/kit.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { loadMix, MixRig } from '../lib/mixchar.js';
 
 /* ================= save / engine ================= */
 const S = store('swirl-save', { coins: 0, served: 0, love: 0, unl: [], gal: [], hop: ['van', 'choc'], tut: {} });
@@ -422,7 +423,37 @@ const tops = {
 };
 /* ================= kid ================= */
 let kid = null, kidD = null; const KIDPOS = V3(2.05, 0, 1.12);
-function makeKid(d) { if (kid) scene.remove(kid.g); kidD = d; kid = cutie(d.o); kid.g.position.set(4.2, 0, KIDPOS.z); kid.g.rotation.y = -.35; kid.baseY = 0; scene.add(kid.g); kid.walk = 1; kid.look = null; return kid; }
+const GUESTS = [{ f: 'zori', n: T('זורי', 'Zori'), p: 1.3 }, { f: 'luna', n: T('לונה', 'Luna'), p: 1.45 }, { f: 'kai', n: T('קאי', 'Kai'), p: 1.15 }, { f: 'rio', n: T('ריו', 'Rio'), p: 1.2 }, { f: 'remy', n: T('רמי', 'Remy'), p: 1.0 }];
+const GSRC = {};
+function preloadGuest() { const left = GUESTS.filter(g => GSRC[g.f] === undefined); if (!left.length) return; const g = pick(left); GSRC[g.f] = null; loadMix('lib/chars/' + g.f + '.glb').then(src => { if (src) GSRC[g.f] = src; else delete GSRC[g.f]; }); }
+const readyGuests = () => GUESTS.filter(g => GSRC[g.f] && g !== kidD);
+const _gq = new THREE.Quaternion(), _ge = new THREE.Euler(0, 0, 0, 'YXZ');
+function makeGuest(d) {
+  const R = new MixRig(GSRC[d.f], 1.55), g = R.holder, P = R.restP; scene.add(g);
+  const dummy = () => new THREE.Object3D(); const head = dummy(); head.position.copy(P.Head).add(V3(0, -.17, 0)); g.add(head);
+  const armLen = P.RightArm.distanceTo(P.RightForeArm) + P.RightForeArm.distanceTo(P.RightHand);
+  const G = { g, head, isGuest: true, rig: R, arms: [dummy(), dummy()], legs: [dummy(), dummy()], eyes: [dummy(), dummy()], open: { visible: false }, smile: { visible: true }, mood: 'smile', baseY: 0, ph: Math.random() * 6, jump: 0, handW: null, tg: {} };
+  G.setMood = m => { G.mood = m; G.jump = 0; };
+  G.holdW = () => g.localToWorld(V3(-.2, P.Spine2.y - .12, .34));
+  G.lickW = () => { const h = V3(); R.B.Head.getWorldPosition(h); const top = (swirl.mesh.position.y + swirl.top.y) * ice.scale.x; return h.add(V3(.02, -.12 - top, .16)); };
+  G.update = (t, dt) => { dt = Math.min(dt, .1); const m = G.mood, br = Math.sin(t * 2 + G.ph);
+    if (m === 'happy') { G.jump += dt; g.position.y = G.baseY + Math.abs(Math.sin(G.jump * 6)) * .22; } else g.position.y = lerp(g.position.y, G.baseY, dt * 8);
+    const yaw = head.rotation.y + (m === 'angry' ? Math.sin(t * 13) * .3 : 0), pitch = head.rotation.x + (m === 'sad' ? .4 : 0) + (G.open.visible ? .25 : 0);
+    R.set('Head', _gq.setFromEuler(_ge.set(pitch, yaw, m === 'happy' ? Math.sin(t * 7) * .12 : 0)).multiply(R.restW.Head));
+    R.set('Spine2', _gq.setFromEuler(_ge.set((m === 'sad' ? .25 : 0) + br * .02, yaw * .25, 0)).multiply(R.restW.Spine2));
+    for (const [side, s] of [['Left', 1], ['Right', -1]]) { const sh = P[side + 'Arm']; let tg, pole = V3(s * .2, 0, -1);
+      if (side === 'Right' && G.handW) { tg = g.worldToLocal(G.handW.clone()); pole = V3(-.5, -1, -.3); }
+      else if (m === 'happy') tg = sh.clone().add(V3(s * .25, .48 + Math.sin(t * 9 + s) * .05, .08));
+      else if (m === 'angry') { tg = P.Hips.clone().add(V3(s * .2, .06, .04)); pole = V3(s, 0, -.4); }
+      else if (m === 'wow') tg = sh.clone().add(V3(s * .38, -.12, .28));
+      else tg = sh.clone().add(V3(s * .1, -armLen * .93 + br * .01, .05));
+      const k = side + m + (G.handW && side === 'Right' ? 'h' : ''); const cur = G.tg[side] || (G.tg[side] = tg.clone()); cur.lerp(tg, Math.min(1, dt * 9));
+      R.limbIK(side + 'Arm', side + 'ForeArm', side + 'Hand', sh, cur, pole.normalize()); }
+    G.legs.forEach((l, i) => { const a = l.rotation.x, side = i ? 'Right' : 'Left'; if (Math.abs(a) > .01) { R.aim(side + 'UpLeg', side + 'Leg', V3(0, -Math.cos(a), Math.sin(a))); R.aim(side + 'Leg', side + 'Foot', V3(0, -Math.cos(a * .2 - Math.max(0, a) * .6), Math.sin(a * .2))); } });
+    R.apply(); };
+  return G;
+}
+function makeKid(d) { if (kid) scene.remove(kid.g); kidD = d; if (d.f) { kid = makeGuest(d); kid.g.position.set(4.2, 0, KIDPOS.z); kid.g.rotation.y = -.35; kid.walk = 1; return kid; } kid = cutie(d.o); kid.g.position.set(4.2, 0, KIDPOS.z); kid.g.rotation.y = -.35; kid.baseY = 0; scene.add(kid.g); kid.walk = 1; kid.look = null; return kid; }
 
 /* ================= camera ================= */
 const CAM = { t: V3(0, 1.5, 0), p: V3(0, 1.6, 3), t0: V3(), p0: V3(), t1: V3(), p1: V3(), k: 1, dur: .9, orbit: 0 };
@@ -433,6 +464,8 @@ const VIEWS = {
   pull: { t: V3(.04, 1.55, .22), d: V3(.62, .24, 1).normalize(), w: .8, h: 1.2 },
   top: { t: V3(0, 1.3, .52), d: V3(0, .55, 1).normalize(), w: .42, h: .46 },
   kid: { t: V3(1.85, 1.0, 1.0), d: V3(-.12, .12, 1).normalize(), w: 1.7, h: 1.55 },
+  kidG: { t: V3(1.9, 1.02, 1.0), d: V3(-.12, .1, 1).normalize(), w: 1.6, h: 1.75 },
+  serveG: { t: V3(2.0, 1.2, 1.1), d: V3(-.1, .06, 1).normalize(), w: 1.15, h: 1.3 },
   serve: { t: V3(2.0, 1.05, 1.1), d: V3(-.1, .08, 1).normalize(), w: 1.15, h: 1.05 },
 };
 let curView = 'title', viewX = 0;
@@ -487,7 +520,7 @@ function guideTick() { const g = $('guide'); let x, y;
   g.hidden = false; g.className = G.kind; g.textContent = G.kind === 'tap' ? '👆' : '☝️'; g.style.left = x + 'px'; g.style.top = y + 'px'; }
 
 /* ================= flow ================= */
-function startGame(m) { mode = m; A.ac(); if (ice) { ice.removeFromParent(); ice = null; } stand.visible = false; holder.visible = true; $('title').hidden = true; $('hud').hidden = false; updCoins(); build = { hop: S.hop.slice(), cone: 'waffle', spout: null, u: 0, done: false };
+function startGame(m) { mode = m; A.ac(); preloadGuest(); setTimeout(preloadGuest, 4000); if (ice) { ice.removeFromParent(); ice = null; } stand.visible = false; holder.visible = true; $('title').hidden = true; $('hud').hidden = false; updCoins(); build = { hop: S.hop.slice(), cone: 'waffle', spout: null, u: 0, done: false };
   A.startMusic({ chords: [[60, 64, 67], [57, 60, 64], [65, 69, 72], [67, 71, 74]], bpm: 112, lead: true, kick: false, vol: .55 });
   if (m === 'cust') goOrder(); else { order = null; renderOrder(); goFill(); } }
 function nextCustomer() { build = { hop: S.hop.slice(), cone: 'waffle', spout: null, u: 0, done: false }; if (ice) { ice.removeFromParent(); ice = null; } goOrder(); }
@@ -496,10 +529,13 @@ function genOrder() { const lv = S.served; const fl = Object.keys(FLV).filter(k 
   const a = pick(fl); let b = pick(fl); while (b === a) b = pick(fl); o.flav = o.twist ? [a, b] : [a];
   const nt = lv < 1 ? 1 : Math.floor(rnd(0, Math.min(3, 1 + lv / 3) + 1)); const pool = tp.slice().sort(() => Math.random() - .5); o.tops = pool.slice(0, nt);
   if (lv >= 3 && Math.random() < .35) { const rest = pool.filter(t => !o.tops.includes(t)); if (rest.length) o.no = pick(rest); } return o; }
+function guestFanfare() { [0, 4, 7, 12, 16, 19].forEach((n, k) => A.tone(523 * Math.pow(2, n / 12), .18, 'triangle', .07, k * .09)); A.noise(.8, 'highpass', 5000, 1, .05, .5); toast(T('⭐ הופעת אורח! ⭐', '⭐ Guest star! ⭐'), 2500);
+  setTimeout(() => { FX.burst(V3(KIDPOS.x, 1.9, KIDPOS.z), 70, CONFETTI, 2.6, .045, 1.8, 3); $('flash').style.opacity = .35; setTimeout(() => $('flash').style.opacity = 0, 120); }, 900); }
 function goOrder() { state = 'order'; hidePanel(); $('gauge').hidden = true; $('hold').hidden = true; stand.visible = false; setStep(T('לקוח חדש!', 'New customer!'), '');
-  makeKid(pick(KIDS.filter(k => k !== kidD))); order = genOrder(); $('order').hidden = true; setView('kid', 1.1, 0); A.tone(1568, .12, 'sine', .06); A.tone(2093, .25, 'sine', .06, .12);
+  const gs = readyGuests(); const guest = gs.length && (window.__forceGuest || S.served >= 1 && (S.served % 4 === 2 || Math.random() < .2)); makeKid(guest ? pick(gs) : pick(KIDS.filter(k => k !== kidD))); preloadGuest(); order = genOrder(); $('order').hidden = true; setView(guest ? 'kidG' : 'kid', 1.1, 0);
+  if (guest) guestFanfare(); A.tone(1568, .12, 'sine', .06); A.tone(2093, .25, 'sine', .06, .12);
   setTimeout(() => { if (state !== 'order') return; kid.setMood('happy'); setTimeout(() => kid && kid.setMood('smile'), 700); A.voice('yay', kidD.p);
-    bubble(`${pick(LINES.hi)}<div class="oc">${orderHTML(order).replace(/class="it[^"]*"/g, 'class="it"')}</div>`);
+    bubble(`${kidD.f ? T('⭐ אני ', '⭐ I’m ') + kidD.n + '! ' : ''}${pick(LINES.hi)}<div class="oc">${orderHTML(order).replace(/class="it[^"]*"/g, 'class="it"')}</div>`);
     showPanel(`<div class="nav1"><button class="btn pri big ready" id="goMake">${T('בואו נכין! 🍦', 'Let’s make it! 🍦')}</button></div>`);
     $('goMake').onclick = () => { A.tone(880, .06, 'sine', .06); bubOff(); renderOrder(); $('order').classList.add('pop'); goFill(); }; }, 1500); }
 
@@ -653,16 +689,17 @@ let roT = 0; function renderOrderThrottle() { const n = performance.now(); if (n
 /* ---- serve + suspense ---- */
 let serveT = 0, verdict = null;
 function goServe() { state = 'serve'; guideOff(); hidePanel(); stroke = null; A.loopOff('sauce'); stand.visible = false; serveT = 0; verdict = mode === 'free' ? scoreFree() : scoreIt(); thumb = snapThumb(); setStep(kidD.n, T('טועם…', 'Tasting…'));
-  ice.userData.from = ice.position.clone(); ice.userData.r0 = ice.rotation.y; setView('serve', 1.1, 0); A.music.vol = .2; $('order').hidden = true; }
-function serveTick(dt) { serveT += dt; const t = serveT; const kp = kid.g.position; const hand = V3(kp.x + .24, .84, kp.z + .34);
+  ice.userData.from = ice.position.clone(); ice.userData.r0 = ice.rotation.y; setView(kid.isGuest ? 'serveG' : 'serve', 1.1, 0); A.music.vol = .2; $('order').hidden = true; }
+function serveTick(dt) { serveT += dt; const t = serveT; const kp = kid.g.position; const hand = kid.isGuest ? kid.holdW().sub(V3(0, CH * .46, 0)) : V3(kp.x + .24, .84, kp.z + .34);
   if (t < 1.1) { const k = ease(t / 1.1); ice.position.lerpVectors(ice.userData.from, hand, k); ice.position.y += Math.sin(k * Math.PI) * .4; ice.scale.setScalar(lerp(1, .92, k)); ice.rotation.y = lerp(ice.userData.r0, Math.round(ice.userData.r0 / TAU) * TAU + .4, k); }
   else if (t < 4.2) { // looking & tasting
     const lk = t - 1.1; ice.position.copy(hand); ice.position.y += Math.sin(lk * 3) * .01; kid.arms[1].rotation.z = lerp(kid.arms[1].rotation.z, .9, dt * 5); kid.arms[1].rotation.x = lerp(kid.arms[1].rotation.x, -.6, dt * 5);
     kid.head.rotation.y = Math.sin(lk * 2.2) * .35 + .25; kid.head.rotation.x = .18 + Math.sin(lk * 3.1) * .05;
-    if (lk > 1.6 && lk < 2.4) { const k = Math.sin((lk - 1.6) / .8 * Math.PI); ice.position.lerp(V3(kp.x + .08, .78, kp.z + .42), k); kid.open.visible = k > .3; kid.smile.visible = k <= .3; kid.eyes.forEach(e => e.scale.y = k > .3 ? .15 : 1); }
+    if (lk > 1.6 && lk < 2.4) { const k = Math.sin((lk - 1.6) / .8 * Math.PI); ice.position.lerp(kid.isGuest ? kid.lickW() : V3(kp.x + .08, .78, kp.z + .42), k); kid.open.visible = k > .3; kid.smile.visible = k <= .3; kid.eyes.forEach(e => e.scale.y = k > .3 ? .15 : 1); }
     tenseTick(lk); }
   else if (!verdict.shown) { verdict.shown = true; reveal(); }
-  if (verdict.shown) { ice.position.copy(hand); ice.position.y += (kid.mood === 'happy' ? kid.g.position.y : 0); kid.head.rotation.y = lerp(kid.head.rotation.y, 0, dt * 4); kid.head.rotation.x = lerp(kid.head.rotation.x, 0, dt * 4); } }
+  if (verdict.shown) { ice.position.copy(hand); if (!kid.isGuest) ice.position.y += (kid.mood === 'happy' ? kid.g.position.y : 0); kid.head.rotation.y = lerp(kid.head.rotation.y, 0, dt * 4); kid.head.rotation.x = lerp(kid.head.rotation.x, 0, dt * 4); } }
+function guestHand() { if (kid && kid.isGuest && ice && serveT > .6) kid.handW = ice.position.clone().add(V3(-.055, CH * .5 * ice.scale.x, -.015)); }
 function tenseTick(lk) { const el = $('tense'); if (el.hidden) { el.hidden = false; $('tenseT').textContent = T('מה הוא יגיד?…', 'What will they say?…'); A.loopOn('roll', 'bandpass', 180, 1.2, .07, 16); A.voice('hm', kidD.p); bubble('🤔 …'); }
   const fin = clamp(verdict.score / 100, .04, .96); const k = clamp(lk / 3.0, 0, 1); const amp = (1 - k) * .45; const x = clamp(lerp(.5, fin, sstep(.3, 1, k)) + Math.sin(lk * 7.5) * amp * .9, .03, .97);
   const b = $('tenseB'); b.style.left = x * 100 + '%'; b.textContent = x < .25 ? '😖' : x < .45 ? '😕' : x < .62 ? '😐' : x < .8 ? '🙂' : '😍'; }
@@ -683,7 +720,7 @@ function reveal() { A.loopOff('roll'); $('tense').hidden = true; const v = verdi
   else if (tier === 2) { A.voice('wow', kidD.p); [0, 4, 7].forEach((n, k) => A.tone(523 * Math.pow(2, n / 12), .2, 'triangle', .07, k * .08)); FX.burst(V3(KIDPOS.x, 1.4, KIDPOS.z + .2), 30, CONFETTI, 2.2, .045, 1.4, 4); }
   else if (tier === 1) { A.voice('hm', kidD.p * .95); A.tone(392, .3, 'triangle', .06); A.tone(370, .4, 'triangle', .06, .25); }
   else { A.voice('aww', kidD.p); A.tone(392, .25, 'sawtooth', .04); A.tone(370, .25, 'sawtooth', .04, .25); A.tone(349, .25, 'sawtooth', .04, .5); A.tone(330, .7, 'sawtooth', .04, .75, 250); }
-  const coins = [1, 4, 8, 12][tier] + (tier === 3 ? Math.floor(rnd(3, 7)) : 0); S.coins += coins; if (mode === 'cust') S.served++; if (tier === 3) S.love = (S.love || 0) + 1; saveGal(); S.save(); updCoins();
+  const coins = ([1, 4, 8, 12][tier] + (tier === 3 ? Math.floor(rnd(3, 7)) : 0)) * (kidD.f ? 2 : 1); if (kidD.f) setTimeout(() => toast(T('⭐ אורח מיוחד – מטבעות כפולים!', '⭐ Special guest – double coins!'), 2200), 600); S.coins += coins; if (mode === 'cust') S.served++; if (tier === 3) S.love = (S.love || 0) + 1; saveGal(); S.save(); updCoins();
   for (let i = 0; i < Math.min(8, coins); i++) setTimeout(() => { A.tone(1568 + i * 40, .06, 'square', .03); const el = document.createElement('div'); el.className = 'coinpop'; el.textContent = '🪙'; el.style.left = innerWidth / 2 + rnd(-60, 60) + 'px'; el.style.top = innerHeight * .45 + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 1300); }, 500 + i * 90);
   setTimeout(() => showResult(coins), 2200); }
 function showResult(coins) { state = 'result'; const v = verdict; const card = $('resCard');
@@ -691,7 +728,7 @@ function showResult(coins) { state = 'result'; const v = verdict; const card = $
   ${thumb ? `<img src="${thumb}">` : ''}<p>${kidD.n}: ${mode === 'free' ? (v.why.length ? v.why.map(w => w[1]).join(' · ') : (v.tier >= 2 ? T('יצירה מדהימה!', 'Amazing creation!') : T('אפשר עוד יותר!', 'You can do even better!'))) : v.tier === 3 ? T('הכי טוב בעולם!', 'The best ever!') : v.why.length ? v.why.slice(0, 2).map(w => w[1]).join(' · ') : T('תודה!', 'Thanks!')}</p><div class="cn">+${coins} 🪙</div>
   <div class="row" style="margin-top:12px"><button class="btn" id="rMenu">${T('תפריט', 'Menu')}</button><button class="btn pri" id="rNext">${mode === 'free' ? T('עוד אחת! ▶', 'Another! ▶') : T('הלקוח הבא ▶', 'Next customer ▶')}</button></div>`;
   $('resSheet').hidden = false; $('rMenu').onclick = () => { $('resSheet').hidden = true; showTitle(); }; $('rNext').onclick = () => { $('resSheet').hidden = true; bubOff(); A.music.vol = .55; if (mode === 'free') { if (kid) { scene.remove(kid.g); kid = null; } build = { hop: S.hop.slice(), cone: build.cone, spout: null, u: 0, done: false }; if (ice) { ice.removeFromParent(); ice = null; } goFill(); } else nextCustomer(); }; }
-function finishFree() { guideOff(); makeKid(pick(KIDS.filter(k => k !== kidD))); kid.g.position.x = KIDPOS.x + 1.2; kidD.fav = pick(Object.keys(FLV)); kidD.hate = pick(Object.keys(TOP).filter(k => unl('t:' + k) && k !== 'cherry'));
+function finishFree() { guideOff(); const gs = readyGuests(); const gst = gs.length && Math.random() < .35; makeKid(gst ? pick(gs) : pick(KIDS.filter(k => k !== kidD))); preloadGuest(); if (gst) guestFanfare(); kid.g.position.x = KIDPOS.x + 1.2; kidD.fav = pick(Object.keys(FLV)); kidD.hate = pick(Object.keys(TOP).filter(k => unl('t:' + k) && k !== 'cherry'));
   bubble(T('🧐 אני הטועם המסתורי! בואו נראה…', '🧐 I’m the mystery taster! Let’s see…'), 1600); goServe(); }
 function scoreFree() { const why = []; const made = madeFlavors(); const kinds = Object.keys(tops.cnt).filter(k => tops.cnt[k] >= (TOP[k].k === 'big' ? 1 : TOP[k].k === 'sau' ? 8 : 5)).length;
   let sc = 28 + Math.min(4, kinds) * 9 + (made.length > 1 ? 7 : 0) + 12 * clamp(1 - Math.abs(build.u - 3.6) / 1.6, 0, 1) + (tops.cnt.cherry ? 5 : 0) + (build.cone !== 'waffle' ? 3 : 0) + rnd(-10, 10);
@@ -744,7 +781,7 @@ function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (no
   if (state === 'cone') { popT = Math.min(1, popT + dt * 3); if (ice) { ice.scale.setScalar(lerp(.6, 1, eOut(popT)) + Math.sin(popT * Math.PI) * .08); holder.position.x = lerp(holder.position.x, SPX[build.spout == null ? 1 : build.spout], dt * 8); ice.position.x = holder.position.x; } holder.visible = true; }
   if (state === 'pull') pullTick(dt);
   if (state === 'top') topTick(dt);
-  if (state === 'serve') serveTick(dt);
+  if (state === 'serve') serveTick(dt); if (state === 'serve' || state === 'result') guestHand();
   if (state === 'title' && ice) ice.rotation.y += dt * .5; if (state === 'showcase' && ice) ice.rotation.y += dt * 1.6;
   if (kid) { if (kid.walk) { const k = kid.g.position; k.x = lerp(k.x, KIDPOS.x, Math.min(1, dt * 3.2)); kid.legs.forEach((l, i) => l.rotation.x = Math.sin(t * 12 + i * Math.PI) * .5 * clamp((k.x - KIDPOS.x) * 3, 0, 1)); if (Math.abs(k.x - KIDPOS.x) < .01) kid.walk = 0; kid.g.rotation.y = lerp(kid.g.rotation.y, -.12, dt * 2); }
     kid.update(t, dt); if (state !== 'serve' && state !== 'result') { kid.head.rotation.y = lerp(kid.head.rotation.y, curView === 'kid' ? 0 : -.6, dt * 3); } }
@@ -759,4 +796,4 @@ $('tSub').textContent = T('ממלאים את מכונת הגלידה, מושכי
 $('custBtn').textContent = T('🧒 להגיש לילדים', '🧒 Serve the kids'); $('freeBtn').textContent = T('🎨 יצירה חופשית', '🎨 Free creation');
 $('custBtn').onclick = () => { A.ac(); A.tone(880, .06, 'sine', .06); startGame('cust'); }; $('freeBtn').onclick = () => { A.ac(); A.tone(880, .06, 'sine', .06); startGame('free'); };
 setTimeout(() => { E.resize(); viewPose('title', CAM); showTitle(); CAM.k = 1; $('loading').hidden = true; requestAnimationFrame(frame); window.__swOK = true; }, 30);
-window.__sw = { get pouring() { return !!pouring; }, get state() { return state; }, get build() { return build; }, get order() { return order; }, swirl, tops, startGame, goTop, goServe, hitIce, set holding(v) { holding = v; }, get ice() { return ice; }, get verdict() { return verdict; }, camera, setTop: k => { curTop = k; }, applyAt: (x, y) => { tops.snap(); stroke = { ptr: { x, y }, acc: 0, lastP: null }; applyTop(stroke.ptr, false); }, endStroke: up, S };
+window.__sw = { preloadAll: () => Promise.all(GUESTS.map(g => loadMix('lib/chars/' + g.f + '.glb').then(x => GSRC[g.f] = x))), get kid() { return kid; }, get pouring() { return !!pouring; }, get state() { return state; }, get build() { return build; }, get order() { return order; }, swirl, tops, startGame, goTop, goServe, hitIce, set holding(v) { holding = v; }, get ice() { return ice; }, get verdict() { return verdict; }, camera, setTop: k => { curTop = k; }, applyAt: (x, y) => { tops.snap(); stroke = { ptr: { x, y }, acc: 0, lastP: null }; applyTop(stroke.ptr, false); }, endStroke: up, S };
