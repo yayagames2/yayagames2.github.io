@@ -64,7 +64,7 @@ const trackT = (() => { const W = 512, H = 256; const c = cnv(W, H), x = c.getCo
   return ctex(c, 1, CH / 4); })();
 const trackM = std('#ffffff', { map: trackT, roughness: .9 });
 const platT = (() => { const c = cnv(128, 128), x = c.getContext('2d'); x.fillStyle = '#ddd4c6'; x.fillRect(0, 0, 128, 128); noise(x, 128, 128, 600, () => `rgba(0,0,0,${Math.random() * .06})`); x.strokeStyle = '#bdb2a2'; x.lineWidth = 3; for (let i = 0; i <= 128; i += 32) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 128); x.moveTo(0, i); x.lineTo(128, i); x.stroke(); } return ctex(c, 2, CH / 4); })();
-const platM = std('#ffffff', { map: platT, roughness: .9 }); const platG = new THREE.BoxGeometry(PW, PH, CH);
+const platM = std('#ffffff', { map: platT, roughness: .9 }); const platG = new THREE.BoxGeometry(PW, PH, CH, 1, 1, 32);
 const road = trackT, walk = platT; // used by the intro scene
 const FS = 6.4; // one facade texture tile = 6.4 m (2x2 windows)
 const facadeT = (() => { const c = cnv(256, 256), x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 2400, () => `rgba(0,0,0,${Math.random() * .045})`);
@@ -86,7 +86,7 @@ const shade = (c, k) => '#' + C(c).multiplyScalar(k).getHexString();
 function uvBox(g, w, h, d, su0, sv0) { const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) { const f = Math.floor(i / 4); if (f === 2 || f === 3) { uv.setXY(i, .02, .55); continue; } const su = (f < 2 ? d : w) / su0, sv = h / sv0; uv.setXY(i, uv.getX(i) * su, uv.getY(i) * sv); } }
 function tint(g, c, k = 1) { if (g.index) g = g.toNonIndexed(); const n = g.attributes.position.count, a = new Float32Array(n * 3), cc = C(c); for (let i = 0; i < n; i++) { a[i * 3] = cc.r * k; a[i * 3 + 1] = cc.g * k; a[i * 3 + 2] = cc.b * k; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2)); return g; }
 class Bk { constructor() { this.b = {}; } add(k, g) { (this.b[k] || (this.b[k] = [])).push(g); }
-  box(k, w, h, d, x, y, z, c, uv, glow = 1) { const g = new THREE.BoxGeometry(w, h, d); if (uv) uvBox(g, w, h, d, uv[0], uv[1]); g.translate(x, y, z); this.add(k, tint(g, c, glow)); }
+  box(k, w, h, d, x, y, z, c, uv, glow = 1) { const g = new THREE.BoxGeometry(w, h, d, 1, 1, !uv && d > 6 ? Math.ceil(d / 2) : 1); if (uv) uvBox(g, w, h, d, uv[0], uv[1]); g.translate(x, y, z); this.add(k, tint(g, c, glow)); }
   geo(k, g, x, y, z, c, glow = 1) { g.translate(x, y, z); this.add(k, tint(g, c, glow)); }
   build(par, shadow = false) { for (const k in this.b) { const geo = mergeGeometries(this.b[k]); this.b[k].forEach(g => g.dispose()); if (!geo) continue; const m = new THREE.Mesh(geo, MAT[k]); m.receiveShadow = k !== 'glow'; m.castShadow = shadow; par.add(m); } this.b = {}; } }
 
@@ -156,7 +156,7 @@ const ybM = std('#ffffff', { map: stripeYB, roughness: .45 });
 const chunks = []; let nextZ = 0; const mvBlock = [[0, 0], [0, 0], [0, 0]];
 const laneBlocked = (ln, wz0, wz1 = wz0) => { const b = mvBlock[ln]; return wz1 < b[1] && wz0 > b[0]; }; // world-z range overlaps a reserved mover path
 function buildChunk(z0, diff) { const g = new THREE.Group(); g.position.z = z0; scene.add(g); const r = rng((Math.floor(-z0 * 13) + runSeed) | 0); const Z = ZONES[zoneAt(z0 - CH / 2)]; const ch = { g, z0, obs: [], coins: [], pows: [], movers: [] }; const bk = new Bk();
-  const rd = new THREE.Mesh(new THREE.PlaneGeometry(TW, CH), trackM); rd.rotation.x = -Math.PI / 2; rd.position.z = -CH / 2; rd.receiveShadow = true; g.add(rd);
+  const rd = new THREE.Mesh(new THREE.PlaneGeometry(TW, CH, 1, 32), trackM); rd.rotation.x = -Math.PI / 2; rd.position.z = -CH / 2; rd.receiveShadow = true; g.add(rd);
   for (const L of LANES) for (const o of [-.72, .72]) { bk.box('metal', .16, .025, CH, L + o, .012, -CH / 2, '#3a3a40'); bk.box('metal', .07, .03, CH, L + o, .02, -CH / 2, '#e8ecf4'); }
   for (const s of [-1, 1]) { const pf = new THREE.Mesh(platG, platM); pf.position.set(s * (TW / 2 + PW / 2), PH / 2, -CH / 2); pf.receiveShadow = true; g.add(pf);
     bk.box('plain', .3, .02, CH, s * (TW / 2 + .2), PH + .011, -CH / 2, '#ffd23a'); bk.box('plain', .08, PH, CH, s * (TW / 2 + .04), PH / 2, -CH / 2, '#b8b0a2');
