@@ -77,6 +77,7 @@ body{background:#f3e3cf;color:#5a3418;overflow:hidden}
 .hat .e{font-size:34px}.hat.on{background:#ffe0b8;box-shadow:0 0 0 3px #e8873a}.hat .p{direction:ltr;color:#a8601a;font-weight:900}
 .coinpop{position:fixed;z-index:9;font-weight:900;font-size:24px;color:#ffb81f;text-shadow:0 2px 0 #7a4a0a;pointer-events:none;animation:up 1.2s ease-out forwards;transform:translateX(-50%)}
 @keyframes up{to{transform:translate(-50%,-70px);opacity:0}}
+#hunger{position:fixed;z-index:6;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:min(230px,60vw);height:22px;border-radius:999px;background:rgba(255,255,255,.85);box-shadow:0 4px 12px rgba(0,0,0,.15);overflow:hidden;pointer-events:none;direction:ltr}#hunger i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff8a3a,#ffd23a);transition:width .3s;border-radius:999px}#hunger span{position:absolute;z-index:2;left:6px;top:0;font-size:16px;line-height:22px}#hunger.low i{background:linear-gradient(90deg,#ff3a3a,#ff8a5a);animation:hl .5s ease-in-out infinite alternate}@keyframes hl{to{opacity:.55}}
 </style>
 </head>
 <body>
@@ -87,6 +88,7 @@ body{background:#f3e3cf;color:#5a3418;overflow:hidden}
   <div class="pill"><b id="coinTxt">🪙 0</b></div>
   <button class="rb" id="sndBtn" style="pointer-events:auto"></button>
 </div>
+<div id="hunger" hidden><span>😋</span><b></b><i></i></div>
 <div id="bub"></div>
 <div id="big3" class="big3"></div>
 <div id="panel" hidden><div id="pin"></div></div>
@@ -96,7 +98,7 @@ body{background:#f3e3cf;color:#5a3418;overflow:hidden}
   <h1 class="logo"><span class="a">COZY CUB</span><span class="b">KITCHEN</span></h1>
   <p class="sub" id="tSub"></p>
   <div class="tbtns"><div class="stat" id="stat"></div><button class="btn pri" id="cookBtn"></button><button class="btn" id="hatBtn"></button></div>
-  <div class="chips" style="margin-top:12px"><button class="chip" id="qBtn"></button></div>
+  <div class="chips" style="margin-top:12px"><button class="chip" id="qBtn"></button><button class="chip" id="voiceBtn"></button></div>
 </section>
 <div class="sheet" id="bookSheet" hidden><div class="card"><h3 id="bookT"></h3><div class="book" id="book"></div><div class="row" style="margin-top:12px"><button class="btn" id="bookX"></button></div></div></div>
 <div class="sheet" id="hatSheet" hidden><div class="card"><h3 id="hatT"></h3><div class="hats" id="hats"></div><div class="row" style="margin-top:12px"><button class="btn" id="hatX"></button></div></div></div>

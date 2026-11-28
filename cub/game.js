@@ -1,4 +1,4 @@
-import { THREE, $, V3, C, clamp, lerp, rnd, T, store, engine, studioEnv, std, shadowAll, cnv, ctex, particles, audio, toast, ICO, hubButtons, soundButton, qualityButton } from '../lib/kit.js';
+import { THREE, $, V3, C, clamp, lerp, rnd, T, LANG, store, engine, studioEnv, std, shadowAll, cnv, ctex, particles, audio, toast, ICO, hubButtons, soundButton, qualityButton } from '../lib/kit.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 /* ================= save / engine ================= */
@@ -63,6 +63,15 @@ const BEARTALK = {
   step: [T('וואו! 🤩', 'Wow! 🤩'), T('יפה מאוד! 👏', 'Great job! 👏'), T('מריח מדהים! 😋', 'Smells amazing! 😋'), T('אתם שפים! ⭐', 'You’re a chef! ⭐'), T('ממממ! 💛', 'Mmmm! 💛')],
   y3: [T('הכי טעים בעולם!! 😍', 'Best thing ever!! 😍'), T('אני אוהב אתכם! 💖', 'I love you! 💖'), T('עוד! עוד! 🤩', 'More! More! 🤩')],
   y2: [T('טעים מאוד! 😊', 'Very tasty! 😊'), T('יאמי! תודה! 🐻', 'Yummy! Thank you! 🐻')],
+  poke: [T('הִי הִי! 😆', 'Hee hee! 😆'), T('בּוּפּ! 👃', 'Boop! 👃'), T('שלום! 👋', 'Hiii! 👋'), T('ווווי! 🌀', 'Wheee! 🌀'), T('הבטן שלי מקרקרת 😋', 'My tummy is rumbling 😋'), T('אתם החברים הכי טובים שלי! 💛', 'You’re my best friend! 💛')],
+  tickle: [T('חחחח! זה מדגדג!! 🤣', 'Hahaha! That tickles!! 🤣'), T('די די! חחח 😂', 'Stop stop! Hahaha 😂')],
+  taste: [T('ממממ! עוד כפית? 😋', 'Mmmm! Another spoon? 😋'), T('מתוק כמו דבש! 🍯', 'Sweet like honey! 🍯'), T('וואו! איזה טעם! 🤩', 'Wow! What a taste! 🤩')],
+  sneak: [T('🤫 רק טעימה קטנה…', '🤫 Just a tiny taste…'), T('אף אחד לא רואה… 👀', 'Nobody’s looking… 👀')],
+  caught: [T('אופס! תפסתם אותי 😅', 'Oops! You caught me 😅'), T('חי חי… רק בדקתי 🙈', 'Hehe… just checking 🙈')],
+  nom: ['😋', '🤤', '😍', '🥰', '🤩'],
+  hungry: [T('אני מת מרעב! מהר! 😫', 'I’m starving! Hurry! 😫'), T('הבטן שלי מקרקרת!! 🐻', 'My tummy is growling!! 🐻'), T('נוווו… מתי אוכלים? 🥺', 'Pleeease… when do we eat? 🥺')],
+  fly: [T('אוי! זבוב! תפסו אותו! 🪰', 'Oh no! A fly! Catch it! 🪰'), T('זבוב על האוכל! הקישו עליו! 🪰', 'A fly on the food! Tap it! 🪰')],
+  flyGot: [T('יש! גיבורים! 🦸', 'Yes! My heroes! 🦸'), T('בום! איזה זריזים! 💪', 'Boom! So quick! 💪')],
   y1: [T('טעים… אבל אפשר עוד יותר טוב 🙂', 'Tasty… but it can be even better 🙂'), T('לא רע! 😌', 'Not bad! 😌')],
 };
 
@@ -150,7 +159,7 @@ function setHat(k) { B.hat.clear(); const h = B.hat; const w = std('#ffffff', { 
   if (k === 'party') { const c = cnv(128, 128), g = c.getContext('2d'); for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#ff5a9a' : '#ffd23a'; g.fillRect(0, i * 16, 128, 16); } const cone = new THREE.Mesh(new THREE.ConeGeometry(.1, .26, 28), std('#ffffff', { map: ctex(c) })); cone.position.y = .12; h.add(cone); const pom = new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 10), std('#3aa8ff')); pom.position.y = .26; h.add(pom); h.rotation.z = .2; }
   shadowAll(h, true, false); }
 setHat(S.hat);
-function bearMood(m, dur = 0) { B.mood = m; B.moodT = dur; const happy = m === 'love' || m === 'yum';
+function bearMood(m, dur = 0) { B.mood = m; B.moodT = dur; const happy = m === 'love' || m === 'yum' || m === 'giggle' || m === 'belly' || m === 'boop';
   B.eyes.forEach(e => e.visible = !happy); B.happyEyes.forEach(e => e.visible = happy); B.tongue.visible = m === 'love'; }
 function bearTick(t, dt) { B.t += dt; const g = B.g, h = B.head; if (B.moodT > 0) { B.moodT -= dt; if (B.moodT <= 0) bearMood('idle'); }
   const m = B.mood; const bob = Math.sin(t * 1.7) * .006;
@@ -161,16 +170,61 @@ function bearTick(t, dt) { B.t += dt; const g = B.g, h = B.head; if (B.moodT > 0
   const jumpy = m === 'love' || m === 'cheer'; B.jump = jumpy ? B.jump + dt : 0; g.position.y = -.02 + bob + (jumpy ? Math.abs(Math.sin(B.jump * 7)) * .09 : 0);
   B.lean = lerp(B.lean, m === 'eat' ? .3 : m === 'watch' ? .12 : 0, dt * 4); g.rotation.x = B.lean; g.position.z = -.88 + B.lean * .4;
   // mouth
-  let mo = 0; if (m === 'eat') { B.chew += dt * 9; mo = Math.max(0, Math.sin(B.chew)) * .9; } else if (m === 'wow' || m === 'cheer' || m === 'love') mo = .8; else if (m === 'hungry') mo = .35 + Math.sin(t * 3) * .1;
+  let mo = 0; if (m === 'eat') { B.chew += dt * 9; mo = Math.max(0, Math.sin(B.chew)) * .9; } else if (m === 'wow' || m === 'cheer' || m === 'love') mo = .8; else if (m === 'hungry') mo = .35 + Math.sin(t * 3) * .1; else if (m === 'giggle') mo = .55 + Math.abs(Math.sin(t * 14)) * .4; else if (m === 'wave' || m === 'boop') mo = .5;
   B.mouth.scale.y = lerp(B.mouth.scale.y, mo, dt * 14); B.mouth.visible = B.mouth.scale.y > .06; B.smile.visible = mo < .2;
   // arms
   B.clap = Math.max(0, B.clap - dt); const cl = B.clap > 0 ? Math.abs(Math.sin(B.clap * 16)) : 0;
   B.arms.forEach((a, i) => { const s = i ? 1 : -1; const up = m === 'love' ? 1 : 0; a.rotation.x = lerp(a.rotation.x, up ? -2.6 : B.clap > 0 ? -1.5 : m === 'eat' ? -1.4 : -1.0, dt * 10); a.rotation.z = lerp(a.rotation.z, up ? s * (.5 + Math.sin(B.jump * 7) * .2) : B.clap > 0 ? -s * (.15 + cl * .35) : s * .25, dt * 12); });
+  if (m === 'wave') { const a = B.arms[1]; a.rotation.x = lerp(a.rotation.x, -2.9, dt * 12); a.rotation.z = lerp(a.rotation.z, .55 + Math.sin(t * 13) * .45, dt * 14); }
+  if (m === 'belly' || m === 'giggle') B.arms.forEach((a, i) => { const s = i ? 1 : -1; a.rotation.x = lerp(a.rotation.x, -.5 + Math.sin(t * 11 + i * 2) * .15, dt * 12); a.rotation.z = lerp(a.rotation.z, -s * .5, dt * 12); });
+  if (m === 'sneak') { const a = B.arms[0]; a.rotation.x = lerp(a.rotation.x, -1.75, dt * 3); a.rotation.z = lerp(a.rotation.z, .05, dt * 3); }
+  g.rotation.z = m === 'giggle' ? Math.sin(t * 30) * .07 : lerp(g.rotation.z, 0, Math.min(1, dt * 8));
+  B.spinT = Math.max(0, (B.spinT || 0) - dt); g.rotation.y = B.spinT > 0 ? ease(1 - B.spinT / .9) * TAU : 0;
+  B.poke = Math.max(0, (B.poke || 0) - dt); const sq = B.poke > 0 ? Math.sin(B.poke / .35 * Math.PI) : 0; g.scale.set(1 + sq * .07, 1 - sq * .09, 1 + sq * .07);
+  B.boopT = Math.max(0, (B.boopT || 0) - dt); const bq = B.boopT > 0 ? Math.sin(B.boopT / .4 * Math.PI) : 0; h.scale.set(1 + bq * .08, 1 - bq * .12, 1 + bq * .05);
   // blink
   const bl = Math.sin(t * 1.1) > .992 || Math.sin(t * .37 + 1) > .995; B.eyes.forEach(e => e.scale.y = bl ? .1 : 1);
-  if (m === 'love' && Math.random() < dt * 5) { const p = h.getWorldPosition(V3()).add(V3(rnd(-.25, .25), .25, .1)); FX.emit(p, V3(rnd(-.15, .15), rnd(.4, .7), 0), rgb(pick(['#ff4a7a', '#ff8ab0'])), .07, 1.4, -.1, 1, .98); } }
+  if ((m === 'love' || m === 'giggle') && Math.random() < dt * 5) { const p = h.getWorldPosition(V3()).add(V3(rnd(-.25, .25), .25, .1)); FX.emit(p, V3(rnd(-.15, .15), rnd(.4, .7), 0), rgb(pick(['#ff4a7a', '#ff8ab0'])), .07, 1.4, -.1, 1, .98); } }
 function bearCheer() { B.clap = .8; bearMood('cheer', .9); A.voice('yay', 1.55); }
-function bearSay(txt, ms = 1800) { const b = $('bub'); b.textContent = txt; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); clearTimeout(bearSay.t); bearSay.t = setTimeout(() => b.classList.remove('on'), ms); }
+function bearSay(txt, ms = 1800) { speak(txt); const b = $('bub'); b.textContent = txt; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); clearTimeout(bearSay.t); bearSay.t = setTimeout(() => b.classList.remove('on'), ms); }
+// bear voice (speech synthesis, offline system voices) – only when a matching-language voice exists
+const VOICE = { v: null, tried: 0 };
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); const code = LANG === 'he' ? ['he', 'iw'] : [LANG]; VOICE.v = vs.find(v => code.some(c => v.lang.toLowerCase().startsWith(c))) || null; } catch (e) { } }
+try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch (e) { }
+function speak(txt) { if (S.mute || S.voice === 0) return; try { if (!VOICE.v) pickVoice(); if (!VOICE.v) return; const u = new SpeechSynthesisUtterance(txt.replace(/[\p{Extended_Pictographic}\u200d\ufe0f]/gu, '').replace(/[()]/g, '').trim()); if (!u.text) return; u.voice = VOICE.v; u.lang = VOICE.v.lang; u.pitch = 1.85; u.rate = 1.12; u.volume = .9; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } }
+// hunger meter – tension! finish quickly before the cub gets too hungry
+const HUN = { v: 1, rate: .01, low: 0, rumble: 0 };
+function hungerUI() { const el = $('hunger'); if (!el) return; const v = HUN.v; el.querySelector('i').style.width = Math.round(v * 100) + '%'; el.classList.toggle('low', v < .3); el.querySelector('span').textContent = v > .6 ? '😋' : v > .3 ? '😟' : v > .05 ? '😫' : '😭'; }
+function hungerTick(dt) { if (!RUN || !cur || cur.k === 'serve') return; HUN.v = Math.max(0, HUN.v - HUN.rate * dt); hungerUI(); HUN.rumble -= dt;
+  if (HUN.v < .3 && HUN.rumble <= 0) { HUN.rumble = 7 + Math.random() * 4; A.noise(.7, 'lowpass', 140, 6, .35); A.noise(.5, 'lowpass', 110, 8, .3, .4); bearMood('wow', 1.2); bearSay(pick(BEARTALK.hungry), 1900); buzz([40, 60, 40]); } }
+// speed combo
+const COMBO = { n: 0 };
+function speedBonus() { if (!cur || !cur.k || cur.k === 'serve') return; if (cur.t < 9 && !cur.fails) { COMBO.n++; const c = Math.min(5, COMBO.n); const coins = c; S.coins += coins; S.save(); coinsUI(); if (COMBO.n >= 2) { big3('⚡x' + c, 700); toast('⚡ ' + T('מהיר!', 'Speedy!') + ' +' + coins + ' 🪙', 1100); A.tone(880 + c * 120, .12, 'square', .05); A.tone(1320 + c * 120, .16, 'square', .05, .08); } } else COMBO.n = 0; }
+// fly surprise – swat it!
+const FLY = { on: false, g: null, t: 0, ph: 0, done: 0 };
+function mkFly() { const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.SphereGeometry(.016, 12, 8), std('#1a1a22', { roughness: .4 })); b.scale.set(1, .8, 1.4); g.add(b); const hd = new THREE.Mesh(new THREE.SphereGeometry(.01, 10, 8), std('#2a1a1a')); hd.position.z = .02; g.add(hd); for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.006, 8, 6), std('#c81a1a', { roughness: .2 })); e.position.set(s * .007, .004, .026); g.add(e); }
+  g.userData.w = [-1, 1].map(s => { const w = new THREE.Mesh(new THREE.CircleGeometry(.02, 12), new THREE.MeshBasicMaterial({ color: '#dff4ff', transparent: true, opacity: .6, side: THREE.DoubleSide, depthWrite: false })); w.scale.set(.6, 1.1, 1); w.position.set(s * .016, .012, -.004); g.add(w); return w; }); g.scale.setScalar(2.4); return g; }
+function flyStart() { if (FLY.on || state !== 'cook' || !cur || cur.k === 'serve' || cur.k === 'taste') return; FLY.on = true; FLY.t = 0; FLY.ph = Math.random() * 6; FLY.g = FLY.g || mkFly(); scene.add(FLY.g); A.loopTone('fly', 'sawtooth', 210, .018); bearSay(pick(BEARTALK.fly), 1800); A.voice('huh', 1.6); setTimeout(() => { if (FLY.on) big3('🪰', 700); }, 200); }
+function flyOff(silent) { if (!FLY.on) return; FLY.on = false; if (FLY.g) scene.remove(FLY.g); A.loopOff('fly'); if (!silent) bearSay(T('פפפ… הזבוב ברח 😤', 'Pfff… the fly got away 😤'), 1500); }
+function flyTick(dt, t) { if (!FLY.on) return; FLY.t += dt; const g = FLY.g, k = FLY.t * 2.4 + FLY.ph; const p = V3(W.x + Math.sin(k) * .24 + Math.sin(k * 2.7) * .06, .2 + Math.sin(k * 1.9) * .07, W.z + Math.cos(k * 1.3) * .18); g.lookAt(p); g.position.lerp(p, Math.min(1, dt * 8)); g.userData.w.forEach((w, i) => w.rotation.y = (i ? 1 : -1) * Math.sin(t * 90) * .9);
+  const l = A.loop('fly'); if (l && l.osc && A.ctx) l.osc.frequency.setTargetAtTime(200 + Math.sin(k * 3) * 40, A.ctx.currentTime, .05); if (FLY.t > 7) flyOff(); }
+function flyHit(e) { if (!FLY.on) return false; const a = toScr(FLY.g.position); if (Math.hypot(a.x - e.clientX, a.y - e.clientY) > Math.max(60, innerWidth * .12)) return false; const p = FLY.g.position.clone(); flyOff(true); A.noise(.12, 'lowpass', 900, 1, .35); big3('💥', 700); FX.burst(p, 14, [rgb('#ffd23a'), rgb('#ffffff')], 1, .02, .5, 1); S.coins += 3; S.save(); coinsUI(); toast('🪰 ' + T('תפסתם את הזבוב! +3 🪙', 'You got the fly! +3 🪙'), 1300); bearCheer(); bearSay(pick(BEARTALK.flyGot), 1500); buzz(30); return true; }
+const POKE = { n: 0, t: 0, last: '' };
+function hitBear(e) { setRay(e); return ray.intersectObject(B.g, true).length > 0; }
+function pokeBear() { const now = performance.now() / 1000; POKE.n = now - POKE.t < 1.1 ? POKE.n + 1 : 1; POKE.t = now; B.poke = .35; buzz(15); if (state === 'cook' && SNEAK.on) { sneakCaught(); return; }
+  const hp = B.head.getWorldPosition(V3());
+  if (POKE.n >= 4) { POKE.n = 0; bearMood('giggle', 2.2); A.voice('yay', 1.95); setTimeout(() => A.voice('yay', 2.1), 350); bearSay(pick(BEARTALK.tickle), 1700); FX.burst(hp.clone().add(V3(0, .1, .2)), 26, [rgb('#ff4a7a'), rgb('#ffd23a'), rgb('#ff8ab0')], 1.6, .04, 1.2, 2); return; }
+  let r; do r = pick(['wave', 'spin', 'belly', 'boop', 'jump', 'giggle']); while (r === POKE.last); POKE.last = r; const L = BEARTALK.poke;
+  if (r === 'wave') { bearMood('wave', 1.4); A.voice('yay', 1.7); bearSay(L[2], 1200); }
+  else if (r === 'spin') { B.spinT = .9; bearMood('cheer', .9); A.voice('wow', 1.9); bearSay(L[3], 1100); SFX.pop(); }
+  else if (r === 'belly') { bearMood('belly', 1.6); A.voice('hm', 1.3); bearSay(L[4], 1500); }
+  else if (r === 'boop') { B.boopT = .4; bearMood('boop', .9); A.tone(1200, .08, 'sine', .08, 0, 600); bearSay(L[1], 1000); }
+  else if (r === 'jump') { bearCheer(); bearSay(L[5], 1400); FX.burst(hp.clone().add(V3(0, .3, .1)), 14, [rgb('#ffd23a'), rgb('#ffffff')], 1.2, .03, .8, 2); }
+  else { bearMood('giggle', 1.1); A.voice('yay', 1.9); bearSay(L[0], 1100); } }
+const SNEAK = { on: false, t: 0, done: false };
+function sneakStart() { if (SNEAK.done || state !== 'cook' || !cur || cur.k === 'serve') return; SNEAK.done = true; SNEAK.on = true; SNEAK.t = 3.2; bearMood('sneak', 3.2); bearSay(pick(BEARTALK.sneak), 2600); A.voice('hm', 1.8); setTimeout(() => { if (SNEAK.on) big3('👀', 900); }, 300); }
+function sneakTick(dt) { if (!SNEAK.on) return; SNEAK.t -= dt; if (SNEAK.t <= 0) { SNEAK.on = false; bearMood('yum', 1.4); SFX.chomp(); bearSay(T('ממממ… הוא הצליח לטעום! 😋', 'Mmmm… he sneaked a taste! 😋'), 1800); } }
+function sneakCaught() { SNEAK.on = false; bearMood('giggle', 1.4); A.voice('yay', 1.8); bearSay(pick(BEARTALK.caught), 1800); big3('🙈', 900); S.coins += 2; S.save(); coinsUI(); SFX.pop(); }
 function placeBub() { const b = $('bub'); if (!b.classList.contains('on')) return; const p = B.head.getWorldPosition(V3()).add(V3(0, .38, 0)).project(camera); b.style.left = clamp((p.x * .5 + .5) * innerWidth, 90, innerWidth - 90) + 'px'; b.style.top = Math.max(b.offsetHeight + 64, (-p.y * .5 + .5) * innerHeight) + 'px'; }
 
 /* ================= props ================= */
@@ -238,23 +292,32 @@ function bunHalf(top) { const g = new THREE.Group(); const crust = phys('#c8782a
   else { const b = new THREE.Mesh(new THREE.CylinderGeometry(.15, .14, .04, 40), [crust, crumb, crust]); b.position.y = .02; g.add(b); }
   return shadowAll(g); }
 function toastMesh() { const g = new THREE.Group(); const crust = std('#b8742a', { roughness: .7 }), top = phys('#e8b868', { map: MOTTLE, roughness: .8 }); const s = new THREE.Mesh(new RoundedBoxGeometry(.2, .028, .21, 4, .012), [crust, crust, top, crust, crust, crust]); g.add(s); return shadowAll(g); }
+const PEPT = (() => { const c = cnv(128, 128), g = c.getContext('2d'); const gr = g.createRadialGradient(64, 60, 10, 64, 64, 64); gr.addColorStop(0, '#b0281a'); gr.addColorStop(.75, '#8a1a0c'); gr.addColorStop(.92, '#5a0e04'); gr.addColorStop(1, '#3a0802'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); for (let i = 0; i < 26; i++) { g.fillStyle = Math.random() < .6 ? 'rgba(255,214,190,.75)' : 'rgba(90,10,4,.55)'; g.beginPath(); g.arc(rnd(14, 114), rnd(14, 114), rnd(2, 5), 0, TAU); g.fill(); } return ctex(c); })();
+function pepperoni() { const r = rnd(.04, .046); const pts = [V3(0, .0005), V3(r * .85, .0005), V3(r, .002), V3(r * 1.01, .0045), V3(r * .9, .0062), V3(0, .0048)].map(v => new THREE.Vector2(v.x, v.y)); const geo = new THREE.LatheGeometry(pts, 26); const m = new THREE.Mesh(geo, phys('#ffffff', { map: PEPT, roughness: .38, clearcoat: .6 })); const top = new THREE.Mesh(new THREE.CircleGeometry(r * .93, 26), m.material); top.rotation.x = -Math.PI / 2; top.position.y = .0049; m.add(top); m.rotation.y = rnd(0, 6); return shadowAll(m); }
 function pizzaBase() { const g = new THREE.Group(); const dough = phys('#f2dcaa', { map: MOTTLE, roughness: .8 }); const d = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, .016, 72), dough); d.position.y = .008; g.add(d);
   const crust = new THREE.Mesh(new THREE.TorusGeometry(.275, .022, 14, 80), phys('#f0d090', { roughness: .7, map: MOTTLE })); crust.rotation.x = Math.PI / 2; crust.position.y = .018; crust.scale.z = .8; g.add(crust); g.userData.crust = crust; g.userData.dough = dough; return shadowAll(g); }
 function bunDog() { const g = new THREE.Group(); const crust = phys('#d8904a', { roughness: .5, clearcoat: .3 }); for (const s of [-1, 1]) { const h = new THREE.Mesh(new THREE.CapsuleGeometry(.04, .24, 8, 20), crust); h.rotation.z = Math.PI / 2; h.scale.set(1, .85, .75); h.position.set(0, .035, s * .034); g.add(h); }
   const inner = new THREE.Mesh(new THREE.BoxGeometry(.26, .01, .05), std('#f6deb0')); inner.position.y = .025; g.add(inner); return shadowAll(g); }
 
 /* ================= paint overlay ================= */
-function paintLayer(w, h, round, col, opt = {}) { const c = cnv(256, Math.round(256 * h / w)); const tex = ctex(c); const mat = (opt.gloss ? phys : std)('#ffffff', Object.assign({ map: tex, transparent: true, roughness: opt.gloss ? .08 : .5, clearcoat: opt.gloss ? 1 : 0, depthWrite: false, alphaTest: .02 }, {}));
+function paintLayer(w, h, round, col, opt = {}) { const c = cnv(256, Math.round(256 * h / w)); const tex = ctex(c); const mat = (opt.gloss ? phys : std)('#ffffff', Object.assign({ map: tex, transparent: true, roughness: opt.gloss ? .06 : .5, clearcoat: opt.gloss ? 1 : 0, depthWrite: false, alphaTest: .02 }, opt.look === 'honey' ? { clearcoatRoughness: .03, emissive: C('#8a4a00'), emissiveIntensity: .45, opacity: .98 } : {}));
   const geo = round ? new THREE.CircleGeometry(w / 2, 64) : new THREE.PlaneGeometry(w, h); const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.renderOrder = 2; m.receiveShadow = true;
   const P = { m, c, tex, w, h, round, col, cells: new Set(), total: 0, N: 16 };
   for (let i = 0; i < P.N; i++) for (let j = 0; j < P.N; j++) { const u = (i + .5) / P.N - .5, v = (j + .5) / P.N - .5; if (!round || Math.hypot(u, v) < .44) P.total++; }
   P.paint = (lx, lz, rad) => { const g = c.getContext('2d'); const u = lx / w + .5, v = lz / h + .5; if (round && Math.hypot(u - .5, v - .5) > .5) return; const px = u * c.width, py = v * c.height, rp = rad / w * c.width;
-    const gr = g.createRadialGradient(px, py, 0, px, py, rp); const cc = C(col); const s = `${cc.r * 255 | 0},${cc.g * 255 | 0},${cc.b * 255 | 0}`; gr.addColorStop(0, `rgba(${s},1)`); gr.addColorStop(.7, `rgba(${s},.95)`); gr.addColorStop(1, `rgba(${s},0)`);
-    g.fillStyle = gr; g.beginPath(); g.arc(px, py, rp, 0, TAU); g.fill(); if (opt.spots) { g.fillStyle = opt.spots; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(px + rnd(-rp, rp) * .7, py + rnd(-rp, rp) * .7, rnd(1, 3), 0, TAU); g.fill(); } }
+    let gr = g.createRadialGradient(px, py, 0, px, py, rp); const cc = C(col); const s = `${cc.r * 255 | 0},${cc.g * 255 | 0},${cc.b * 255 | 0}`; gr.addColorStop(0, `rgba(${s},1)`); gr.addColorStop(.7, `rgba(${s},.95)`); gr.addColorStop(1, `rgba(${s},0)`);
+    if (opt.look === 'honey') { gr = g.createRadialGradient(px - rp * .2, py - rp * .25, 0, px, py, rp); gr.addColorStop(0, 'rgba(255,236,140,.97)'); gr.addColorStop(.5, 'rgba(255,190,40,.95)'); gr.addColorStop(.82, 'rgba(226,128,8,.92)'); gr.addColorStop(.93, 'rgba(150,70,0,.75)'); gr.addColorStop(1, 'rgba(120,50,0,0)'); }
+    if (opt.look === 'sauce') { gr = g.createRadialGradient(px, py, 0, px, py, rp); gr.addColorStop(0, 'rgba(168,22,10,1)'); gr.addColorStop(.75, 'rgba(150,18,8,.97)'); gr.addColorStop(1, 'rgba(130,14,6,0)'); }
+    g.fillStyle = gr; g.beginPath(); g.arc(px, py, rp, 0, TAU); g.fill();
+    if (opt.look === 'honey' && Math.random() < .5) { g.fillStyle = 'rgba(255,255,240,.75)'; g.beginPath(); g.ellipse(px - rp * .3, py - rp * .3, rp * .22, rp * .1, -.6, 0, TAU); g.fill(); }
+    if (opt.look === 'sauce') { for (let i = 0; i < 4; i++) { g.fillStyle = pick(['rgba(96,8,2,.6)', 'rgba(214,60,30,.5)', 'rgba(120,14,6,.55)']); g.beginPath(); g.arc(px + rnd(-rp, rp) * .75, py + rnd(-rp, rp) * .75, rnd(1.5, 4.5), 0, TAU); g.fill(); } if (Math.random() < .5) { g.fillStyle = 'rgba(60,110,40,.85)'; g.fillRect(px + rnd(-rp, rp) * .7, py + rnd(-rp, rp) * .7, 2, 1.5); } }
+    if (opt.spots) { g.fillStyle = opt.spots; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(px + rnd(-rp, rp) * .7, py + rnd(-rp, rp) * .7, rnd(1, 3), 0, TAU); g.fill(); } }
     if (round) { g.globalCompositeOperation = 'destination-in'; g.fillStyle = '#000'; g.beginPath(); g.arc(c.width / 2, c.height / 2, c.width * .47, 0, TAU); g.fill(); g.globalCompositeOperation = 'source-over'; }
     tex.needsUpdate = true; const rr = rad / w * P.N;
     for (let i = 0; i < P.N; i++) for (let j = 0; j < P.N; j++) { const cu = (i + .5) / P.N, cv = (j + .5) / P.N; if (round && Math.hypot(cu - .5, cv - .5) >= .44) continue; if (Math.hypot((cu - u) * P.N, (cv - v) * P.N * h / w) < rr * .9) P.cells.add(i * 99 + j); } };
-  P.cov = () => P.cells.size / P.total; return P; }
+  P.cov = () => P.cells.size / P.total;
+  P.fill = (rad, dur = .55) => { const pts = []; const st = rad * .7; for (let x = -w / 2; x <= w / 2; x += st) for (let z = -h / 2; z <= h / 2; z += st) if (!round || Math.hypot(x, z) < w * .47) pts.push([x, z]); pts.sort((a, b) => Math.hypot(...a) - Math.hypot(...b)); let k = 0; tween(dur, q => { const n = Math.floor(q * pts.length); for (; k < n; k++) P.paint(pts[k][0], pts[k][1], rad); }); };
+  return P; }
 
 /* ================= camera ================= */
 const CAM = { t: V3(0, .2, -.4), p: V3(0, 2, 2), t0: V3(), p0: V3(), k: 1, dur: .9, orbit: 0 };
@@ -318,11 +381,11 @@ function big3(t, ms = 900) { const b = $('big3'); b.textContent = t; b.classList
 let RUN = null; // {rec, steps, i, q:[], R:{}}
 let cur = null, ptr = null;
 function oops(txt, emo = '😱') { SFX.oops(); buzz([30, 40, 30]); big3(emo, 1000); bearMood('wow', 1.3); A.voice('hm', 1.4); bearSay(txt, 2400); if (cur) cur.fails = (cur.fails || 0) + 1; }
-function done(q = 1) { if (!cur || cur.fin) return; cur.fin = true; if (q != null) RUN.q.push(cur.fails ? Math.min(q, .8) : q); setGuide(null); SFX.step(); bearCheer(); if (Math.random() < .55) bearSay(pick(BEARTALK.step), 1300);
+function done(q = 1) { if (!cur || cur.fin) return; speedBonus(); HUN.v = Math.min(1, HUN.v + .07); hungerUI(); cur.fin = true; if (q != null) RUN.q.push(cur.fails ? Math.min(q, .8) : q); setGuide(null); SFX.step(); bearCheer(); if (Math.random() < .55) bearSay(pick(BEARTALK.step), 1300);
   FX.burst(W.clone().add(V3(0, .15, 0)), 18, [rgb('#ffd23a'), rgb('#ffffff'), rgb('#ff9a5a')], 1.3, .035, .7, 5); buzz(20);
   setTimeout(nextStep, cur.delay || 750); }
 function nextStep() { if (cur && cur.end) cur.end(); RUN.i++; if (RUN.i >= RUN.steps.length) return; startStep(); }
-function startStep() { cur = Object.assign({ fin: false, t: 0 }, RUN.steps[RUN.i]()); dotsUI(); cur.start && cur.start(); if (cur.view) setView(cur.view, .8); else if (curView !== 'work') setView('work', .8); B.look.copy(W); }
+function startStep() { if (RUN.i === RUN.sneakAt) setTimeout(sneakStart, 1400); if (RUN.flyAt.includes(RUN.i)) setTimeout(flyStart, 2200 + Math.random() * 1500); cur = Object.assign({ fin: false, t: 0 }, RUN.steps[RUN.i]()); dotsUI(); cur.start && cur.start(); if (cur.view) setView(cur.view, .8); else if (curView !== 'work') setView('work', .8); B.look.copy(W); }
 
 // --- crack an egg ---
 function stCrack(into) { let egg, taps = 0, anim = 0, halves = [], target, t1 = 0; const shells = []; return { k: 'crack',
@@ -464,9 +527,9 @@ function stSlice(food, n) { const P = FOOD[food]; const segs = []; const junk = 
 
 // --- paint (sauce / honey / butter / ketchup) ---
 const PAINTS = {
-  honey: { e: '🍯', col: '#e8a020', gloss: true, txt: T('מרחו דבש על הפנקייק', 'Drizzle honey over the pancakes'), tool: 'dipper', rad: .028 },
-  sauce: { e: '🍅', col: '#c22a16', spots: 'rgba(120,20,10,.5)', txt: T('מרחו רוטב עגבניות על הבצק', 'Spread tomato sauce on the dough'), tool: 'ladle', rad: .045 },
-  butter: { e: '🧈', col: '#ffe680', gloss: true, txt: T('מרחו חמאה על הטוסט', 'Spread butter on the toast'), tool: 'knife', rad: .035 },
+  honey: { e: '🍯', col: '#e8a020', gloss: true, look: 'honey', txt: T('מרחו דבש על הפנקייק', 'Drizzle honey over the pancakes'), tool: 'dipper', rad: .028 },
+  sauce: { e: '🍅', col: '#c22a16', look: 'sauce', fill: true, txt: T('מרחו רוטב עגבניות על כל הבצק', 'Spread tomato sauce all over the dough'), tool: 'ladle', rad: .06, need: .72 },
+  butter: { e: '🧈', col: '#ffe680', gloss: true, fill: true, txt: T('מרחו חמאה על הטוסט', 'Spread butter on the toast'), tool: 'knife', rad: .035 },
   ketchup: { e: '🥫', col: '#c8140a', gloss: true, txt: T('ציירו קטשופ על הנקניקייה', 'Draw ketchup on the hot dog'), tool: 'bottle', rad: .017, need: .55 },
   mustard: { e: '🟡', col: '#f2c214', gloss: true, txt: T('ועכשיו חרדל!', 'Now mustard!'), tool: 'bottle', rad: .015, need: .45 },
 };
@@ -475,15 +538,16 @@ function toolMesh(kind, col) { const g = new THREE.Group(); if (kind === 'dipper
   else if (kind === 'knife') { const bl = new THREE.Mesh(new RoundedBoxGeometry(.03, .004, .12, 2, .002), phys('#dfe4ea', { metalness: 1, roughness: .2 })); bl.position.y = .01; g.add(bl); const h = new THREE.Mesh(new THREE.CylinderGeometry(.01, .01, .1, 8), std('#3a7ad8')); h.rotation.x = Math.PI / 2; h.position.set(0, .02, .11); g.add(h); g.rotation.x = -.3; }
   else { const b = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .14, 20), phys(col, { roughness: .2, clearcoat: .6 })); b.position.y = .13; g.add(b); const n = new THREE.Mesh(new THREE.ConeGeometry(.012, .05, 12), b.material); n.rotation.x = Math.PI; n.position.y = .04; g.add(n); }
   return shadowAll(g); }
+function honeyDrips(T2) { const m = phys('#ffb21a', { roughness: .05, clearcoat: 1, emissive: C('#8a4a00'), emissiveIntensity: .45, transparent: true, opacity: .95 }); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + rnd(-.3, .3), r = T2.w / 2 * .97, L = rnd(.02, .045); const d = new THREE.Mesh(new THREE.CapsuleGeometry(.009, L, 4, 10), m); d.position.set(T2.pos.x + Math.cos(a) * r, T2.pos.y - L / 2, T2.pos.z + Math.sin(a) * r); d.scale.y = .01; T2.parent.add(d); tween(.6 + i * .1, q => d.scale.y = Math.max(.01, q), null, .1); } }
 function stPaint(kind, tgt) { const P = PAINTS[kind]; let layer, tool, last = null, stream; return { k: 'paint',
   start() { const R = RUN.R; const T2 = R.surf[tgt]; if (R.dish.parent !== ST) { newStation(); ST.add(R.dish); R.dish.position.copy(W); }
-    layer = paintLayer(T2.w, T2.h, T2.round, P.col, { gloss: P.gloss, spots: P.spots }); layer.m.position.copy(T2.pos); T2.parent.add(layer.m); (R.layers = R.layers || []).push(layer);
+    layer = paintLayer(T2.w, T2.h, T2.round, P.col, { gloss: P.gloss, spots: P.spots, look: P.look }); cur.layer = layer; layer.m.position.copy(T2.pos); T2.parent.add(layer.m); (R.layers = R.layers || []).push(layer);
     tool = toolMesh(P.tool, P.col); tool.position.set(W.x + .25, .25, W.z + .1); ST.add(tool); stream = new THREE.Mesh(new THREE.CylinderGeometry(.004, .004, 1, 6), phys(P.col, { roughness: .1, clearcoat: 1 })); stream.visible = false; ST.add(stream);
     cur.T2 = T2; showPanel(inst(P.e, P.txt) + meterHTML([P.need || .8, 1], P.e, false, '') + `<div class="pbtns"><button class="btn" id="doneB" style="visibility:hidden">${T('✔ מספיק', '✔ Enough')}</button></div>`); setMeter(0);
-    $('doneB').onclick = () => { if (layer.cov() > (P.need || .8) * .6) done(clamp(layer.cov() / (P.need || .8), .4, 1)); };
+    $('doneB').onclick = () => { if (layer.cov() > (P.need || .8) * .6) { if (P.fill) layer.fill(P.rad); done(clamp(layer.cov() / (P.need || .8), .4, 1)); } };
     setGuide('drag', () => T2.parent.localToWorld(T2.pos.clone()).add(V3(0, .05, 0))); },
   update(dt, t) { if (!ptr) { tool.position.y = lerp(tool.position.y, .25, dt * 5); stream.visible = false; } const c = layer.cov(); setMeter(c / (P.need || .8)); const b = $('doneB'); if (b) b.style.visibility = c > (P.need || .8) * .6 ? 'visible' : 'hidden';
-    if (!cur.fin && c >= (P.need || .8)) done(1); },
+    if (!cur.fin && c >= (P.need || .8)) { if (P.fill) layer.fill(P.rad); if (P.look === 'honey') honeyDrips(cur.T2); done(1); } },
   down(e) { if (cur.fin) return; A.ac(); setGuide(null); last = null; this.move(e); },
   move(e) { if (cur.fin || !ptr) return; const T2 = cur.T2; const wp = T2.parent.localToWorld(T2.pos.clone()); const p = onPlane(e, wp.y); if (!p) return;
     tool.position.set(p.x - ST.position.x, wp.y + (P.tool === 'bottle' ? .03 : P.tool === 'dipper' ? .08 : .005), p.z); if (P.tool === 'bottle') tool.rotation.set(0, 0, 0);
@@ -498,8 +562,9 @@ const SPR = {
   cheese: { e: '🧀', txt: T('פזרו גבינה על כל הפיצה', 'Sprinkle cheese all over the pizza'), need: 90, drag: true, make() { const m = new THREE.Mesh(new THREE.CapsuleGeometry(.004, .03, 3, 6), phys('#ffe9a0', { roughness: .4 })); return m; }, rot: true },
   berries: { e: '🫐', txt: T('הקישו כדי לשים פירות יער', 'Tap to add berries'), need: 8, make() { const blue = Math.random() < .6; const m = new THREE.Mesh(new THREE.SphereGeometry(blue ? .016 : .02, 16, 12), phys(blue ? '#2a3870' : '#d8203e', { roughness: blue ? .45 : .5, sheen: blue ? .6 : .2, sheenColor: C('#a0b0e0'), clearcoat: blue ? 0 : .3 })); return shadowAll(m); } },
   herbs: { e: '🌿', txt: T('פזרו תבלינים ירוקים', 'Sprinkle some herbs'), need: 40, drag: true, make() { return new THREE.Mesh(new THREE.BoxGeometry(.008, .002, .005), std(pick(['#3a8a2a', '#5aa83a', '#2a6a1c']))); }, rot: true },
-  sausage: { e: '🌭', txt: T('הקישו על הפיצה כדי לשים פרוסות נקניק', 'Tap the pizza to place sausage slices'), need: 7, make() { const m = sliceMesh('sausage', .03, .008); return m; } },
-  olive: { e: '🫒', txt: T('הקישו על הפיצה כדי לשים זיתים', 'Tap the pizza to place olives'), need: 8, flat: true, lift: .006, make() { const m = new THREE.Mesh(new THREE.TorusGeometry(.014, .0068, 10, 22), phys('#2c2822', { roughness: .22, clearcoat: .9 })); m.userData.noBake = true; return shadowAll(m); } },
+  sausage: { e: '🍕', txt: T('הקישו על הפיצה כדי לשים פפרוני', 'Tap the pizza to place pepperoni'), need: 7, lift: .002, make() { return pepperoni(); } },
+  golive: { e: '🫒', txt: T('ועכשיו זיתים ירוקים!', 'Now green olives!'), need: 8, flat: true, lift: .006, make() { const m = new THREE.Mesh(new THREE.TorusGeometry(.016, .0075, 10, 22), phys('#7a9a2a', { roughness: .25, clearcoat: .9 })); const pim = new THREE.Mesh(new THREE.CircleGeometry(.009, 14), std('#d8401a', { roughness: .5 })); pim.position.z = -.001; pim.rotation.x = Math.PI; m.add(pim); m.userData.noBake = true; return shadowAll(m); } },
+  olive: { e: '🫒', txt: T('הקישו על הפיצה כדי לשים זיתים שחורים', 'Tap the pizza to place black olives'), need: 8, flat: true, lift: .006, make() { const m = new THREE.Mesh(new THREE.TorusGeometry(.014, .0068, 10, 22), phys('#2c2822', { roughness: .22, clearcoat: .9 })); m.userData.noBake = true; return shadowAll(m); } },
   onion: { e: '🧅', txt: T('פזרו בצל מטוגן', 'Sprinkle crispy onions'), need: 30, drag: true, make() { const m = new THREE.Mesh(new THREE.TorusGeometry(.008, .003, 4, 10, 4), std('#d8902a', { roughness: .6 })); return m; }, rot: true },
 };
 function stSprinkle(kind, tgt) { const P = SPR[kind]; let cnt = 0, acc = 0, falls = [], last = 0; const cells = new Set(); return { k: P.drag ? 'drag' : 'tap',
@@ -598,15 +663,51 @@ function stCut(n = 2) { let k = 0, a0 = null, wheel, anim = null; const angs = [
     const line = new THREE.Mesh(new THREE.BoxGeometry(.54, .004, .006), std('#5a2a10', { roughness: .8 })); line.rotation.y = -ang; RUN.R.dish.add(line); anim = { a: pa, b: pb, t: 0, ang, line }; RUN.R.cuts = (RUN.R.cuts || 0) + 1; a0 = null; } }; }
 
 // --- serve to the bear ---
-function stServe() { let t = 0, ph = 0, chomps = 0; return { k: 'serve', view: 'serve',
-  start() { const R = RUN.R; panel.hidden = true; setGuide(null); if (R.dish.parent !== ST) { newStation(); ST.add(R.dish); R.dish.position.copy(W); } scene.attach(R.dish); cur.from = R.dish.position.clone(); cur.to = V3(0, 0, -.36); bearMood('hungry'); B.look.copy(R.dish.position); bearSay(T('זה בשבילי?! 🤩', 'Is that for me?! 🤩'), 1500); A.voice('wow', 1.6); },
-  update(dt) { const R = RUN.R; t += dt; const d = R.dish; if (ph === 0) { const k = ease(Math.min(1, t / 1.1)); d.position.lerpVectors(cur.from, cur.to, k); d.position.y = Math.sin(k * Math.PI) * .05; B.look.copy(d.position); if (k >= 1) { ph = 1; t = 0; bearMood('eat'); } }
-    else if (ph === 1) { const nC = Math.floor(t / .42); if (nC > chomps) { chomps = nC; SFX.chomp(); FX.burst(B.head.getWorldPosition(V3()).add(V3(0, -.12, .32)), 6, [rgb('#e8b868'), rgb('#ffffff'), rgb('#c8782a')], .7, .02, .6, 4); d.children.forEach(c => { if (c.userData.plate) return; c.scale.multiplyScalar(.86); }); }
-      if (t > 2.6) { ph = 2; t = 0; const q = RUN.q.length ? RUN.q.reduce((a, b) => a + b, 0) / RUN.q.length : 1; cur.stars = q > .9 ? 3 : q > .72 ? 2 : 1; const st = cur.stars; d.children.forEach(c => { if (!c.userData.plate) c.visible = false; });
-        if (st === 3) { bearMood('love', 3.2); SFX.win(); A.voice('yay', 1.6); bearSay(pick(BEARTALK.y3), 2600); FX.burst(B.head.getWorldPosition(V3()).add(V3(0, .1, .2)), 40, [rgb('#ff4a7a'), rgb('#ffd23a'), rgb('#ff8ab0')], 2.2, .05, 1.5, 2.5); flash(.35); }
+// ---------- bite marks: food materials discard fragments inside "bite" circles (world xz) ----------
+const BITE = { uB: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 0, 0)) }, uN: { value: 0 }, uC: { value: C('#f0d2a0') } };
+function biteMat(m) { if (!m || m.userData.bite) return; m.userData.bite = 1; m.side = THREE.DoubleSide; const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r); sh.uniforms.uB = BITE.uB; sh.uniforms.uN = BITE.uN; sh.uniforms.uC = BITE.uC;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vBw;').replace('#include <project_vertex>', '#include <project_vertex>\nvBw = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vBw; uniform vec4 uB[8]; uniform int uN; uniform vec3 uC;')
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nfloat bE = 1e3; for (int i = 0; i < 8; i++) { if (i >= uN) break; bE = min(bE, length(vBw.xz - uB[i].xy) - uB[i].z); } if (bE < 0.) discard;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\nif (!gl_FrontFacing) diffuseColor.rgb = uC; else if (bE < .006) diffuseColor.rgb *= .78;'); };
+  m.customProgramCacheKey = () => 'bite' + (prev ? 'p' : ''); m.needsUpdate = true; }
+function stServe() { let t = 0, ph = 0, bites = 0, idle = 0, foods = [], per = 1, shader = true, bc = V3(), Rf = .15; const NEED = 7;
+  const PAT = [[-20, 1, .5], [-160, 1, .5], [25, .95, .48], [155, .95, .48], [-90, .7, .55], [80, .55, .55], [0, 0, 1.8]];
+  return { k: 'serve', view: 'serve',
+  start() { const R = RUN.R; SNEAK.on = false; flyOff(true); panel.hidden = true; setGuide(null); BITE.uN.value = 0; if (R.dish.parent !== ST) { newStation(); ST.add(R.dish); R.dish.position.copy(W); } scene.attach(R.dish); cur.from = R.dish.position.clone(); cur.to = V3(0, 0, -.36); bearMood('hungry'); B.look.copy(R.dish.position); bearSay(T('זה בשבילי?! 🤩', 'Is that for me?! 🤩'), 1500); A.voice('wow', 1.6);
+    const d = R.dish; shader = !(R.bowl && R.bowl.pieces && R.dish === R.bowl.g); foods = shader ? d.children.filter(c => !c.userData.plate) : [...R.bowl.pieces.children];
+    if (shader) { BITE.uC.value.set(RUN.rec.id === 'pizza' ? '#f2d8a4' : RUN.rec.id === 'burger' ? '#f6dcae' : RUN.rec.id === 'hotdog' ? '#f0c890' : '#f2d496'); foods.forEach(f => f.traverse(o => { if (o.isMesh) { o.castShadow = false; (Array.isArray(o.material) ? o.material : [o.material]).forEach(biteMat); } })); }
+    else { foods.forEach(f => { f.updateMatrixWorld(); f.userData.wy = f.getWorldPosition(V3()).y; }); foods.sort((a, b) => b.userData.wy - a.userData.wy); per = Math.max(1, Math.ceil(foods.length / NEED)); } },
+  measure() { const bb = new THREE.Box3(); foods.forEach(f => bb.expandByObject(f)); if (bb.isEmpty()) { bc.copy(RUN.R.dish.position); Rf = .12; return; } bb.getCenter(bc); Rf = Math.max(.05, Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2); },
+  bite() { if (ph !== 1 || cur.biting > 0) return; cur.biting = .3; idle = 0; const k = bites++; SFX.chomp(); setTimeout(() => SFX.chomp(), 140); buzz(18); bearMood('eat', .55); A.voice('hm', 1.6 + Math.random() * .4);
+    const mp = B.head.getWorldPosition(V3()).add(V3(0, -.12, .32)); big3(BEARTALK.nom[bites % BEARTALK.nom.length], 520);
+    if (shader) { const [ang, dd, rr] = PAT[Math.min(k, PAT.length - 1)]; const a = ang * Math.PI / 180, cx = bc.x + Math.cos(a) * Rf * dd, cz = bc.z + Math.sin(a) * Rf * dd, rad = Rf * rr; const v = BITE.uB.value[Math.min(k, 7)]; v.set(cx, cz, 0, 0); BITE.uN.value = Math.min(8, k + 1); tween(.12, q => v.z = rad * q);
+      const bp = V3(cx, bc.y + .03, cz); FX.burst(bp, 12, [rgb('#' + BITE.uC.value.getHexString()), rgb('#c8782a'), rgb('#ffffff')], .7, .02, .6, 3);
+      const ch = new THREE.Mesh(new THREE.DodecahedronGeometry(Math.min(.05, rad * .45), 0), std('#' + BITE.uC.value.getHexString(), { roughness: .8 })); ch.position.copy(bp); scene.add(ch); tween(.28, q => { ch.position.lerpVectors(bp, mp, q); ch.position.y += Math.sin(q * Math.PI) * .07; ch.scale.setScalar(1 - q * .7); }, () => scene.remove(ch)); }
+    else { FX.burst(mp, 10, [rgb('#e8b868'), rgb('#ffffff'), rgb('#7ac84a')], .9, .022, .7, 4); const left = foods.filter(f => f.visible && !f.userData.going); for (let j = 0; j < per && left.length > 1; j++) { const f = left.shift(); f.userData.going = 1; scene.attach(f); const s0 = f.scale.clone(), p0 = f.position.clone(); tween(.3, q => { f.position.lerpVectors(p0, mp, q * q); f.position.y += Math.sin(q * Math.PI) * .08; f.scale.copy(s0).multiplyScalar(Math.max(.001, 1 - q * .8)); }, () => { f.visible = false; }); } }
+    if (bites === 3) bearSay(T('נום נום נום! 😋', 'Nom nom nom! 😋'), 1100);
+    if (bites >= NEED) { setTimeout(() => { if (!shader) foods.forEach(f => f.visible = false); }, 300); ph = 2; t = 0; setGuide(null); panel.hidden = true; const q = RUN.q.length ? RUN.q.reduce((a, b) => a + b, 0) / RUN.q.length : 1; cur.stars = q > .9 ? 3 : q > .72 ? 2 : 1; const st = cur.stars;
+      setTimeout(() => { bearMood('belly', 1.2); bearSay(T('אחח… איזה שבע! 🤤', 'Ahh… so full! 🤤'), 1200); A.voice('hm', 1.2); }, 450);
+      setTimeout(() => { if (st === 3) { bearMood('love', 3.2); SFX.win(); A.voice('yay', 1.6); bearSay(pick(BEARTALK.y3), 2600); FX.burst(B.head.getWorldPosition(V3()).add(V3(0, .1, .2)), 40, [rgb('#ff4a7a'), rgb('#ffd23a'), rgb('#ff8ab0')], 2.2, .05, 1.5, 2.5); flash(.35); }
         else if (st === 2) { bearMood('yum', 2.6); A.voice('yay', 1.5); bearSay(pick(BEARTALK.y2), 2400); }
-        else { bearMood('idle'); A.voice('hm', 1.5); bearSay(pick(BEARTALK.y1), 2400); } } }
-    else if (ph === 2 && t > 2.4 && !cur.fin) { cur.fin = true; showResult(cur.stars); } } }; }
+        else { bearMood('idle'); A.voice('hm', 1.5); bearSay(pick(BEARTALK.y1), 2400); } }, 1700); } },
+  down() { cur.bite(); },
+  update(dt) { const R = RUN.R; t += dt; cur.biting = Math.max(0, (cur.biting || 0) - dt); const d = R.dish; if (ph === 0) { const k = ease(Math.min(1, t / 1.1)); d.position.lerpVectors(cur.from, cur.to, k); d.position.y = Math.sin(k * Math.PI) * .05; B.look.copy(d.position); if (k >= 1) { ph = 1; t = 0; d.updateMatrixWorld(true); cur.measure(); bearMood('hungry'); showPanel(inst('🍴', T('הקישו כדי להאכיל את הדובי – ביס אחרי ביס!', 'Tap to feed the cub – bite after bite!'))); setGuide('tap', () => B.head.getWorldPosition(V3()).add(V3(.3, .05, .2))); } }
+    else if (ph === 1) { B.look.copy(d.position); idle += dt; if (B.mood === 'idle') bearMood('hungry'); if (idle > 4.5) cur.bite(); }
+    else if (ph === 2 && t > 4.2 && !cur.fin) { cur.fin = true; showResult(cur.stars); } } }; }
+
+// --- give the cub a taste: drag the spoon to his mouth ---
+function stTaste(col = '#f2d9a4') { let sp, blob, drag = false, ok = false, t0 = 0; const mouth = () => B.head.localToWorld(V3(0, -.12, .34)); return { k: 'taste',
+  start() { sp = mkSpoon(false); blob = new THREE.Mesh(new THREE.SphereGeometry(.03, 14, 10), phys(col, { roughness: .3, clearcoat: .6 })); blob.scale.set(1, .4, 1.3); blob.position.y = .03; sp.add(blob); cur.blob = blob; sp.position.set(W.x + .12, .09, W.z + .05); scene.add(sp); cur.sp = sp;
+    showPanel(inst('🥄', T('הקישו על הכפית – והדובי יטעם!', 'Tap the spoon – and the cub gets a taste!'))); setGuide('tap', () => sp.getWorldPosition(V3())); bearMood('hungry'); bearSay(T('אפשר לטעום? 🥺', 'Can I taste? 🥺'), 1500); },
+  down(e) { if (ok) return; cur.eat(); },
+  move(e) { if (!drag || ok) return; const p = onPlane(e, .34); if (!p) return; p.z = Math.max(p.z, -.62); sp.position.lerp(p, .7); const a = toScr(sp.position.clone().add(V3(0, .02, 0))), b = toScr(mouth()); if (Math.hypot(a.x - b.x, a.y - b.y) < Math.max(52, innerWidth * .11)) cur.eat(); },
+  up() { drag = false; },
+  eat() { if (ok) return; ok = true; setGuide(null); const from = sp.position.clone(), to = mouth(); bearMood('eat', .9); SFX.whoosh(); tween(.55, k => sp.position.lerpVectors(from, to, k), () => { SFX.chomp(); blob.visible = false; buzz(20);
+      setTimeout(() => { bearMood('love', 1.6); A.voice('yay', 1.7); bearSay(pick(BEARTALK.taste), 1500); big3('😋', 800); FX.burst(to.clone().add(V3(0, .15, 0)), 18, [rgb('#ff4a7a'), rgb('#ffd23a')], 1.2, .04, 1, 2); }, 300); tween(.4, k => sp.position.lerpVectors(to, V3(W.x + .3, .1, W.z + .2), k), null, .5); setTimeout(() => done(1), 1500); }); },
+  update(dt) { if (!drag && !ok) { t0 += dt; sp.position.y = .09 + Math.sin(t0 * 4) * .015; } },
+  end() { if (sp) scene.remove(sp); }, delay: 200 }; }
 
 const TW = []; function tween(dur, fn, end, delay = 0) { TW.push({ t: -delay, dur, fn, end }); }
 function tweenTick(dt) { for (let i = TW.length - 1; i >= 0; i--) { const w = TW[i]; w.t += dt; if (w.t < 0) continue; const k = Math.min(1, w.t / w.dur); w.fn(k); if (k >= 1) { TW.splice(i, 1); w.end && w.end(); } } }
@@ -614,32 +715,32 @@ function tweenTick(dt) { for (let i = TW.length - 1; i >= 0; i--) { const w = TW
 function plateDish() { const R = RUN.R; const d = new THREE.Group(); const p = mkPlate(); p.userData.plate = true; p.children.forEach(c => c.userData.plate = true); d.add(p); R.dish = d; R.surf = {}; return d; }
 const RECIPES = [
   { id: 'pancakes', e: '🥞', n: T('פנקייק דבש', 'Honey pancakes'), steps: () => [
-    () => stCrack('bowl'), () => stPour('milk', [.5, .78]), () => stPour('flour', [.5, .78]), () => stStir('#f2d9a4'), () => stFry('pancake', 1),
+    () => stCrack('bowl'), () => stCrack('bowl'), () => stPour('milk', [.5, .78]), () => stPour('flour', [.5, .78]), () => stStir('#f2d9a4'), () => stTaste('#f2d9a4'), () => stFry('pancake', 1),
     () => stAuto(() => { const R = RUN.R; newStation(); const d = plateDish(); d.position.copy(W); ST.add(d); const ck = R.cooked.pancake; for (let i = 0; i < 3; i++) { const pc = pancakeMesh('#' + C(ck.top).getHexString()); pc.userData.top.color.setHex(ck.top); pc.position.y = .45 + i * .2; pc.rotation.y = rnd(0, 3); d.add(pc); const y = .036 + i * .029; pc.visible = false; tween(.42, k => { pc.visible = true; pc.position.y = lerp(.5, y, k * k); }, () => { SFX.plop(); pc.scale.set(1.06, .7, 1.06); tween(.15, k => pc.scale.set(lerp(1.06, 1, k), lerp(.7, 1, k), lerp(1.06, 1, k))); }, i * .38); }
       R.surf.top = { parent: d, pos: V3(0, .036 + 2 * .029 + .0145 + .001, 0), w: .33, h: .33, round: true, top: .006 }; setTimeout(() => done(null), 1300); }, '🥞', T('עורמים את הפנקייקים…', 'Stacking the pancakes…')),
     () => stPaint('honey', 'top'), () => stSprinkle('berries', 'top'), () => stServe()] },
   { id: 'burger', e: '🍔', n: T('המבורגר', 'Burger'), steps: () => [
-    () => stPress(), () => stFry('patty', 1), () => stCrack('pan'), () => stFry('egg', 0), () => stSlice('tomato', 3), () => stSlice('cucumber', 5),
+    () => stPress(), () => stFry('patty', 1), () => stTaste('#6a3a22'), () => stCrack('pan'), () => stFry('egg', 0), () => stSlice('tomato', 4), () => stSlice('cucumber', 6),
     () => { const s = stAssemble([{ e: '🥬', h: .012, make: () => lettuceMesh(.15) }, { e: '🥩', h: .036, off: .018, make: () => { const m = pattyMesh('#6a3a22'); const ck = RUN.R.cooked.patty; m.userData.top.color.setHex(ck ? ck.top : 0x6a3a22); return m; } }, { e: '🍳', h: .016, off: .004, make: () => { const e = friedEgg(); e.userData.white.opacity = 1; e.scale.setScalar(1.2); e.rotation.y = 1; return e; } },
       { e: '🍅', h: .012, off: .006, make: () => { const g = new THREE.Group(); for (let i = 0; i < 3; i++) { const s2 = sliceMesh('tomato', .06, .011); s2.position.set(Math.cos(i * 2.1) * .05, i * .002, Math.sin(i * 2.1) * .05); g.add(s2); } return g; } },
       { e: '🥒', h: .01, off: .005, make: () => { const g = new THREE.Group(); for (let i = 0; i < 4; i++) { const s2 = sliceMesh('cucumber', .038, .008); s2.position.set(Math.cos(i * 1.6) * .06, i * .001, Math.sin(i * 1.6) * .06); g.add(s2); } return g; } },
       { e: '🍞', h: .09, make: () => bunHalf(true) }]); const st0 = s.start; s.start = () => { newStation(); const d = plateDish(); d.position.copy(W); ST.add(d); const bb = bunHalf(false); bb.position.y = .022; d.add(bb); RUN.R.stackY = .062; st0.call(s); }; return s; },
     () => stServe()] },
   { id: 'pizza', e: '🍕', n: T('פיצה', 'Pizza'), steps: () => [
-    () => stRoll(), () => stPaint('sauce', 'top'), () => stSprinkle('cheese', 'top'), () => stSprinkle('olive', 'top'), () => stBake(), () => stCut(2), () => stServe()] },
+    () => stRoll(), () => stPaint('sauce', 'top'), () => stTaste('#c22a16'), () => stSprinkle('cheese', 'top'), () => stSprinkle('olive', 'top'), () => stSprinkle('golive', 'top'), () => stBake(), () => stCut(2), () => stServe()] },
   { id: 'breakfast', e: '🍳', n: T('ארוחת בוקר', 'Breakfast'), steps: () => [
-    () => stCrack('pan'), () => stFry('egg', 0), () => stSlice('tomato', 4),
+    () => stCrack('pan'), () => stFry('egg', 0), () => stTaste('#ffe9a0'), () => stSlice('tomato', 5),
     () => { const s = stPaint('butter', 'toast'); const s0 = s.start; s.start = () => { newStation(); const R = RUN.R; const d = plateDish(); const tst = toastMesh(); tst.position.set(-.08, .05, .02); tst.rotation.y = .25; d.add(tst); R.toast = tst; R.surf.toast = { parent: tst, pos: V3(0, .0145, 0), w: .19, h: .2, round: false }; d.position.copy(W); ST.add(d); s0.call(s); }; return s; },
     () => stAuto(() => { const R = RUN.R; const d = R.dish; const e = R.egg; d.attach(e); e.position.set(.1, .042, -.04); e.rotation.set(0, 0, 0); e.scale.setScalar(.9); for (let i = 0; i < 4; i++) { const s2 = sliceMesh('tomato', .055, .011); s2.position.set(.08 + i * .03, .05 + i * .003, .12 - i * .01); s2.rotation.x = -.15; d.add(s2); } R.surf.all = { parent: d, pos: V3(0, .07, 0), w: .44, h: .44, round: true, top: -.01 }; SFX.plop(); setTimeout(() => done(null), 900); }, '🍽️', T('מסדרים יפה בצלחת…', 'Plating it nicely…')),
     () => stSprinkle('herbs', 'all'), () => stServe()] },
   { id: 'salad', e: '🥗', n: T('סלט צבעוני', 'Rainbow salad'), steps: () => [
-    () => stSlice('cucumber', 5), () => stSlice('tomato', 3), () => stSlice('carrot', 6),
+    () => stSlice('cucumber', 6), () => stSlice('tomato', 4), () => stSlice('carrot', 7),
     () => { const s = stStir('#ffffff', true); const s0 = s.start; s.start = () => { newStation(); const R = RUN.R; const b = mkBowl(.24, '#fff', true); const BS = { g: b, r: .24, liq: new THREE.Object3D(), blobs: [], lvl: 0 }; b.position.copy(W); ST.add(b); R.bowl = BS; const pcs = new THREE.Group(); pcs.position.y = .05; b.add(pcs); BS.pieces = pcs;
       const lt = lettuceMesh(.17); lt.position.y = .01; pcs.add(lt); const add = (food, r, n2) => { for (let i = 0; i < n2; i++) { const m = sliceMesh(food, r, .01); const a = rnd(0, TAU), rr = rnd(0, .13); m.position.set(Math.cos(a) * rr, .02 + rnd(0, .03), Math.sin(a) * rr); m.rotation.set(rnd(-.5, .5), 0, rnd(-.5, .5)); m.userData.y = m.position.y; pcs.add(m); } };
       add('cucumber', .038, 8); add('tomato', .05, 5); add('carrot', .03, 8); lt.userData.y = .01; R.dish = b; s0.call(s); }; return s; },
-    () => stPour('dressing', [.45, .75], 'salad'), () => stServe()] },
+    () => stPour('dressing', [.45, .75], 'salad'), () => stTaste('#f0d890'), () => stServe()] },
   { id: 'hotdog', e: '🌭', n: T('נקניקייה', 'Hot dog'), steps: () => [
-    () => stFry('sausage', 1),
+    () => stFry('sausage', 1), () => stTaste('#a8502a'),
     () => { const s = stAssemble([{ e: '🌭', y: .08, make: () => { const m = sausageMesh('#a8502a'); m.userData.top.color.setHex(RUN.R.cooked.sausage.top); return m; } }], { txt: T('גררו את הנקניקייה אל הלחמנייה', 'Drag the sausage into the bun') }); const s0 = s.start; s.start = () => { newStation(); const R = RUN.R; const d = plateDish(); d.position.copy(W); ST.add(d); const bn = bunDog(); bn.position.y = .03; d.add(bn); R.surf.dog = { parent: d, pos: V3(0, .108, 0), w: .3, h: .07, round: false }; R.stackY = .08; s0.call(s); }; return s; },
     () => stPaint('ketchup', 'dog'), () => stPaint('mustard', 'dog'), () => stSprinkle('onion', 'dog'), () => stServe()] },
 ];
@@ -647,14 +748,14 @@ const recUnlocked = i => i === 0 || S.stars[RECIPES[i - 1].id] > 0 || S.stars[RE
 
 /* ================= flow ================= */
 let state = 'title';
-function clearKitchen() { TW.length = 0; if (stOld) { scene.remove(stOld); stOld = null; } ST.clear(); ST.position.set(0, 0, 0); stK = 1; if (RUN && RUN.R.dish && RUN.R.dish.parent) RUN.R.dish.parent.remove(RUN.R.dish); A.allOff(); warm.intensity = 0; }
+function clearKitchen() { flyOff(true); BITE.uN.value = 0; if ($('hunger')) $('hunger').hidden = true; if (cur && cur.end && !cur.ended) { try { cur.ended = 1; cur.end(); } catch (e) { } } SNEAK.on = false; TW.length = 0; if (stOld) { scene.remove(stOld); stOld = null; } ST.clear(); ST.position.set(0, 0, 0); stK = 1; if (RUN && RUN.R.dish && RUN.R.dish.parent) RUN.R.dish.parent.remove(RUN.R.dish); A.allOff(); warm.intensity = 0; }
 function startRecipe(i) { const r = RECIPES[i]; clearKitchen(); $('title').hidden = true; $('bookSheet').hidden = true; $('resSheet').hidden = true; $('hud').hidden = false; state = 'cook';
-  RUN = { rec: r, idx: i, steps: r.steps(), i: 0, q: [], R: {} }; $('recT').textContent = r.e + ' ' + r.n; coinsUI(); bearMood('idle'); bearSay(pick(BEARTALK.hi), 1600); A.startMusic({ chords: [[53, 57, 60, 64], [50, 53, 57, 60], [55, 58, 62, 65], [48, 52, 55, 59]], bpm: 78, lead: true, vol: .55 });
+  RUN = { rec: r, idx: i, steps: r.steps(), i: 0, q: [], R: {} }; RUN.sneakAt = 1 + Math.floor(Math.random() * Math.max(1, RUN.steps.length - 3)); SNEAK.done = false; SNEAK.on = false; RUN.flyAt = [2 + Math.floor(Math.random() * 3), RUN.steps.length - 3 - Math.floor(Math.random() * 2)].filter(i => i !== RUN.sneakAt); HUN.v = 1; HUN.rate = 1 / (RUN.steps.length * 13); HUN.rumble = 0; COMBO.n = 0; $('hunger').hidden = false; hungerUI(); $('recT').textContent = r.e + ' ' + r.n; coinsUI(); bearMood('idle'); bearSay(pick(BEARTALK.hi), 1600); A.startMusic({ chords: [[53, 57, 60, 64], [50, 53, 57, 60], [55, 58, 62, 65], [48, 52, 55, 59]], bpm: 78, lead: true, vol: .55 });
   setView('work', 1); startStep(); }
-function showResult(st) { state = 'result'; const r = RUN.rec; const prev = S.stars[r.id] || 0; const coins = st * 10 + (st > prev ? 10 : 0); S.coins += coins; S.stars[r.id] = Math.max(prev, st); S.cooked++; S.save(); coinsUI();
+function showResult(st) { state = 'result'; $('hunger').hidden = true; const r = RUN.rec; const prev = S.stars[r.id] || 0; const md = HUN.v > .5 ? ['🥇', 15, T('שף בזק! הדובי בכלל לא הספיק להיות רעב', 'Lightning chef! The cub barely got hungry')] : HUN.v > .2 ? ['🥈', 8, T('מהירים! עוד קצת ותקבלו זהב', 'Quick! A bit faster for gold')] : ['🥉', 3, T('הדובי היה ממש רעב – נסו מהר יותר!', 'The cub got really hungry – try faster!')]; const coins = st * 10 + (st > prev ? 10 : 0) + md[1]; S.coins += coins; S.stars[r.id] = Math.max(prev, st); S.cooked++; S.save(); coinsUI();
   const next = RUN.idx + 1 < RECIPES.length ? RUN.idx + 1 : -1; const newly = next >= 0 && prev === 0;
   $('resCard').innerHTML = `<div class="rbig">${r.e}</div><h3>${r.n}</h3><div class="st">${[1, 2, 3].map(i => `<i class="${i <= st ? 'on' : ''}" style="animation-delay:${i * .2}s">⭐</i>`).join('')}</div>
-    <p>${st === 3 ? T('הדובי מאוהב! מושלם! 💖', 'The cub is in love! Perfect! 💖') : st === 2 ? T('יאמי! כמעט מושלם 😋', 'Yummy! Almost perfect 😋') : T('טעים! נסו שוב בשביל 3 כוכבים', 'Tasty! Try again for 3 stars')}</p><div class="cn">+${coins} 🪙</div>
+    <p>${st === 3 ? T('הדובי מאוהב! מושלם! 💖', 'The cub is in love! Perfect! 💖') : st === 2 ? T('יאמי! כמעט מושלם 😋', 'Yummy! Almost perfect 😋') : T('טעים! נסו שוב בשביל 3 כוכבים', 'Tasty! Try again for 3 stars')}</p><p style="margin:6px 0 2px;font-weight:900"><span style="font-size:26px">${md[0]}</span> ${md[2]}</p><div class="cn">+${coins} 🪙</div>
     ${newly ? `<p style="color:#e8442a">${T('🔓 מתכון חדש נפתח:', '🔓 New recipe unlocked:')} ${RECIPES[next].e} ${RECIPES[next].n}</p>` : ''}
     <div class="row" style="margin-top:12px">${next >= 0 ? `<button class="btn pri" id="rNext">${T('למתכון הבא', 'Next recipe')} ${RECIPES[next].e}</button>` : ''}<button class="btn" id="rAgain">${T('🔁 שוב', '🔁 Again')}</button><button class="btn" id="rBook">${T('📖 ספר מתכונים', '📖 Cookbook')}</button></div>`;
   $('resSheet').hidden = false; if (st === 3) A.tone(1319, .4, 'triangle', .08, .5);
@@ -676,7 +777,7 @@ function showTitle() { clearKitchen(); state = 'title'; RUN = null; cur = null; 
   for (let i = 0; i < 6; i++) { const m = SPR.berries.make(); const a = i / 6 * TAU; m.position.set(Math.cos(a) * .06, .112, Math.sin(a) * .06); d.add(m); } d.position.set(.0, 0, -.28); ST.add(d); }
 
 /* ================= input ================= */
-stageEl.addEventListener('pointerdown', e => { A.ac(); ptr = { id: e.pointerId }; try { stageEl.setPointerCapture(e.pointerId); } catch (er) { } if (state === 'cook' && cur && cur.down) cur.down(e); });
+stageEl.addEventListener('pointerdown', e => { A.ac(); if (state === 'cook' && flyHit(e)) return; if ((state === 'title' || (state === 'cook' && !(cur && (cur.k === 'serve' || cur.k === 'taste')))) && hitBear(e)) { pokeBear(); return; } ptr = { id: e.pointerId }; try { stageEl.setPointerCapture(e.pointerId); } catch (er) { } if (state === 'cook' && cur && cur.down) cur.down(e); });
 stageEl.addEventListener('pointermove', e => { if (state === 'cook' && cur && cur.move) cur.move(e); if (state === 'cook' && cur && !cur.fin) { const p = onPlane(e, .05); if (p && ptr) B.look.lerp(p, .2); } });
 const upH = e => { if (state === 'cook' && cur && cur.up) cur.up(e); ptr = null; }; stageEl.addEventListener('pointerup', upH); stageEl.addEventListener('pointercancel', upH);
 
@@ -684,7 +785,7 @@ const upH = e => { if (state === 'cook' && cur && cur.up) cur.up(e); ptr = null;
 let last = performance.now();
 function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000) * (window.__fast || 1); last = now; const t = now / 1000;
   stationTick(dt); tweenTick(dt); if (state === 'cook' && cur) { cur.t += dt; cur.update && cur.update(dt, t); if (!ptr && !cur.fin && cur.item) B.look.lerp(cur.item.getWorldPosition(V3()), dt * 3); }
-  bearTick(t, dt); bulbs.forEach((b, i) => b.material.color.setScalar(1.6 + Math.sin(t * 2 + i * 1.7) * .6).multiply(C(i % 3 === 0 ? '#ffd27a' : i % 3 === 1 ? '#ffb0a0' : '#fff0b0')));
+  if (state === 'cook') { sneakTick(dt); flyTick(dt, t); hungerTick(dt); } bearTick(t, dt); bulbs.forEach((b, i) => b.material.color.setScalar(1.6 + Math.sin(t * 2 + i * 1.7) * .6).multiply(C(i % 3 === 0 ? '#ffd27a' : i % 3 === 1 ? '#ffb0a0' : '#fff0b0')));
   if (state === 'title' && ST.children[0]) ST.children[0].rotation.y += dt * .4;
   camUpdate(dt); placeBub(); guideTick(); FX.update(dt, -.2); A.tick(); E.render(); }
 
@@ -693,6 +794,7 @@ $('backBtn').innerHTML = ICO.grid('#e8732a'); $('homeT').innerHTML = ICO.home('#
 $('backBtn').onclick = () => { $('resSheet').hidden = true; showTitle(); };
 $('tSub').textContent = T('מבשלים צעד אחר צעד – שוברים ביצים, חותכים, מטגנים ומקשטים – ומאכילים את הדובי הרעב!', 'Cook step by step – crack, slice, fry and decorate – and feed the hungry cub!');
 $('cookBtn').textContent = T('🍳 בואו נבשל!', '🍳 Let’s cook!'); $('hatBtn').textContent = T('🎩 הארון של הדובי', '🎩 The cub’s closet');
+{ const vb = $('voiceBtn'); const vu = () => vb.textContent = S.voice === 0 ? T('🔇 הדובי שותק', '🔇 Cub voice off') : T('🗣️ הדובי מדבר', '🗣️ Cub talks'); vu(); vb.onclick = () => { S.voice = S.voice === 0 ? 1 : 0; S.save(); vu(); if (S.voice) { pickVoice(); if (VOICE.v) speak(T('שלום! אני רעב!', 'Hi! I’m hungry!')); else toast(T('אין במכשיר הזה קול בעברית – הדובי ידבר בבועות', 'No voice for this language on this device – the cub talks in bubbles'), 2600); } }; }
 $('cookBtn').onclick = () => { A.ac(); SFX.pop(); showBook(); }; $('hatBtn').onclick = () => { A.ac(); SFX.pop(); showHats(); };
 setTimeout(() => { E.resize(); viewPose('title', CAM); CAM.k = 1; showTitle(); CAM.k = 1; $('loading').hidden = true; requestAnimationFrame(frame); window.__cubOK = true; }, 30);
-window.__cub = { VIEWS, setView, get state() { return state; }, get cur() { return cur; }, get RUN() { return RUN; }, startRecipe, RECIPES, B, S, done: q => done(q), onPlane, toScr, W };
+window.__cub = { flyStart, FLY, HUN, speak, pokeBear, sneakStart, SNEAK, VIEWS, setView, get state() { return state; }, get cur() { return cur; }, get RUN() { return RUN; }, startRecipe, RECIPES, B, S, done: q => done(q), onPlane, toScr, W };
