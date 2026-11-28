@@ -904,7 +904,7 @@ function renderHome(){ syncViewBtn(); if(isGrid()){ const rec=(S.recent||[]).fil
   const fv=(S.fav||[]).filter(id=>gOf(id)); if(fv.length) h+=`<section class="nf-row nf-mine"><h2>${L('❤️ המועדפים שלי','❤️ My favorites')}</h2><div class="nf-scr">${fv.map(id=>cardHTML(gOf(id))).join('')}</div></section>`;
   for(const r of ROWS()){ const top=r.k==='top'; h+=`<section class="nf-row${top?' nf-top':''}${r.k==='new'?' nf-big':''}"><h2>${r.t}</h2><div class="nf-scr">${r.ids.map((id,i)=>cardHTML(gOf(id),top?{top:1,n:i+1}:{})).join('')}</div></section>`; }
   $('rows').innerHTML=h; hero.show(hero.i); }
-const VIDS=['case','scoot','puck','bowl','helix','ski','yaya','rise','kibo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
+const VIDS=['surf','case','scoot','puck','bowl','helix','ski','yaya','rise','kibo','drift','pet','goal','wave','numx','cake','chase','dash','mud','brawl'];
 /* ---- stats (GoatCounter, no cookies, no personal data) ---- */
 const GC_CODE='yayagames2';
 const GC_APP=(()=>{ try{ if((document.referrer||'').startsWith('android-app://com.yayagames.offlinearcade')) sessionStorage.setItem('oa-app','1'); return sessionStorage.getItem('oa-app')==='1'; }catch(e){ return false; } })();

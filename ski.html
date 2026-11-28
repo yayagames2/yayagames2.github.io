@@ -65,7 +65,7 @@ body.ward #title .tpan,body.ward #title .logo{visibility:hidden}
 #zL i{left:max(18px,env(safe-area-inset-left))}#zR i{right:max(18px,env(safe-area-inset-right))}
 #zones div.on i{background:rgba(90,232,255,.45);color:#fff}
 .abtn{position:fixed;z-index:6;border-radius:50%;font-weight:900;color:#fff;touch-action:none;box-shadow:0 5px 0 rgba(0,0,0,.35),0 8px 18px rgba(0,0,0,.35);border:3px solid rgba(255,255,255,.55);user-select:none;-webkit-user-select:none;display:grid;place-items:center;line-height:1}
-.abtn.on{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35);filter:brightness(1.2)}
+.abtn.on{box-shadow:0 1px 0 rgba(0,0,0,.35),inset 0 0 0 4px rgba(255,255,255,.55);filter:brightness(1.25)}.abtn{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .abtn small{display:block;font-size:10px;margin-top:2px}
 #bJump{right:max(100px,calc(env(safe-area-inset-right) + 100px));bottom:max(20px,env(safe-area-inset-bottom));width:84px;height:84px;font-size:30px;background:radial-gradient(circle at 35% 30%,#8aff7a,#22b81a)}
 #bFlip{right:max(100px,calc(env(safe-area-inset-right) + 100px));bottom:max(116px,calc(env(safe-area-inset-bottom) + 112px));width:70px;height:70px;font-size:26px;background:radial-gradient(circle at 35% 30%,#ffb08a,#e0501a)}
@@ -80,6 +80,7 @@ body:not(.air) #bFlip,body:not(.air) #bGrab{opacity:.35}
 .res{list-style:none;padding:0;margin:8px 0;text-align:start}.res li{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:12px;font-weight:800;background:#f2f7ff;margin-bottom:5px}
 .card{background:#fff;color:#0a2a5a}
 @media (orientation:landscape) and (max-height:620px){#title{flex-direction:row;justify-content:flex-end;align-items:center;background:linear-gradient(90deg,rgba(6,20,40,0) 30%,rgba(6,20,40,.82) 52%,rgba(6,20,40,.94))}#title .logo{right:auto;left:max(16px,env(safe-area-inset-left));top:auto;bottom:18px;text-align:start;width:auto}#title .logo .b{font-size:54px}.tpan{width:min(440px,56vw);gap:6px;max-height:100%;overflow-y:auto;padding:4px}.seg button{min-height:44px}.go2{height:50px}#wardS{left:auto;width:min(460px,60vw);max-height:80vh}}
+@media (orientation:landscape) and (max-height:620px){html[dir=rtl] #title{background:linear-gradient(270deg,rgba(6,20,40,0) 30%,rgba(6,20,40,.82) 52%,rgba(6,20,40,.94))}html[dir=rtl] #title .logo{left:auto;right:max(16px,env(safe-area-inset-right))}}
 </style>
 </head>
 <body>
