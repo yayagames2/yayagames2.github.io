@@ -144,7 +144,19 @@ function posePlayerRig(dt, t) { const Mx = OP.M; if (!Mx) return; OP.cele = Math
   Mx.limbIK('RightArm', 'RightForeArm', 'RightHand', sh, hc, V3(-.6, -.6, -.4).normalize());
   if (OP.cele > 0) { Mx.aim('LeftArm', 'LeftForeArm', V3(.35, .9, .2).normalize()); Mx.aim('LeftForeArm', 'LeftHand', V3(.05, 1, .1).normalize()); } else if (OP.sad > 0) { Mx.aim('LeftArm', 'LeftForeArm', V3(.2, -1, 0).normalize()); Mx.aim('LeftForeArm', 'LeftHand', V3(.1, -1, .1).normalize()); } else { Mx.aim('LeftArm', 'LeftForeArm', V3(.55 - OP.tw * .4, -.5, .55).normalize()); Mx.aim('LeftForeArm', 'LeftHand', V3(-.1, .15, 1).normalize()); }
   // head looks at the ball
-  const bc = B.p.clone().applyMatrix4(inv); const hp = Mx.restP.Head.clone().add(d); const ld = bc.sub(hp).normalize(); ld.y = clamp(ld.y, -.6, .4); Mx.aim('Neck', 'Head', OP.sad > 0 ? V3(0, .6, .8).normalize() : V3(ld.x * .4, 1, .25).normalize()); Mx.apply(); }
+  const bc = B.p.clone().applyMatrix4(inv); const hp = Mx.restP.Head.clone().add(d); const ld = bc.sub(hp).normalize(); ld.y = clamp(ld.y, -.6, .4); Mx.aim('Neck', 'Head', OP.sad > 0 ? V3(0, .6, .8).normalize() : V3(ld.x * .4, 1, .25).normalize()); Mx.apply(); gripPaddle(Mx); }
+// the paddle sits in the opponent's hand: fingers curl round the handle, the blade follows the forearm
+const GQ = new THREE.Quaternion(), GM = new THREE.Matrix4(), GX = V3(), GY = V3(), GZ = V3(), GA = V3(), GB = V3(), GC = V3();
+function gripPaddle(Mx) { const H = Mx.B.RightHand, MD = Mx.B.RightHandMiddle1, FA = Mx.B.RightForeArm; if (!H || !MD || !FA) return;
+  const cu = window.__curl || [1.15, 1.25, 1.1], ax = window.__cax || 'x', sg = window.__csg || 1;
+  for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (let i = 1; i <= 3; i++) { const b = Mx.B['RightHand' + f + i]; if (!b) continue; const q = new THREE.Quaternion().setFromAxisAngle(ax === 'x' ? V3(1, 0, 0) : ax === 'y' ? V3(0, 1, 0) : V3(0, 0, 1), sg * cu[i - 1] * (f === 'Index' ? .85 : 1)); b.quaternion.multiply(q); }
+  for (let i = 1; i <= 3; i++) { const b = Mx.B['RightHandThumb' + i]; if (!b) continue; const t = window.__tcurl || [.0, .5, .5]; const q = new THREE.Quaternion().setFromAxisAngle(window.__tax ? V3(...window.__tax) : V3(0, 0, 1), t[i - 1]); b.quaternion.multiply(q); }
+  Mx.holder.updateMatrixWorld(true); FA.getWorldPosition(GA); H.getWorldPosition(GB); MD.getWorldPosition(GC);
+  const palm = GB.clone().lerp(GC, .55); GY.subVectors(GB, GA).normalize(); // blade continues along the forearm
+  const gw = window.__gw || [.45, 1, -.3]; GY.multiplyScalar(gw[0]); GY.y += gw[1]; GY.x += gw[2]; GY.normalize(); // wrist cocked: blade stands up above the hand, face to the net
+  GZ.set(0, 0, 1).addScaledVector(GY, -GY.z).normalize(); if (GZ.lengthSq() < 1e-4) GZ.set(1, 0, 0); GX.crossVectors(GY, GZ).normalize(); GZ.crossVectors(GX, GY).normalize();
+  GM.makeBasis(GX, GY, GZ); GQ.setFromRotationMatrix(GM); ap.quaternion.copy(GQ); ap.position.copy(palm).addScaledVector(GY, .115); }
+
 
 /* ================= MATCH STATE ================= */
 let state = 'title', M = null, CH = null, slow = 1, shake = 0, msgT = 0;
@@ -272,7 +284,7 @@ function playerTick(dt, t) { const lv = M ? M.lv : LV[1]; let tx = PP.tx, ty = P
   PP.z = lerp(PP.z || PZ, B.live && B.last !== 'p' && B.v.z > 0 && B.bP >= 1 ? clamp(B.p.z + .04, .5, PZ) : PZ, Math.min(1, dt * 14)); const sw = Math.sin(PP.swing * Math.PI); pp.position.set(PP.x + sw * (PP.fx || 0) * .35, PP.y + sw * .12, PP.z - sw * .32); pp.rotation.set(-.35 - sw * .7, clamp(-PP.x * .25, -.4, .4), clamp(-PP.vx * .02, -.5, .5) + (PP.x < 0 ? .25 : -.25));
   if (B.held === 'p') { B.p.set(PP.x, PP.y + .16 + Math.abs(Math.sin(t * 3)) * .05, PZ - .12); B.v.set(0, 0, 0); } }
 let CAMX = 0;
-function camTick(dt) { const asp = innerWidth / innerHeight; const port = asp < 1; const z = port ? 3.35 : 2.9, y = port ? 1.85 : 1.62; const fov = port ? 66 : 48; if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
+function camTick(dt) { if (window.__camOv) { window.__camOv(camera, dt); return; } const asp = innerWidth / innerHeight; const port = asp < 1; const z = port ? 3.35 : 2.9, y = port ? 1.85 : 1.62; const fov = port ? 66 : 48; if (camera.fov !== fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   let want = state === 'title' ? Math.sin(performance.now() / 4000) * 1.2 : PP.x * .25; if (state !== 'title' && B.live && B.p.z > 0) want = lerp(want, clamp(B.p.x, -1.2, 1.2) * (port ? .75 : .45), clamp(B.p.z / 1.4, 0, 1)); CAMX = lerp(CAMX, want, Math.min(1, dt * (port ? 5 : 3.5))); const fx = CAMX; camera.position.set(fx + (Math.random() - .5) * shake, y + (Math.random() - .5) * shake, z); camera.lookAt(fx * .6, TY + (port ? .2 : .12), port ? -1.0 : -.55); shake = Math.max(0, shake - dt * .8); }
 function loop(now) { requestAnimationFrame(loop); let dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; A.tick(); const pdt = dt * slow;
   if (state === 'play' || state === 'serve' || state === 'chal' || state === 'point') {
